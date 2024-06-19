@@ -1,0 +1,72 @@
+<script setup lang="ts">
+// import { NoteDuration } from '../interfaces/music';
+import type { Note, Options } from '../interfaces/music';
+
+import { useGraphics } from '../composables/useGraphics';
+
+const { dimensions } = useGraphics();
+
+// Define props
+const props = defineProps<{
+  index: number;
+  notes: Array<Note | Note[]>;
+  options: Options;
+}>();
+
+
+const barWidth = 200;
+const stringSpacing = 30;
+</script>
+
+<template>
+  <g :transform="`translate(${index * barWidth}, 0)`">
+
+    <line v-for="(string, index) in options.tuning.strings" :key="string" :x1="0" :y1="index * dimensions.stringSpacing"
+      :x2="200" :y2="index * dimensions.stringSpacing" stroke="#eee" stroke-width="2" />
+    <!-- Vertical bars at the start and end of the SVG -->
+    <line x1="0" y1="0" x2="0" :y2="dimensions.stringSpacing * (options.tuning.strings.length - 1)" stroke="#eee"
+      stroke-width="2" />
+    <line x1="200" y1="0" x2="200" :y2="dimensions.stringSpacing * (options.tuning.strings.length - 1)" stroke="#eee"
+      stroke-width="2" />
+    <!-- Render notes -->
+    <template v-for="(note, idx) in   props.notes  ">
+      <template v-if="Array.isArray(note)">
+        <template v-for="(subnote, idx2) in   note  " :key="idx">
+          <g
+            :transform="`translate(${(idx + 1) * (barWidth / (props.notes.length + 1)) - 10}, ${(options.tuning.strings.length - subnote.string) * stringSpacing})`">
+            <rect :x="0" :y="-10" width="20" height="20" fill="#ff0000" rx="5" ry="5"
+              :class="{ active: subnote.active }" />
+            <text :x="10" :y="8">{{ subnote.fret }}</text>
+          </g>
+        </template>
+      </template>
+      <template v-else>
+
+        <g :key="idx"
+          :transform="`translate(${(idx + 1) * (barWidth / (props.notes.length + 1)) - 10}, ${(options.tuning.strings.length - note.string) * stringSpacing})`">
+          <rect :x="0" :y="-10" width="20" height="20" fill="#ff0000" rx="5" ry="5" :class="{ active: note.active }" />
+          <text :x="10" :y="8">{{ note.fret }}</text>
+        </g>
+      </template>
+
+    </template>
+  </g>
+</template>
+
+<style scoped>
+rect {
+  fill: #ff0000;
+}
+
+rect.active {
+  fill: purple;
+}
+
+text {
+  fill: #ffffff;
+  text-anchor: middle;
+  fill: #ffffff;
+  font-size: 22px;
+  font-family: Arial, sans-serif;
+}
+</style>
