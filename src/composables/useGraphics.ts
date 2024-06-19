@@ -82,7 +82,7 @@ export const useGraphics = (svgRef: Ref<SVGElement | null>, options: Ref<Options
                     .data(bar.notes, (_, poly_index) => "bar-" + bar_index + "-notes-" + bar_index + "-poly-" + poly_index + "-group")
                     .join('g')
                     .call(selection => {
-                        selection.each(function (d, poly_index) {
+                        selection.each(function (d: any) {
                             const group = d3.select(this);
                             if (group.attr("keyOctave") && group.attr("keyOctave") == d.keyOctave) {
                                 console.log("poly", d.keyOctave, group.attr("keyOctave"));

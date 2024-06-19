@@ -7,7 +7,7 @@ type Direction = 'up' | 'down' | 'updown' | 'downup' | 'updownbounce';
 //     QUARTER = 'q',
 // }
 
-export type Note = {
+type Note = {
     index: number;
     keyOctave: string;
     octave: number;
@@ -18,7 +18,7 @@ export type Note = {
     active: boolean;
 }
 
-export type Options = {
+type Options = {
     // instrument: Instrument;
     key: Key;
     mode: Mode;
@@ -28,19 +28,19 @@ export type Options = {
     // octaves: number;
 }
 
-export type Mode = {
+type Mode = {
     name: string;
     modeName: string;
     intervals: number[];
 }
 
-export type Position = {
+type Position = {
     name: string;
     fret: number;
 }
 
 
-export const POSITIONS: Position[] = [
+const POSITIONS: Position[] = [
     {
         name: "Open",
         fret: 0
@@ -95,7 +95,7 @@ export const POSITIONS: Position[] = [
     },
 ];
 
-export const MODES: Mode[] = [
+const MODES: Mode[] = [
     {
         name: "Major",
         modeName: "Ionian",
@@ -133,12 +133,12 @@ export const MODES: Mode[] = [
     }
 ];
 
-export type Key = {
+type Key = {
     name: string;
     index: number;
 }
 
-export const KEYS = [
+const KEYS = [
     {
         name: 'C',
         index: 0
@@ -189,14 +189,14 @@ export const KEYS = [
     }
 ]
 
-export type Tuning = {
+type Tuning = {
     name: string;
     shortName: string;
     instrument: string;
     strings: string[];
 };
 
-export const TUNINGS: Tuning[] = [
+const TUNINGS: Tuning[] = [
     {
         name: "Guitar 6 String Standard",
         shortName: "Standard",
@@ -313,7 +313,7 @@ export const TUNINGS: Tuning[] = [
     }
 ];
 
-export type Instrument = {
+type Instrument = {
     name: string;
     tunings: Tuning[];
 }
@@ -341,5 +341,5 @@ type Score = {
     bars: Bar[];
 }
 
-export { Instrument, Tuning };
-export type { Note, Direction, Bar, Score };
+export { KEYS, MODES, POSITIONS, TUNINGS };
+export type { Note, Direction, Bar, Score, Instrument, Tuning, Options, Key, Mode, Position };

@@ -1,6 +1,8 @@
 // src/composables/useSound.ts
 import * as Tone from 'tone';
 import { useStore } from '../stores/useStore';
+import type { Note } from '../interfaces/music';
+
 
 export const useSound = () => {
 
@@ -43,7 +45,7 @@ export const useSound = () => {
             onload: () => {
                 console.log("starting play");
 
-                part = new Tone.Part((time, note) => {
+                part = new Tone.Part((time, note: any) => {
                     const duration = "4n";
                     Tone.Draw.schedule(() => {
                         note.active = true;
