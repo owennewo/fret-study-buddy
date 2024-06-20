@@ -11,7 +11,7 @@ export const useStore = defineStore('score', () => {
         mode: MODES[0],
         position: POSITIONS[0],
         tuning: TUNINGS[0],
-        bpm: 240,
+        bpm: 120,
     });
 
     const score: Ref<Score> = ref(generateScore(options.value));

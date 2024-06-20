@@ -27,7 +27,7 @@ export const useGraphics = (svgRef: Ref<SVGElement | null>, options: Ref<Options
             return;
         }
 
-        console.log(score.value);
+        // console.log(score.value);
 
         const svg = d3.select(svgRef.value);
 
@@ -40,12 +40,12 @@ export const useGraphics = (svgRef: Ref<SVGElement | null>, options: Ref<Options
                 const gBar = d3.select(nodes[bar_index]);
 
                 const gBarLines = gBar.selectAll('g.bar-lines')
-                    .data([bar], () => "bar-lines-" + bar_index)
+                    .data([bar], () => "bar-" + bar_index + "-lines")
                     .join('g')
                     .attr('class', 'bar-lines')
 
                 gBarLines.selectAll('line.bar.vertical')
-                    .data([bar], () => "bar-lines-" + bar_index + "v1")
+                    .data([bar], () => "bar-" + bar_index + "-lines-v1")
                     .join('line')
                     .attr('x1', (_, bar_index) => dimensions.barWidth * bar_index)
                     .attr('y1', 0)
@@ -54,7 +54,7 @@ export const useGraphics = (svgRef: Ref<SVGElement | null>, options: Ref<Options
                     .attr('class', 'bar vertical')
                     .attr('stroke', 'white')
                 gBarLines.selectAll('line.bar.vertical')
-                    .data([bar], () => "bar-lines-" + bar_index + "v2")
+                    .data([bar], () => "bar-" + bar_index + "-lines-v2")
                     .join('line')
                     .attr('x1', dimensions.barWidth)
                     .attr('y1', 0)
@@ -64,7 +64,7 @@ export const useGraphics = (svgRef: Ref<SVGElement | null>, options: Ref<Options
                     .attr('stroke', 'white')
 
                 gBarLines.selectAll('line.bar.horizontal')
-                    .data(options.value.tuning.strings, (_, string_index) => "bar-lines-" + bar_index + "h" + string_index)
+                    .data(options.value.tuning.strings, (_, string_index) => "bar-" + bar_index + "-lines-h" + string_index)
                     .join('line')
                     .attr('x1', 0)
                     .attr('y1', (_, string_index) => 0 + string_index * dimensions.stringSpacing)
@@ -74,61 +74,74 @@ export const useGraphics = (svgRef: Ref<SVGElement | null>, options: Ref<Options
                     .attr('stroke', 'white');
 
                 const gBarNotes = gBar.selectAll('g.bar-notes')
-                    .data([bar], () => "bar-notes-" + bar_index + "-group")
+                    .data([bar], () => "bar-" + bar_index + "-notes-group")
                     .join('g')
                     .attr('class', 'bar-notes')
 
                 gBarNotes.selectAll('g.polynote')
                     .data(bar.notes, (_, poly_index) => "bar-" + bar_index + "-notes-" + bar_index + "-poly-" + poly_index + "-group")
                     .join('g')
-                    .call(selection => {
-                        selection.each(function (d: any) {
-                            const group = d3.select(this);
-                            if (group.attr("keyOctave") && group.attr("keyOctave") == d.keyOctave) {
-                                console.log("poly", d.keyOctave, group.attr("keyOctave"));
 
-                                group.transition()
-                                    .duration(first ? 0 : 750)
-                                    .attr('class', "polynote changing")
-                                    .on('end', function () {
-                                        d3.select(this)
-                                            .attr('class', "polynote")
-                                            .transition()
-                                            .duration(250)
-                                    });
-                            }
-                            group.attr("keyOctave", d.keyOctave);
-                            // debugger;
-                        })
-                    })
-                    .attr('transform', (_, poly_index) => `translate(${(poly_index + 1) * dimensions.barWidth / (bar.notes.length + 1)} 0)`)
                     .attr('class', 'polynote')
+                    .call((d: any) => {
+                        // console.log(d.attr("keyOctave"))
+                        // debugger
+                        // const group = d; //d3.select(selection);
+                        const datum = d.datum();
+                        // debugger;
+                        if (d.attr("keyOctave") && (d.attr("keyOctave") !== datum.keyOctave || +d.attr("fret") !== datum.fret)) {
+                            console.log("change", datum.keyOctave, d.attr("keyOctave"), datum.fret, +d.attr("fret"));
+
+                            d.transition()
+                                .duration(first ? 0 : 750)
+                                .attr('transform', (polynote, poly_index) => `translate(${(poly_index + 1) * dimensions.barWidth / (bar.notes.length + 1)} ${(options.value.tuning.strings.length - polynote.string) * dimensions.stringSpacing})`)
+
+                                .attr('class', "polynote active")
+                                .on('end', function () {
+                                    // debugger;
+                                    d3.select(this)
+                                        .attr('class', "polynote")
+                                        .transition()
+                                        .duration(250)
+                                });
+                        } else {
+                            console.log("same", datum.keyOctave, d.attr("keyOctave"), datum.fret, +d.attr("fret"));
+                            // debugger;
+                            d.transition()
+                                .duration(first ? 0 : 750)
+                                .attr('transform', (polynote, poly_index) => `translate(${(poly_index + 1) * dimensions.barWidth / (bar.notes.length + 1)} ${(options.value.tuning.strings.length - polynote.string) * dimensions.stringSpacing})`)
+                                .attr('class', (d) => d.active ? 'polynote active' : 'polynote')
+                        }
+                        d.attr("keyOctave", datum.keyOctave);
+                        d.attr("fret", datum.fret);
+                        // debugger;
+
+                    })
+
                     .each((polynote, poly_index, nodes) => {
                         if (Array.isArray(polynote)) {
                             console.log("chords", polynote);
                         } else {
                             const gPolynote = d3.select(nodes[poly_index]);
-                            gPolynote.selectAll('rect.note')
+
+                            gPolynote.selectAll('rect')
                                 .data([polynote], () => "bar-" + bar_index + "-poly-" + poly_index)
                                 .join('rect')
-                                .transition()
-                                .duration(first ? 0 : 750)
-
                                 .attr('x', 0)
-                                .attr('y', (options.value.tuning.strings.length - polynote.string) * dimensions.stringSpacing - 10)
+                                .attr('y', - 10)
                                 .attr('width', dimensions.rectWidth)
                                 .attr('height', dimensions.rectHeight)
-                                .attr('class', 'note')
-                                .attr('fill', 'lightblue');
-                            gPolynote.selectAll('text.note')
+
+                            // .attr('fill', 'lightblue');
+                            gPolynote.selectAll('text')
                                 .data([polynote], () => "bar-" + bar_index + "-poly-" + poly_index + "-text")
                                 .join('text')
                                 .text(polynote.fret)
-                                .transition()
-                                .duration(first ? 0 : 750)
+                                // .transition()
+                                // .duration(first ? 0 : 750)
                                 .attr('x', 5)
-                                .attr('y', (options.value.tuning.strings.length - polynote.string) * dimensions.stringSpacing + 5)
-                                .attr('class', 'note');
+                                .attr('y', 5)
+                            // .attr('class', 'note');
 
                         }
                     });
@@ -137,7 +150,7 @@ export const useGraphics = (svgRef: Ref<SVGElement | null>, options: Ref<Options
     };
 
     watch(score, () => {
-        console.log('Drawing score...', score);
+        // console.log('Drawing score...', score);
         drawScore();
     }, { deep: true, immediate: true });
 

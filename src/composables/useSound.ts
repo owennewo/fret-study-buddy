@@ -2,11 +2,12 @@
 import * as Tone from 'tone';
 import { useStore } from '../stores/useStore';
 import type { Note } from '../interfaces/music';
+import { ref, toRefs } from 'vue';
 
 
 export const useSound = () => {
 
-    const { options, score } = useStore();
+    const { options, score } = toRefs(useStore());
 
     let part: Tone.Part;
     let sampler: Tone.Sampler;
@@ -27,7 +28,7 @@ export const useSound = () => {
             sampler.dispose();
         }
 
-        Tone.Transport.bpm.value = options.bpm;
+        Tone.Transport.bpm.value = options.value.bpm;
 
         await Tone.start();
         console.log("audio is ready");
@@ -55,7 +56,7 @@ export const useSound = () => {
                     }, time);
 
                     sampler.triggerAttackRelease(note.keyOctave, duration, time);
-                }, score.bars.flatMap(bar => bar.notes).map((note, index) => {
+                }, score.value.bars.flatMap(bar => bar.notes).map((note, index) => {
                     const t = index * Tone.Time("4n").toSeconds();
                     return [t, note];
                 }));

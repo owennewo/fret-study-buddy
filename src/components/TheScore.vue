@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, toRefs, watch, type Ref } from 'vue';
+import { ref, toRefs } from 'vue';
 // import Bar from './Bar.vue';
 import { KEYS, MODES, POSITIONS, TUNINGS, INSTRUMENTS } from '../interfaces/music';
 import type { Note, Options, } from "../interfaces/music";
@@ -122,5 +122,13 @@ textarea {
 <style>
 g.changing {
   opacity: 0.5;
+}
+
+.polynote>rect {
+  fill: lightblue;
+}
+
+.polynote.active>rect {
+  fill: green;
 }
 </style>
