@@ -94,7 +94,7 @@ export const useGraphics = (svgRef: Ref<SVGElement | null>, options: Ref<Options
 
                             d.transition()
                                 .duration(first ? 0 : 750)
-                                .attr('transform', (polynote, poly_index) => `translate(${(poly_index + 1) * dimensions.barWidth / (bar.notes.length + 1)} ${(options.value.tuning.strings.length - polynote.string) * dimensions.stringSpacing})`)
+                                .attr('transform', (polynote: any, poly_index: number) => `translate(${(poly_index + 1) * dimensions.barWidth / (bar.notes.length + 1)} ${(options.value.tuning.strings.length - polynote.string) * dimensions.stringSpacing})`)
 
                                 .attr('class', "polynote active")
                                 .on('end', function () {

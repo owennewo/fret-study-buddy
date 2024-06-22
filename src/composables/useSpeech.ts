@@ -1,4 +1,4 @@
-// import Artyom from "artyom.js";
+import Artyom from "artyom.js";
 const artyom = new Artyom();
 // declare var Artyom: any;
 
