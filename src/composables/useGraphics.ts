@@ -97,20 +97,19 @@ export const useGraphics = (svgRef: Ref<SVGElement | null>, options: Ref<Options
                                 .attr('transform', (polynote: any, poly_index: number) => `translate(${(poly_index + 1) * dimensions.barWidth / (bar.notes.length + 1)} ${(options.value.tuning.strings.length - polynote.string) * dimensions.stringSpacing})`)
 
                                 .attr('class', "polynote active")
-                                .on('end', function () {
-                                    // debugger;
+                                .on('end', function (this: SVGElement) { // Explicitly type `this` as SVGElement
                                     d3.select(this)
-                                        .attr('class', "polynote")
+                                        .attr('class', 'polynote')
                                         .transition()
-                                        .duration(250)
+                                        .duration(250);
                                 });
                         } else {
                             console.log("same", datum.keyOctave, d.attr("keyOctave"), datum.fret, +d.attr("fret"));
                             // debugger;
                             d.transition()
                                 .duration(first ? 0 : 750)
-                                .attr('transform', (polynote, poly_index) => `translate(${(poly_index + 1) * dimensions.barWidth / (bar.notes.length + 1)} ${(options.value.tuning.strings.length - polynote.string) * dimensions.stringSpacing})`)
-                                .attr('class', (d) => d.active ? 'polynote active' : 'polynote')
+                                .attr('transform', (polynote: any, poly_index: number) => `translate(${(poly_index + 1) * dimensions.barWidth / (bar.notes.length + 1)} ${(options.value.tuning.strings.length - polynote.string) * dimensions.stringSpacing})`)
+                                .attr('class', (d: Note) => d.active ? 'polynote active' : 'polynote')
                         }
                         d.attr("keyOctave", datum.keyOctave);
                         d.attr("fret", datum.fret);

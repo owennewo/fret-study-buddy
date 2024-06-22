@@ -1,6 +1,6 @@
-import Artyom from "artyom.js";
+// import Artyom from "artyom.js";
+declare var Artyom: any;
 const artyom = new Artyom();
-// declare var Artyom: any;
 
 var commandHello = {
     indexes: ["hello", "good morning", "hey"], // These spoken words will trigger the execution of the command
@@ -44,7 +44,6 @@ export const useSpeech = () => {
 
             }).then(function () {
                 console.log("Ready to work !");
-                debugger;
                 artyom.say("Hey buddy! How are you today?", {
                     onStart: function () {
                         console.log("Speech started");
@@ -53,7 +52,7 @@ export const useSpeech = () => {
                         console.log("Speech ended");
                     }
                 });
-            }).catch((err) => {
+            }).catch((err: any) => {
                 console.log(err);
             });
             console.log("Artyom has been succesfully initialized !");
