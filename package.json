@@ -8,9 +8,11 @@
     "build": "run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",
     "build-only": "vite build",
-    "type-check": "vue-tsc --build --force"
+    "type-check": "vue-tsc --build --force",
+    "generate-cert": "openssl req -x509 -newkey rsa:2048 -keyout localhost.key -out localhost.crt -days 365 -nodes -subj '/CN=localhost'"
   },
   "dependencies": {
+    "artyom.js": "^1.0.6",
     "d3": "^7.9.0",
     "pinia": "^2.1.7",
     "primevue": "^3.52.0",

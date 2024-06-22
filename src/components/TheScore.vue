@@ -6,8 +6,9 @@ import type { Note, Options, } from "../interfaces/music";
 // import { dim } from '../interfaces/dim.ts';
 
 import { useStore } from '../stores/useStore'; // Adjust the path as needed
-import { useSound } from '../composables/useSound';
+// import { useSound } from '../composables/useSound';
 import { useGraphics } from '../composables/useGraphics';
+import { useSpeech } from '../composables/useSpeech';
 
 import Dropdown from 'primevue/dropdown';
 import FloatLabel from 'primevue/floatlabel';
@@ -17,15 +18,16 @@ import InputNumber from 'primevue/inputnumber';
 
 const svgRef = ref<SVGElement | null>(null);
 
+const { startContinuousArtyom } = useSpeech();
 
 const { options, score } = toRefs(useStore());
-const { startAudio } = useSound();
+// const { startAudio } = useSound();
 const { dimensions } = useGraphics(svgRef, options, score);
-
 
 </script>
 
 <template>
+  <button @click="startContinuousArtyom">Start speech</button>
   <div class="svg-container">
     <svg ref="svgRef" xmlns="http://www.w3.org/2000/svg"
       :viewBox="'0 0 ' + (score.bars.length * dimensions.barWidth + dimensions.barPadding * 2) + ' ' + (dimensions.stringSpacing * (options.tuning.strings.length - 1) + dimensions.barPadding * 2)"
@@ -64,7 +66,7 @@ const { dimensions } = useGraphics(svgRef, options, score);
     <template #end>
       <div class="p-inputgroup">
         <InputNumber v-model="options.bpm" inputId="mile" suffix=" bpm" class="bpm" />
-        <Button @click="startAudio">PLAY</Button>
+        <!-- <Button @click="startAudio">PLAY</Button> -->
       </div>
 
     </template>
