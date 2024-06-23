@@ -14,9 +14,10 @@ import Button from 'primevue/button';
 import InputNumber from 'primevue/inputnumber';
 
 const svgRef = ref<SVGElement | null>(null);
+const listenRef = ref<HTMLDivElement | null>(null);
 
 const { options, score } = toRefs(useStore());
-const { startContinuousArtyom } = useSpeech(options);
+const { startContinuousArtyom } = useSpeech(options, listenRef);
 
 const { play } = useSound();
 const { dimensions } = useGraphics(svgRef, options, score);
@@ -24,7 +25,6 @@ const { dimensions } = useGraphics(svgRef, options, score);
 </script>
 
 <template>
-  <button @click="startContinuousArtyom">Start speech</button>
   <div class="svg-container">
     <svg ref="svgRef" xmlns="http://www.w3.org/2000/svg"
       :viewBox="'0 0 ' + (score.bars.length * dimensions.barWidth + dimensions.barPadding * 2) + ' ' + (dimensions.stringSpacing * (options.tuning.strings.length - 1) + dimensions.barPadding * 2)"
@@ -34,9 +34,9 @@ const { dimensions } = useGraphics(svgRef, options, score);
 
   <Toolbar class="options-toolbar">
     <template #start>
-      <!-- <Button icon="pi pi-plus" class="mr-2" severity="secondary" />
-      <Button icon="pi pi-print" class="mr-2" severity="secondary" />
-      <Button icon="pi pi-upload" severity="secondary" /> -->
+      <button @click="startContinuousArtyom">Start speech</button>
+      <div ref="listenRef" class="listen">Not listening</div>
+
     </template>
 
     <template #center>
@@ -131,5 +131,9 @@ g.changing {
 
 .polynote.active>rect {
   fill: green;
+}
+
+.listen {
+  color: black;
 }
 </style>

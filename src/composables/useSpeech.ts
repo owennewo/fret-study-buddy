@@ -84,7 +84,7 @@ const findMode = (speechMode: string) => {
 
 
 
-export const useSpeech = (options: Ref<Options>) => {
+export const useSpeech = (options: Ref<Options>, divRef: Ref<HTMLDivElement | null>) => {
     const { play } = useSound();
 
     var commandHello = {
@@ -201,9 +201,10 @@ export const useSpeech = (options: Ref<Options>) => {
     artyom.addCommands(commandKey);
     artyom.addCommands(commandPlay);
     artyom.addCommands(commandMode);
-    artyom.redirectRecognizedTextOutput((recognized, isFinal) => {
+    artyom.redirectRecognizedTextOutput((recognized: any, isFinal: boolean) => {
         if (isFinal) {
             console.log(`Final recognized text: ${recognized}`);
+            divRef.value!.textContent = recognized;
             // } else {
             //     console.log(`Interim recognized text: ${recognized}`);
         }
@@ -225,6 +226,7 @@ export const useSpeech = (options: Ref<Options>) => {
 
             }).then(function () {
                 console.log("Ready to work !");
+                divRef.value!.textContent = "Ready"
                 artyom.say("Hey buddy! How are you today?", {
                     onStart: function () {
                         console.log("Speech started");
@@ -234,6 +236,7 @@ export const useSpeech = (options: Ref<Options>) => {
                     }
                 });
             }).catch((err: any) => {
+                divRef.value!.textContent = "Error"
                 console.log(err);
             });
             console.log("Artyom has been succesfully initialized !");
