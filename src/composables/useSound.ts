@@ -12,7 +12,7 @@ export const useSound = () => {
     let part: Tone.Part;
     let sampler: Tone.Sampler;
 
-    const startAudio = async () => {
+    const play = async () => {
         console.log("audio is starting");
 
         if (part) {
@@ -69,6 +69,6 @@ export const useSound = () => {
     };
 
     return {
-        startAudio,
+        play,
     };
 };

@@ -1,12 +1,9 @@
 <script setup lang="ts">
 import { ref, toRefs } from 'vue';
-// import Bar from './Bar.vue';
 import { KEYS, MODES, POSITIONS, TUNINGS, INSTRUMENTS } from '../interfaces/music';
-import type { Note, Options, } from "../interfaces/music";
-// import { dim } from '../interfaces/dim.ts';
 
-import { useStore } from '../stores/useStore'; // Adjust the path as needed
-// import { useSound } from '../composables/useSound';
+import { useStore } from '../stores/useStore';
+import { useSound } from '../composables/useSound';
 import { useGraphics } from '../composables/useGraphics';
 import { useSpeech } from '../composables/useSpeech';
 
@@ -18,10 +15,10 @@ import InputNumber from 'primevue/inputnumber';
 
 const svgRef = ref<SVGElement | null>(null);
 
-const { startContinuousArtyom } = useSpeech();
-
 const { options, score } = toRefs(useStore());
-// const { startAudio } = useSound();
+const { startContinuousArtyom } = useSpeech(options);
+
+const { play } = useSound();
 const { dimensions } = useGraphics(svgRef, options, score);
 
 </script>
@@ -49,16 +46,18 @@ const { dimensions } = useGraphics(svgRef, options, score);
         <label for="dd-tuning">{{ options.tuning.instrument }} tuning</label>
       </FloatLabel>
       <FloatLabel class="w-full md:w-14rem mr-2">
-        <Dropdown v-model="options.key" inputId="dd-key" :options="KEYS" optionLabel="name" class="w-full" />
+        <Dropdown v-model="options.key" inputId="dd-key" :options="KEYS" optionLabel="name" optionValue="index"
+          class="w-full" />
         <label for="dd-key">Key</label>
       </FloatLabel>
       <FloatLabel class="w-full md:w-14rem mr-2">
-        <Dropdown v-model="options.mode" inputId="dd-mode" :options="MODES" optionLabel="name" class="w-full" />
+        <Dropdown v-model="options.mode" inputId="dd-mode" :options="MODES" optionLabel="name" optionValue="index"
+          class="w-full" />
         <label for="dd-mode">Mode</label>
       </FloatLabel>
       <FloatLabel class="w-full md:w-14rem mr-2">
         <Dropdown v-model="options.position" inputId="dd-position" :options="POSITIONS" optionLabel="name"
-          class="w-full" />
+          optionValue="fret" class="w-full" />
         <label for="dd-position">Position</label>
       </FloatLabel>
     </template>
@@ -66,7 +65,7 @@ const { dimensions } = useGraphics(svgRef, options, score);
     <template #end>
       <div class="p-inputgroup">
         <InputNumber v-model="options.bpm" inputId="mile" suffix=" bpm" class="bpm" />
-        <!-- <Button @click="startAudio">PLAY</Button> -->
+        <Button @click="play">PLAY</Button>
       </div>
 
     </template>

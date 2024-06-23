@@ -1,4 +1,4 @@
-import { KEYS } from '../interfaces/music';
+import { KEYS, MODES } from '../interfaces/music';
 import type { Note, Score, Bar, Position, Options, Tuning, Instrument } from '../interfaces/music';
 
 const toKeyIndex = (keyName: string) => {
@@ -20,12 +20,12 @@ const toNoteName = (noteIndex: number) => {
     return toKeyName(keyIndex) + octave;
 }
 
-const toNote = (noteIndex: number, stringIndexes: number[], position: Position) => {
+const toNote = (noteIndex: number, stringIndexes: number[], position: number) => {
 
     let selectedString = -1;
     let selectedFret = 99;
     for (let i = 0; i < stringIndexes.length; i++) {
-        if (noteIndex >= (stringIndexes[i] + position.fret)) {
+        if (noteIndex >= (stringIndexes[i] + position)) {
             const fret = noteIndex - stringIndexes[i];
             if (fret <= selectedFret) {
                 selectedString = i + 1;
@@ -35,7 +35,7 @@ const toNote = (noteIndex: number, stringIndexes: number[], position: Position) 
     }
     if (selectedString == -1) {
         debugger;
-        throw new Error(`Unable to find string for ${noteIndex} at fret ${position.fret}}`);
+        throw new Error(`Unable to find string for ${noteIndex} at fret ${position}}`);
     } else {
         // console.log(`choosing ${selectedString} for note ${noteIndex}`);
     }
@@ -56,9 +56,9 @@ const generateScore = (options: Options): Score => {//instrument: Instrument, ke
     const strings = options.tuning.strings.map(noteName => toNoteIndex(noteName));
     const octaves = 2;
 
-    const lowestPossibleNote = toNote(strings[0] + options.position.fret, strings, options.position);
+    const lowestPossibleNote = toNote(strings[0] + options.position, strings, options.position);
 
-    const baseNoteName = (toKeyIndex(options.key.name) < toKeyIndex(lowestPossibleNote.key)) ? options.key.name + (lowestPossibleNote.octave + 1) : options.key.name + lowestPossibleNote.octave;
+    const baseNoteName = (options.key < toKeyIndex(lowestPossibleNote.key)) ? KEYS[options.key].name + (lowestPossibleNote.octave + 1) : KEYS[options.key].name + lowestPossibleNote.octave;
     const baseIndex = toNoteIndex(baseNoteName);
 
 
@@ -81,7 +81,7 @@ const generateScore = (options: Options): Score => {//instrument: Instrument, ke
             score.bars.push(currentBar);
         }
         currentBar.notes.push(toNote(currentIndex, strings, options.position));
-        currentIndex += options.mode.intervals[i % options.mode.intervals.length];
+        currentIndex += MODES[options.mode].intervals[i % MODES[options.mode].intervals.length];
     }
     return score;
 }

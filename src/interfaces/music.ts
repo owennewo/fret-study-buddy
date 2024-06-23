@@ -1,11 +1,6 @@
 
 type Direction = 'up' | 'down' | 'updown' | 'downup' | 'updownbounce';
 
-// enum NoteDuration {
-//     WHOLE = 'w',
-//     HALF = 'h',
-//     QUARTER = 'q',
-// }
 
 type Note = {
     index: number;
@@ -20,15 +15,16 @@ type Note = {
 
 type Options = {
     // instrument: Instrument;
-    key: Key;
-    mode: Mode;
-    position: Position;
+    key: number;
+    mode: number;
+    position: number;
     tuning: Tuning;
     bpm: number;
     // octaves: number;
 }
 
 type Mode = {
+    index: number;
     name: string;
     modeName: string;
     intervals: number[];
@@ -38,7 +34,6 @@ type Position = {
     name: string;
     fret: number;
 }
-
 
 const POSITIONS: Position[] = [
     {
@@ -97,36 +92,43 @@ const POSITIONS: Position[] = [
 
 const MODES: Mode[] = [
     {
+        index: 0,
         name: "Major",
         modeName: "Ionian",
         intervals: [2, 2, 1, 2, 2, 2, 1]
     },
     {
+        index: 1,
         name: "Dorian Minor",
         modeName: "Dorian",
         intervals: [2, 1, 2, 2, 2, 1, 2],
     },
     {
+        index: 2,
         name: "Phrygian Minor",
         modeName: "Phrygian",
         intervals: [1, 2, 2, 2, 1, 2, 2],
     },
     {
+        index: 3,
         name: "Lydian Major",
         modeName: "Lydian",
         intervals: [2, 2, 2, 1, 2, 2, 1],
     },
     {
+        index: 4,
         name: "Mixolydian Major",
         modeName: "Mixolydian",
         intervals: [2, 2, 1, 2, 2, 1, 2],
     },
     {
-        name: "Natural Minor",
+        index: 5,
+        name: "Minor",
         modeName: "Aeolian",
         intervals: [2, 1, 2, 2, 1, 2, 2],
     },
     {
+        index: 6,
         name: "Locrian Minor",
         modeName: "Locrian",
         intervals: [1, 2, 2, 1, 2, 2, 2],

@@ -7,9 +7,9 @@ import { generateScore } from '../composables/useGenerator';
 
 export const useStore = defineStore('score', () => {
     const options = ref<Options>({
-        key: KEYS[0],
-        mode: MODES[0],
-        position: POSITIONS[0],
+        key: 0,
+        mode: 0,
+        position: 0,
         tuning: TUNINGS[0],
         bpm: 120,
     });
