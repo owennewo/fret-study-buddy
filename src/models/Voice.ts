@@ -10,21 +10,12 @@ class Voice {
     this.elements = []
   }
 
-  isError(): boolean {
-    const barDuration = this.elements.reduce(
-      (acc, element) => acc + element.duration,
-      0,
-    )
-    return barDuration != this._bar.timeSignature.beatsPerBar
-  }
+  duration = () =>
+    this.elements.reduce((acc, element) => acc + element.duration, 0)
 
-  isComplete(): boolean {
-    const barDuration = this.elements.reduce(
-      (acc, element) => acc + element.duration,
-      0,
-    )
-    return barDuration >= this._bar.timeSignature.beatsPerBar
-  }
+  isError = () => this.duration() != this._bar.timeSignature.beatsPerBar
+
+  isComplete = () => this.duration() >= this._bar.timeSignature.beatsPerBar
 
   extend(): VoiceElement | null {
     if (this.isComplete()) {
@@ -46,6 +37,10 @@ class Voice {
     if (index >= 0 && index < this.elements.length) {
       this.elements.splice(index, 1)
     }
+  }
+
+  index(): number {
+    return this._bar.voices.indexOf(this)
   }
 
   toJSON(): object {

@@ -6,7 +6,7 @@ import Select from 'primevue/select'
 import Dialog from 'primevue/dialog'
 import { useIndexedDBStore } from '@/stores/useIndexedDBStore'
 import { useCursor } from '@/composables/useCursor'
-// import { useSettings } from '@/composables/useSettings'
+import { useSettingsStore } from '@/stores/settingsStore'
 
 const { createProject, loadProjects, loadProject } = useIndexedDBStore()
 const { projects } = toRefs(useIndexedDBStore())
@@ -14,26 +14,14 @@ const { project } = toRefs(useCursor())
 const showAddProject = ref(false)
 const newProjectName = ref('')
 
-// Load the current project settings
-// const { currentProjectName } = useSettings()
-// const project = ref(null)
+const { saveSettingsToDB, loadSettingsFromDB } = useSettingsStore()
 
 watch(project, async () => {
-  console.log('switching project:', project.value)
-  loadProject(project.value)
-  // if (project.value) {
-  //   loadScores(project.value)
-  // }
-  // if (project.value != null && (await hasProject(project.value))) {
-  //   db = await openDB(project.value)
-  //   console.log('Database opened:', db)
-  //   await loadScores()
-  //   await loadScore()
-  // } else {
-  //   console.log('No database found')
-  //   project.value = ''
-  //   score.value = null
-  // }
+  if (project.value) {
+    console.log('switching project:', project.value)
+    loadProject(project.value)
+    saveSettingsToDB()
+  }
 })
 
 const addProjectClicked = () => {
@@ -47,8 +35,9 @@ const showAddProjectDialog = () => {
   showAddProject.value = true
 }
 
-onMounted(() => {
-  loadProjects()
+onMounted(async () => {
+  await loadProjects()
+  await loadSettingsFromDB()
 })
 </script>
 

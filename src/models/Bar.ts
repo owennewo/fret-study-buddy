@@ -17,7 +17,7 @@ class Bar {
     this.voices.push(voice)
   }
 
-  barIndex = () => this._track.bars.indexOf(this)
+  index = () => this._track.bars.indexOf(this)
 
   removeVoiceAt(index: number): void {
     if (index >= 0 && index < this.voices.length) {

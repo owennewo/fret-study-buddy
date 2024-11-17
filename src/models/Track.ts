@@ -2,7 +2,6 @@ import { Instrument } from '@/models/Instruments'
 import { Bar } from './Bar'
 import type { MusicalScore } from './MusicalScore'
 import { Voice } from './Voice'
-import { VoiceElement } from './VoiceElement'
 
 class Track {
   _score: MusicalScore
@@ -22,25 +21,19 @@ class Track {
     this.bars = []
   }
 
-  addBar(index: number = NaN): void {
+  addBar(index: number = NaN): Bar {
     const bar = new Bar(this, this._score.timeSignature)
     const voice = new Voice(bar)
 
     for (let i = 0; i < this.voiceCount; i++) {
       bar.addVoice(voice)
-      // for (
-      //   let beatIndex = 0;
-      //   beatIndex < bar.timeSignature.beatsPerBar;
-      //   beatIndex++
-      // ) {
-      //   voice.addElement(new VoiceElement(voice, 1, true))
-      // }
-      if (isNaN(index)) {
-        this.bars.push(bar)
-      } else {
-        this.bars.splice(index, 0, bar)
-      }
     }
+    if (isNaN(index)) {
+      this.bars.push(bar)
+    } else {
+      this.bars.splice(index, 0, bar)
+    }
+    return bar
   }
 
   stringCount = () => this.instrument.tuning.length

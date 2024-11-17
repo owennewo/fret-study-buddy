@@ -1,6 +1,6 @@
 import { MusicalScore } from '@/models/MusicalScore'
 import { defineStore } from 'pinia'
-import { watch, ref, type Ref, toRefs } from 'vue'
+import { ref, type Ref } from 'vue'
 import { openDB, type IDBPDatabase } from 'idb'
 // import { useSettings } from '@/composables/useSettings'
 
@@ -35,7 +35,11 @@ export const useIndexedDBStore = defineStore('indexedDBStore', () => {
     if (await hasProject(projectName)) {
       db = await openDB(projectName)
       // return db
-      loadScores()
+      await loadScores()
+      console.log('loaded project:', projectName)
+      return projectName
+    } else {
+      return null
     }
   }
 
@@ -80,9 +84,8 @@ export const useIndexedDBStore = defineStore('indexedDBStore', () => {
       return null
     }
     const fetchedScore = await db.get(SCORES_STORE, scoreId)
+    console.log('loaded score:', scoreId, '-', fetchedScore.title)
     return MusicalScore.fromJSON(fetchedScore)
-    // return score
-    // return db.get(SCORES_STORE, currentScoreId.value)
   }
 
   const saveScore = async (score: MusicalScore) => {

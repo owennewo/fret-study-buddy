@@ -84,10 +84,8 @@ class VoiceElement {
       Math.floor(nextElement?.location()) + 1 !=
       Math.ceil(nextElement?.location() + nextElement?.duration)
     ) {
-      // console.log('@@ flag')
       return TailType.Flag
     } else {
-      // console.log('@@ Beam')
       return TailType.Beam
     }
   }
@@ -98,9 +96,6 @@ class VoiceElement {
   }
 
   tailCount(): number {
-    // if (this.notes.filter(note => !isNaN(note.fretNumber)).length > 0) {
-    //   debugger
-    // }
     const endLocation = this.location() + this.duration
     if (endLocation - Math.floor(endLocation) === 0) {
       return 0

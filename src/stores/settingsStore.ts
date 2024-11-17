@@ -1,17 +1,14 @@
 import { defineStore } from 'pinia'
-import { ref, toRefs, type Ref } from 'vue'
-import { openDB } from 'idb' // Using idb library for IndexedDB
-
+import { toRefs } from 'vue'
+import { openDB } from 'idb'
 import { useCursor } from '@/composables/useCursor'
+import { useIndexedDBStore } from '@/stores/useIndexedDBStore'
 
 export const useSettingsStore = defineStore('settingsStore', () => {
-  // const currentProjectName = ref('')
-  // const currentScoreId = ref(0)
-  // const barsPerLine = ref(4) // Default value
-
   const { project, score } = toRefs(useCursor())
 
-  // Open or create IndexedDB for settings
+  const { loadProject, loadScore } = useIndexedDBStore()
+
   async function getDB() {
     const db = openDB('appDatabase', 1, {
       upgrade(db) {
@@ -27,9 +24,8 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     const db = await getDB()
     const settings = await db.get('settings', 'appSettings')
     if (settings) {
-      project.value = loadProject(settings.currentProjectName || '')
-      score.value = loadScore(settings.currentScoreId || 0)
-      // barsPerLine.value = settings.barsPerLine || 4
+      project.value = await loadProject(settings.currentProjectName || '')
+      score.value = await loadScore(settings.currentScoreId || 0)
     }
   }
 
@@ -39,14 +35,10 @@ export const useSettingsStore = defineStore('settingsStore', () => {
       id: 'appSettings',
       currentProjectName: project.value,
       currentScoreId: score.value?.id,
-      // barsPerLine: barsPerLine.value,
     })
   }
 
   return {
-    // currentProjectName,
-    // currentScoreId,
-    // barsPerLine,
     loadSettingsFromDB,
     saveSettingsToDB,
   }

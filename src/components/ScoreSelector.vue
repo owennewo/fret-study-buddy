@@ -3,6 +3,7 @@ import { ref, toRefs, watch } from 'vue'
 import { useIndexedDBStore } from '@/stores/useIndexedDBStore'
 import { useCursor } from '@/composables/useCursor'
 import { MusicalScore } from '@/models/MusicalScore'
+import { useSettingsStore } from '@/stores/settingsStore'
 
 const currentScoreId = ref(null)
 
@@ -11,18 +12,25 @@ const { saveScore, loadScore, deleteScore } = useIndexedDBStore()
 const { scores } = toRefs(useIndexedDBStore())
 
 const { score, bar, track, voice, element } = toRefs(useCursor())
+const { saveSettingsToDB } = useSettingsStore()
 
 const newScore = () => {
   console.log('New Score')
   score.value = MusicalScore.new()
 }
 
-watch(currentScoreId, async () => {
-  console.log('Current Score:', currentScoreId.value)
-  if (currentScoreId.value != null) {
-    const loadedScore = await loadScore(currentScoreId.value)
+watch(score, () => {
+  console.log('#######', score.value, score.value.id, score.value.title)
+  currentScoreId.value = score.value.id
+})
+
+watch(currentScoreId, async newCurrentScoreId => {
+  console.log('Current Score:', newCurrentScoreId)
+  if (newCurrentScoreId != null) {
+    const loadedScore = await loadScore(newCurrentScoreId)
     console.log('Loaded Score:', score.value)
     score.value = loadedScore
+    saveSettingsToDB()
 
     if (loadedScore) {
       track.value = loadedScore.tracks[0]

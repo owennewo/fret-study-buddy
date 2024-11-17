@@ -1,6 +1,5 @@
 import { type Ref, watch } from 'vue'
 import * as d3 from 'd3'
-import { MusicalScore } from '@/models/MusicalScore'
 import { NotePosition } from '@/models/NotePosition'
 import { TailType, type VoiceElement } from '@/models/VoiceElement'
 
@@ -16,7 +15,7 @@ export const dimensions = {
 }
 
 export const useSVG = (svgRef: Ref<SVGElement | null>) => {
-  const { voice, score } = useCursor()
+  const { voice, score, note } = useCursor()
 
   console.log('currentVoiceId-use-svg-early', voice.value)
   watch(voice, () => {
@@ -255,7 +254,7 @@ export const useSVG = (svgRef: Ref<SVGElement | null>) => {
                       .join('g')
                       .attr('class', d => {
                         // console.log("log", d.active, d3.select(this).datum().active);
-                        return `note ${d.active ? 'active' : ''} note ${isNaN(d.fretNumber) ? 'rest' : ''}`
+                        return `note ${d === note.value ? 'active' : ''} ${isNaN(d.fretNumber) ? 'rest' : ''}`
                       })
                       .attr('transform', (n, note_index) => {
                         const noteY =

@@ -153,22 +153,66 @@ class NotePosition {
   next = (direction: MoveDirection): NotePosition => {
     let noteIndex = this.index()
     let elementIndex = this._voiceElement.index()
+    const voiceIndex = this._voiceElement._voice.index()
+    let barIndex = this._voiceElement._voice._bar.index()
     switch (direction) {
       case 'ArrowUp':
-        noteIndex = Math.min(noteIndex + 1, this._voiceElement.notes.length - 1)
-        return this._voiceElement.notes[noteIndex]
-      case 'ArrowDown':
         noteIndex = Math.max(noteIndex - 1, 0)
         return this._voiceElement.notes[noteIndex]
+      case 'ArrowDown':
+        noteIndex = Math.min(noteIndex + 1, this._voiceElement.notes.length - 1)
+        return this._voiceElement.notes[noteIndex]
       case 'ArrowRight':
-        elementIndex = Math.min(
-          elementIndex + 1,
-          this._voiceElement._voice.elements.length - 1,
-        )
-        return this._voiceElement._voice.elements[elementIndex].notes[noteIndex]
+        if (elementIndex == this._voiceElement._voice.elements.length - 1) {
+          // last element of bar
+          if (this._voiceElement._voice.isComplete()) {
+            // no room, so we need to move to the next bar or extend the score
+            if (
+              barIndex ==
+              this._voiceElement._voice._bar._track.bars.length - 1
+            ) {
+              const newBar = this._voiceElement._voice._bar._track.addBar()
+              const nextElement = newBar.voices[voiceIndex].extend()
+              return nextElement.notes[0]
+            }
+          } else {
+            // there is room in this bar for a new element
+            const newElement = this._voiceElement._voice.extend()
+            return newElement.notes[0]
+          }
+        } else {
+          // not the last element of the bar
+          // elementIndex = Math.min(
+          //   elementIndex + 1,
+          //   this._voiceElement._voice.elements.length - 1,
+          // )
+          return this._voiceElement._voice.elements[elementIndex + 1].notes[
+            noteIndex
+          ]
+        }
+      // }
+
       case 'ArrowLeft':
-        elementIndex = Math.max(elementIndex - 1, 0)
-        return this._voiceElement._voice.elements[elementIndex].notes[noteIndex]
+        if (elementIndex == 0) {
+          if (barIndex == 0) {
+            return this
+          } else {
+            barIndex -= 1
+            const nextBar = this._voiceElement._voice._bar._track.bars[barIndex]
+            if (nextBar.voices[voiceIndex].elements.length == 0) {
+              nextBar.voices[voiceIndex].extend()
+            }
+            const nextElementId = nextBar.voices[voiceIndex].elements.length - 1
+            const nextElement =
+              nextBar.voices[voiceIndex].elements[nextElementId]
+            return nextElement.notes[noteIndex]
+          }
+        } else {
+          elementIndex = Math.max(elementIndex - 1, 0)
+          return this._voiceElement._voice.elements[elementIndex].notes[
+            noteIndex
+          ]
+        }
     }
   }
 
