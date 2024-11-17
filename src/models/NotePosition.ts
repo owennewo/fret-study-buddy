@@ -63,6 +63,8 @@ enum Technique {
   Tie = '=',
 }
 
+type MoveDirection = 'ArrowUp' | 'ArrowDown' | 'ArrowRight' | 'ArrowLeft'
+
 // 0 = thumb, 1 = index, 2 = middle, 3 = ring, 4 = pinky
 type Finger = typeof NaN | 0 | 1 | 2 | 3 | 4
 
@@ -132,6 +134,42 @@ class NotePosition {
     const base = instrument.tuning[this.stringIndex - 1]
     const keyIndex = NotePosition.toNoteIndex(base) + this.fretNumber
     return NotePosition.toNoteName(keyIndex)
+  }
+
+  debug = (prefix: string = 'note'): void => {
+    console.log(prefix, {
+      fretNumber: this.fretNumber,
+      tailCount: this._voiceElement.tailCount(),
+      tailTypeName: this._voiceElement.tailTypeName(),
+      location: this._voiceElement.location(),
+      duration: this._voiceElement.duration,
+    })
+  }
+
+  index = () => {
+    return this._voiceElement.notes.indexOf(this)
+  }
+
+  next = (direction: MoveDirection): NotePosition => {
+    let noteIndex = this.index()
+    let elementIndex = this._voiceElement.index()
+    switch (direction) {
+      case 'ArrowUp':
+        noteIndex = Math.min(noteIndex + 1, this._voiceElement.notes.length - 1)
+        return this._voiceElement.notes[noteIndex]
+      case 'ArrowDown':
+        noteIndex = Math.max(noteIndex - 1, 0)
+        return this._voiceElement.notes[noteIndex]
+      case 'ArrowRight':
+        elementIndex = Math.min(
+          elementIndex + 1,
+          this._voiceElement._voice.elements.length - 1,
+        )
+        return this._voiceElement._voice.elements[elementIndex].notes[noteIndex]
+      case 'ArrowLeft':
+        elementIndex = Math.max(elementIndex - 1, 0)
+        return this._voiceElement._voice.elements[elementIndex].notes[noteIndex]
+    }
   }
 
   rightHand(): string {

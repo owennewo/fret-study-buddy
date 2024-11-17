@@ -66,9 +66,9 @@ watch(visible, () => {
       <div class="field">
         <label for="tempo">Tempo</label>
         <p-inputnumber v-model="score.tempo" id="tempo" :min="1" />
-      </div>
+        <!-- </div>
 
-      <div class="field">
+      <div class="field"> -->
         <label for="barsPerLine">Bars per Line</label>
         <p-inputnumber
           v-model="score.barsPerLine"
@@ -80,7 +80,7 @@ watch(visible, () => {
 
       <div class="field">
         <label>Time Signature</label>
-        <div class="time-signature">
+        <div class="field-group">
           <p-inputnumber
             v-model="score.timeSignature.beatsPerBar"
             placeholder="Beats per Bar"
@@ -95,18 +95,6 @@ watch(visible, () => {
             showButtons
           />
         </div>
-      </div>
-
-      <div class="field">
-        <label for="voiceCount">Voice Count</label>
-        <p-inputnumber
-          v-model="score.voiceCount"
-          id="voiceCount"
-          :min="1"
-          :max="4"
-          showButtons
-          :step="1"
-        />
       </div>
 
       <p-tabs :value="0">
@@ -132,33 +120,50 @@ watch(visible, () => {
             :value="index"
           >
             <div class="field">
-              <label :for="'instrument-' + index">Instrument</label>
-              <p-select
-                v-model="track.instrument.instrumentName"
-                :options="instrumentOptions"
-                :id="'instrument-' + index"
-                placeholder="Select Instrument"
-              />
-            </div>
+              <label>Instrument</label>
+              <div class="field-group">
+                <!-- <div class="field">
+                  <label :for="'instrument-' + index">Instrument</label> -->
+                <p-select
+                  v-model="track.instrument.instrumentName"
+                  :options="instrumentOptions"
+                  :id="'instrument-' + index"
+                  placeholder="Select Instrument"
+                />
+                <!-- </div>
 
-            <div class="field">
-              <label :for="'tuning-' + index">Tuning</label>
-              <p-select
-                v-model="track.instrument.tuningName"
-                :options="tuningOptions(track.instrument.instrumentName)"
-                :id="'tuning-' + index"
-                placeholder="Select Tuning"
-              />
-            </div>
+                <div class="field"-->
+                <label :for="'tuning-' + index">Tuning</label>
+                <p-select
+                  v-model="track.instrument.tuningName"
+                  :options="tuningOptions(track.instrument.instrumentName)"
+                  :id="'tuning-' + index"
+                  placeholder="Select Tuning"
+                />
 
-            <div class="field">
-              <label :for="'tone-' + index">Tone</label>
-              <p-select
-                v-model="track.instrument.toneName"
-                :options="toneOptions(track.instrument.instrumentName)"
-                :id="'tone-' + index"
-                placeholder="Select Tone"
-              />
+                <!-- <div class="field">
+                    <label :for="'tone-' + index">Tone</label> -->
+                <p-select
+                  v-model="track.instrument.toneName"
+                  :options="toneOptions(track.instrument.instrumentName)"
+                  :id="'tone-' + index"
+                  placeholder="Select Tone"
+                />
+                <!-- </div> -->
+                <!-- </div> -->
+              </div>
+
+              <div class="field">
+                <label for="voiceCount">Voice Count</label>
+                <p-inputnumber
+                  v-model="track.voiceCount"
+                  id="voiceCount"
+                  :min="1"
+                  :max="4"
+                  showButtons
+                  :step="1"
+                />
+              </div>
             </div>
           </p-tabpanel>
           <p-tabpanel :value="score.tracks.length"> </p-tabpanel>
@@ -187,7 +192,7 @@ watch(visible, () => {
   display: flex;
   flex-direction: column;
 }
-.time-signature {
+.field-group {
   display: flex;
   align-items: center;
   gap: 0.5rem;

@@ -1,15 +1,14 @@
 <script setup lang="ts">
-import { computed, nextTick, ref, toRefs } from 'vue'
+import { computed, nextTick, ref, toRefs, watch } from 'vue'
 import ScoreSelector from './ScoreSelector.vue'
 import ProjectSelector from './ProjectSelector.vue'
 import SettingsDialog from './SettingsDialog.vue'
 import { useSound } from '@/composables/useSound'
-import { useIndexedDBStore } from '@/stores/useIndexedDBStore'
-import { useSettings } from '@/composables/useSettings'
+import { useCursor } from '@/composables/useCursor'
 
-const { score } = toRefs(useIndexedDBStore())
+const { score, track } = toRefs(useCursor())
 
-const { currentVoice } = useSettings()
+const currentVoiceId = ref(0)
 
 const { play, pause, isPlaying } = useSound()
 
@@ -32,15 +31,19 @@ const handleSave = () => {
   console.log('handleSave')
 }
 
-const scoreOptions = computed(() => {
+const voiceOptions = computed(() => {
   const options = Array.from(
-    { length: score.value?.voiceCount ?? 1 },
+    { length: track.value.voiceCount ?? 1 },
     (_, i) => ({
       key: '' + (i + 1),
       value: i + 1,
     }),
   )
   return options
+})
+
+watch(currentVoiceId, () => {
+  console.log('currentVoiceId-header', currentVoiceId.value)
 })
 </script>
 <template>
@@ -101,7 +104,7 @@ const scoreOptions = computed(() => {
           @click="pause"
         />
         <p-selectbutton
-          v-model="currentVoice"
+          v-model="currentVoiceId"
           :options="scoreOptions"
           optionLabel="key"
           optionValue="value"

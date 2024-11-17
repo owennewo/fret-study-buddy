@@ -1,14 +1,16 @@
 import * as Tone from 'tone'
-import { useIndexedDBStore } from '@/stores/useIndexedDBStore'
+// import { useIndexedDBStore } from '@/stores/useIndexedDBStore'
 import { ref, toRefs } from 'vue'
 import { timeMillisecond } from 'd3'
 import type { VoiceElement } from '@/models/VoiceElement'
 import type { Voice } from '@/models/Voice'
 import type { Track } from '@/models/Track'
 import type { Bar } from '@/models/Bar'
+import { useCursor } from './useCursor'
 
 export const useSound = () => {
-  const { score } = toRefs(useIndexedDBStore())
+  const { score } = toRefs(useCursor())
+  // const { score } = toRefs(useIndexedDBStore())
   const isPlaying = ref(false)
 
   let part: Tone.Part
@@ -103,7 +105,8 @@ export const useSound = () => {
           .map((element: VoiceElement, element_index) => {
             if (!element.isRest()) {
               const time =
-                (element.location + bar_index * bar.timeSignature.beatsPerBar) *
+                (element.location() +
+                  bar_index * bar.timeSignature.beatsPerBar) *
                 Tone.Time(`${bar.timeSignature.beatsPerBar}n`).toSeconds()
               tuples.push([time, element])
             }

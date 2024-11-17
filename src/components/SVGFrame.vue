@@ -2,13 +2,21 @@
 import { ref, onMounted, watch, toRefs } from 'vue'
 import { useSVG } from '@/composables/useSVG'
 import { useKeys } from '@/composables/useKeys'
+// import { useSettings } from '@/composables/useSettings'
 import { useIndexedDBStore } from '@/stores/useIndexedDBStore'
+import { useCursor } from '@/composables/useCursor'
 
 const svgRef = ref<SVGElement | null>(null)
 
-const { score } = toRefs(useIndexedDBStore())
+// const { score } = toRefs(useIndexedDBStore())
 
-const { drawScore } = useSVG(svgRef, score)
+const { score, voice } = toRefs(useCursor())
+
+const { drawScore } = useSVG(svgRef)
+
+watch(voice, () => {
+  console.log('currentVoiceId-svg-frame', voice.value)
+})
 
 useKeys(score, drawScore)
 
@@ -19,7 +27,7 @@ onMounted(() => {
 watch(
   score,
   () => {
-    console.log('Score changed in useSVG')
+    // console.log('Score changed in useSVG')
     drawScore()
   },
   { deep: true },
@@ -57,12 +65,14 @@ watch(
   /* Normal mode colors */
   --background-color: beige;
   --foreground-color: #333;
+  --error-color: red;
 }
 
 .dark-mode {
   /* Dark mode colors */
   --background-color: #333;
   --foreground-color: beige;
+  --error-color: red;
 }
 </style>
 <style module>
@@ -116,6 +126,10 @@ g.note.rest {
 line.note {
   stroke-width: 0.5;
   stroke: var(--foreground-color);
+}
+
+line.error {
+  stroke: var(--error-color);
 }
 
 .note > rect {

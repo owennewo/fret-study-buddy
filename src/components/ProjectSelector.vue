@@ -1,25 +1,45 @@
 <script setup lang="ts">
-import { nextTick, onMounted, ref, toRefs, watch } from 'vue'
+import { onMounted, ref, toRefs, watch } from 'vue'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
 import Select from 'primevue/select'
 import Dialog from 'primevue/dialog'
 import { useIndexedDBStore } from '@/stores/useIndexedDBStore'
-import { useSettings } from '@/composables/useSettings'
+import { useCursor } from '@/composables/useCursor'
+// import { useSettings } from '@/composables/useSettings'
 
-const { addProject, listProjects, listScores } = useIndexedDBStore()
-const { projectNames } = toRefs(useIndexedDBStore())
+const { createProject, loadProjects, loadProject } = useIndexedDBStore()
+const { projects } = toRefs(useIndexedDBStore())
+const { project } = toRefs(useCursor())
 const showAddProject = ref(false)
 const newProjectName = ref('')
 
 // Load the current project settings
-const { currentProjectName } = useSettings()
+// const { currentProjectName } = useSettings()
 // const project = ref(null)
+
+watch(project, async () => {
+  console.log('switching project:', project.value)
+  loadProject(project.value)
+  // if (project.value) {
+  //   loadScores(project.value)
+  // }
+  // if (project.value != null && (await hasProject(project.value))) {
+  //   db = await openDB(project.value)
+  //   console.log('Database opened:', db)
+  //   await loadScores()
+  //   await loadScore()
+  // } else {
+  //   console.log('No database found')
+  //   project.value = ''
+  //   score.value = null
+  // }
+})
 
 const addProjectClicked = () => {
   console.log('Adding New Project:', newProjectName.value)
   showAddProject.value = false
-  addProject(newProjectName.value)
+  createProject(newProjectName.value)
   newProjectName.value = ''
 }
 
@@ -28,14 +48,14 @@ const showAddProjectDialog = () => {
 }
 
 onMounted(() => {
-  listProjects()
+  loadProjects()
 })
 </script>
 
 <template>
   <Select
-    v-model="currentProjectName"
-    :options="projectNames"
+    v-model="project"
+    :options="projects"
     placeholder="Select a Project"
     class="w-full md:w-56"
   >

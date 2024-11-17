@@ -10,7 +10,6 @@ class MusicalScore {
   title: string
   tempo: number
   barsPerLine: number
-  voiceCount: number
   timeSignature: TimeSignature
   tracks: Track[]
 
@@ -22,7 +21,6 @@ class MusicalScore {
     this.id = null
     this.title = title
     this.barsPerLine = 4
-    this.voiceCount = 1
     this.tempo = tempo
     this.timeSignature = timeSignature
     this.tracks = []

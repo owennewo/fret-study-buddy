@@ -2,7 +2,9 @@ import { type Ref, watch } from 'vue'
 import * as d3 from 'd3'
 import { MusicalScore } from '@/models/MusicalScore'
 import { NotePosition } from '@/models/NotePosition'
-import type { VoiceElement } from '@/models/VoiceElement'
+import { TailType, type VoiceElement } from '@/models/VoiceElement'
+
+import { useCursor } from '@/composables/useCursor'
 
 export const dimensions = {
   stringSpacing: 30,
@@ -13,10 +15,14 @@ export const dimensions = {
   rectHeight: 20,
 }
 
-export const useSVG = (
-  svgRef: Ref<SVGElement | null>,
-  score: Ref<MusicalScore>,
-) => {
+export const useSVG = (svgRef: Ref<SVGElement | null>) => {
+  const { voice, score } = useCursor()
+
+  console.log('currentVoiceId-use-svg-early', voice.value)
+  watch(voice, () => {
+    console.log('currentVoiceId-use-svg', voice.value)
+  })
+
   const applyToActiveNotes = (
     callback: (element, node, note: NotePosition) => void,
   ) => {
@@ -58,7 +64,7 @@ export const useSVG = (
       element
         ? barWidth *
           (0.1 +
-            (0.8 * element.location) /
+            (0.8 * element.location()) /
               element._voice._bar.timeSignature.beatsPerBar)
         : 0
 
@@ -128,7 +134,7 @@ export const useSVG = (
                 (_, string_index) =>
                   barHeight * barPadding + string_index * stringHeight,
               )
-              .attr('class', 'bar horizontal')
+              .attr('class', `bar horizontal ${bar.isError() ? 'error' : ''}`)
 
             // Vertical Lines for Start and End
             gBarLines
@@ -155,6 +161,7 @@ export const useSVG = (
               .attr('class', 'bar vertical end')
             // .attr('stroke', 'white');
 
+            // console.log('currentVoiceId.value', currentVoiceId.value)
             // Bar Voices
             gBar
               .selectAll('g.bar-voices')
@@ -163,13 +170,17 @@ export const useSVG = (
                 (_, voice_index) => 'bar-' + voice_index + '-voices',
               )
               .join('g')
-              .attr('class', 'bar-voices')
-              .each(function (voice, voice_index) {
+              .attr(
+                'class',
+                (v, voice_index) =>
+                  `bar-voices ${v === voice.value - 1 ? 'active' : ''}`,
+              )
+              .each(function (v, voice_index) {
                 const gVoice = d3
                   .select(this)
-                  .selectAll('g.voice')
+                  .selectAll('g.element')
                   .data(
-                    voice.elements,
+                    v.elements,
                     (_, element_index) =>
                       'bar-' +
                       bar_index +
@@ -179,31 +190,16 @@ export const useSVG = (
                       element_index,
                   )
                   .join('g')
-                  .attr('class', 'voice')
-                  .each(function (element, element_index) {
-                    const gElement = d3
-                      .select(this)
-                      .selectAll('g.element')
-                      .data(
-                        [element],
-                        (_, element_index) =>
-                          'bar-' +
-                          bar_index +
-                          '-voice-' +
-                          voice_index +
-                          '-element-' +
-                          element_index,
-                      )
-                      .join('g')
-                      .attr('class', 'element')
-                      .attr('transform', (note, note_index) => {
-                        return `translate(${calcElementX(element)}, 0)`
-                      })
-
+                  .attr('class', 'element')
+                  .attr('transform', e => {
+                    return `translate(${calcElementX(e)}, 0)`
+                  })
+                  .each(function (e, element_index) {
+                    const gElement = d3.select(this)
                     gElement
                       .selectAll('text.left-hand')
                       .data(
-                        element.notes
+                        e.notes
                           .filter(note => !isNaN(note.leftHandFinger))
                           .reverse(),
                         (_, note_index) =>
@@ -218,15 +214,15 @@ export const useSVG = (
                       )
                       .join('text')
                       .attr('class', 'left-hand')
-                      .attr('x', note => 15)
-                      .attr('y', (note, index) => (9 + index) * stringHeight)
-                      .text(note => note.leftHand())
+                      .attr('x', 15)
+                      .attr('y', (_, index) => (9 + index) * stringHeight)
+                      .text(n => n.leftHand())
 
                     gElement
                       .selectAll('text.right-hand')
                       .data(
-                        element.notes
-                          .filter(note => !isNaN(note.rightHandFinger))
+                        e.notes
+                          .filter(n => !isNaN(n.rightHandFinger))
                           .reverse(),
                         (_, note_index) =>
                           'bar-' +
@@ -240,15 +236,15 @@ export const useSVG = (
                       )
                       .join('text')
                       .attr('class', 'left-hand')
-                      .attr('x', note => 0) //calcElementX(element))
-                      .attr('y', (note, index) => (9 + index) * stringHeight)
-                      .text(note => note.rightHand())
+                      .attr('x', 0) //calcElementX(element))
+                      .attr('y', (_, index) => (9 + index) * stringHeight)
+                      .text(n => n.rightHand())
 
                     const gNote = gElement
                       .selectAll('g.note')
                       .data(
-                        element.notes,
-                        (note, note_index) =>
+                        e.notes,
+                        (_, note_index) =>
                           'bar-' +
                           bar_index +
                           '-voice-' +
@@ -261,15 +257,14 @@ export const useSVG = (
                         // console.log("log", d.active, d3.select(this).datum().active);
                         return `note ${d.active ? 'active' : ''} note ${isNaN(d.fretNumber) ? 'rest' : ''}`
                       })
-                      .attr('transform', (note, note_index) => {
-                        // const noteX = calcElementX(element); //barWidth * (0.1 + (0.8 * element.location / bar.timeSignature.beatsPerBar));
+                      .attr('transform', (n, note_index) => {
                         const noteY =
                           barHeight * barPadding +
-                          (note.stringIndex - 1.5) * stringHeight
+                          (n.stringIndex - 1.5) * stringHeight
                         return `translate(0, ${noteY})`
                       })
-                      .on('click', (_, note) => {
-                        console.log('click', note)
+                      .on('click', (_, n) => {
+                        n.debug('click')
                         const isCtrlPressed = event.ctrlKey || event.metaKey
 
                         if (!isCtrlPressed) {
@@ -277,7 +272,7 @@ export const useSVG = (
                             (_, __, note) => (note.active = false),
                           )
                         }
-                        note.active = true
+                        n.active = true
                         drawScore()
                       })
 
@@ -285,7 +280,7 @@ export const useSVG = (
                     gElement
                       .selectAll('line.note.vertical')
                       .data(
-                        element => [element],
+                        e => [e],
                         (_, note_index) =>
                           'bar-' +
                           bar_index +
@@ -298,20 +293,18 @@ export const useSVG = (
                       .attr('x1', stringHeight * 0.5)
                       .attr('x2', stringHeight * 0.5)
                       .attr('y1', stringHeight * (track.stringCount() + 1))
-                      .attr(
-                        'y2',
-                        element => stringHeight * (track.stringCount() + 2),
-                      )
+                      .attr('y2', e => stringHeight * (track.stringCount() + 2))
                       .attr('class', 'note vertical')
 
                     gElement
                       .selectAll('line.note.horizontal')
                       .data(
-                        element =>
-                          element.beamLines() > 0
-                            ? Array(element.beamLines()).fill(element)
+                        (e: VoiceElement) =>
+                          e.tailType() == TailType.Beam ||
+                          e.tailType() == TailType.Flag
+                            ? Array(e.tailCount()).fill(e)
                             : [],
-                        (_, note_index) =>
+                        (_, note_index: number) =>
                           'bar-' +
                           bar_index +
                           '-voice-' +
@@ -323,11 +316,13 @@ export const useSVG = (
                       .attr('x1', stringHeight * 0.5)
                       .attr(
                         'x2',
-                        element =>
+                        e =>
                           stringHeight * 0.5 +
                           barWidth *
-                            ((0.8 * element.duration) /
-                              element._voice._bar.timeSignature.beatsPerBar),
+                            ((0.8 *
+                              (e.duration /
+                                (e.tailType() == TailType.Flag ? 2 : 1))) /
+                              e._voice._bar.timeSignature.beatsPerBar),
                       )
                       .attr('y1', (_, beamIndex) => {
                         // Position each additional beam slightly above the previous one
@@ -336,7 +331,12 @@ export const useSVG = (
                       })
                       .attr('y2', (_, beamIndex) => {
                         const baseY = stringHeight * (track.stringCount() + 2)
-                        return baseY - beamIndex * (stringHeight * 0.3) // Adjust the multiplier to control spacing between beams
+                        return (
+                          baseY -
+                          (beamIndex +
+                            (e.tailType() == TailType.Flag ? 1 : 0)) *
+                            (stringHeight * 0.3)
+                        ) // Adjust the multiplier to control spacing between beams
                       })
                       .attr('class', 'note horizontal')
 
@@ -344,7 +344,7 @@ export const useSVG = (
                     gNote
                       .selectAll('rect.note')
                       .data(
-                        note => [note],
+                        n => [n],
                         (_, note_index) =>
                           'bar-' +
                           bar_index +
@@ -354,12 +354,12 @@ export const useSVG = (
                           note_index,
                       )
                       .join('rect')
-                      .attr('x', note =>
-                        note.fretNumber > 9 ? -stringHeight * 0.25 : 0,
+                      .attr('x', n =>
+                        n.fretNumber > 9 ? -stringHeight * 0.25 : 0,
                       )
                       .attr('y', 0)
-                      .attr('width', note =>
-                        note.fretNumber > 9
+                      .attr('width', n =>
+                        n.fretNumber > 9
                           ? stringHeight * 1.5
                           : stringHeight * 1,
                       )
@@ -370,7 +370,7 @@ export const useSVG = (
                     gNote
                       .selectAll('text.note')
                       .data(
-                        note => [note],
+                        n => [n],
                         (_, note_index) =>
                           'bar-' +
                           bar_index +
@@ -383,8 +383,15 @@ export const useSVG = (
                       .join('text')
                       .attr('x', stringHeight * 0.5)
                       .attr('y', stringHeight * 0.85)
-                      .text(note =>
-                        isNaN(note.fretNumber) ? '-' : note.fretNumber,
+                      .text(
+                        n => {
+                          return isNaN(n.fretNumber) ? '-' : n.fretNumber
+                        },
+                        //  +
+                        //   '|' +
+                        //   note.tailCount() +
+                        //   '|' +
+                        //   note.tailType(),
                       )
                       .attr('font-size', stringHeight * 1)
                       .attr('class', 'note')

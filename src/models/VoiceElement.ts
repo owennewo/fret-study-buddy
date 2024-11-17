@@ -1,18 +1,17 @@
 import { NotePosition } from './NotePosition'
 import type { Voice } from './Voice'
 
+enum TailType {
+  None,
+  Flag,
+  Beam,
+}
+
 class VoiceElement {
   _voice: Voice
   duration: number // measured in beats could be a fraction (e.g., 0.5 for eighth note)
   notes: NotePosition[] // 0 length = rest, 1 = note, 2+ = chord
-  location: number = 0 // location in the bar measured in beats
-  constructor(
-    voice: Voice,
-    location: number,
-    duration: number,
-    addRest = false,
-  ) {
-    this.location = location
+  constructor(voice: Voice, duration: number, addRest = false) {
     this.duration = duration
     this.notes = [] // Rest by default if `notes` is undefined
     this._voice = voice
@@ -31,6 +30,16 @@ class VoiceElement {
     return this.notes.length == 1
   }
 
+  location(): number {
+    const index = this._voice.elements.indexOf(this)
+
+    return this._voice.elements
+      .filter((element, i) => i < index)
+      .reduce((acc, element) => {
+        return acc + element.duration
+      }, 0)
+  }
+
   isChord(): boolean {
     return this.notes.length > 1
   }
@@ -43,8 +52,56 @@ class VoiceElement {
     return null
   }
 
-  beamLines(): number {
-    const endLocation = this.location + this.duration
+  index(): number {
+    return this._voice.elements.indexOf(this)
+  }
+
+  tailTypeName(): string {
+    switch (this.tailType()) {
+      case TailType.None:
+        return 'None'
+      case TailType.Flag:
+        return 'Flag'
+      case TailType.Beam:
+        return 'Beam'
+    }
+  }
+
+  tailType(): TailType {
+    // if (this.notes.filter(note => !isNaN(note.fretNumber)).length > 0) {
+    //   debugger
+    // }
+
+    if (this.tailCount() == 0) {
+      return TailType.None
+    }
+    const nextElement = this.next()
+    if (nextElement == null) {
+      return TailType.Flag
+    }
+
+    if (
+      Math.floor(nextElement?.location()) + 1 !=
+      Math.ceil(nextElement?.location() + nextElement?.duration)
+    ) {
+      // console.log('@@ flag')
+      return TailType.Flag
+    } else {
+      // console.log('@@ Beam')
+      return TailType.Beam
+    }
+  }
+
+  isLast(): boolean {
+    const index = this._voice.elements.indexOf(this)
+    return this._voice.elements.length == index + 1
+  }
+
+  tailCount(): number {
+    // if (this.notes.filter(note => !isNaN(note.fretNumber)).length > 0) {
+    //   debugger
+    // }
+    const endLocation = this.location() + this.duration
     if (endLocation - Math.floor(endLocation) === 0) {
       return 0
     } else {
@@ -71,7 +128,7 @@ class VoiceElement {
   }
 
   static fromJSON(voice: Voice, data: any): VoiceElement {
-    const voiceElement = new VoiceElement(voice, data.location, data.duration)
+    const voiceElement = new VoiceElement(voice, data.duration)
     const notes: NotePosition[] = data.notes
       ? data.notes.map((noteData: any) =>
           NotePosition.fromJSON(voiceElement, noteData),
@@ -92,4 +149,4 @@ class VoiceElement {
   }
 }
 
-export { VoiceElement }
+export { VoiceElement, TailType }
