@@ -129,6 +129,8 @@ class NotePosition {
     return this.toKeyName(keyIndex) + octave
   }
 
+  isRest = (): boolean => isNaN(this.fretNumber)
+
   pitch = (): string => {
     const instrument = this._voiceElement._voice._bar._track.instrument
     const base = instrument.tuning[this.stringIndex - 1]

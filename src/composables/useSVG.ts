@@ -264,14 +264,14 @@ export const useSVG = (svgRef: Ref<SVGElement | null>) => {
                       })
                       .on('click', (_, n) => {
                         n.debug('click')
-                        const isCtrlPressed = event.ctrlKey || event.metaKey
+                        // const isCtrlPressed = event.ctrlKey || event.metaKey
 
-                        if (!isCtrlPressed) {
-                          applyToActiveNotes(
-                            (_, __, note) => (note.active = false),
-                          )
-                        }
-                        n.active = true
+                        // if (!isCtrlPressed) {
+                        //   applyToActiveNotes(
+                        //     (_, __, note) => (note.active = false),
+                        //   )
+                        // }
+                        note.value = n
                         drawScore()
                       })
 

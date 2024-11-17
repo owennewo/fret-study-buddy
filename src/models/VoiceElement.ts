@@ -52,6 +52,10 @@ class VoiceElement {
     return null
   }
 
+  empty = () => {
+    return this.notes.filter(note => !isNaN(note.fretNumber)).length == 0
+  }
+
   index(): number {
     return this._voice.elements.indexOf(this)
   }

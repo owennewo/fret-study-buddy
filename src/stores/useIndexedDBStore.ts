@@ -83,8 +83,13 @@ export const useIndexedDBStore = defineStore('indexedDBStore', () => {
     if (!scoreId) {
       return null
     }
+
     const fetchedScore = await db.get(SCORES_STORE, scoreId)
-    console.log('loaded score:', scoreId, '-', fetchedScore.title)
+    if (!fetchedScore) {
+      console.warn('Score not found:', scoreId)
+      return null
+    }
+    console.log('loaded score:', scoreId, '-', fetchedScore?.title)
     return MusicalScore.fromJSON(fetchedScore)
   }
 
@@ -98,6 +103,7 @@ export const useIndexedDBStore = defineStore('indexedDBStore', () => {
       score.id = newId
     }
     await loadScores()
+    return score.id
   }
 
   // Delete a score in the selected project

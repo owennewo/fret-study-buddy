@@ -1,9 +1,12 @@
 <script setup>
 import { computed, watch, toRef, toRefs } from 'vue'
 import { instruments } from '@/models/Instruments'
+import { useCursor } from '@/composables/useCursor'
 
-import { useIndexedDBStore } from '@/stores/useIndexedDBStore'
-const { score } = toRefs(useIndexedDBStore())
+// import { useIndexedDBStore } from '@/stores/useIndexedDBStore'
+
+const { score } = toRefs(useCursor())
+
 const props = defineProps({
   visible: Boolean,
 })

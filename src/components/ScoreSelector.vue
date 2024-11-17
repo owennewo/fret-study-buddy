@@ -14,14 +14,17 @@ const { scores } = toRefs(useIndexedDBStore())
 const { score, bar, track, voice, element } = toRefs(useCursor())
 const { saveSettingsToDB } = useSettingsStore()
 
-const newScore = () => {
+const newScore = async () => {
   console.log('New Score')
   score.value = MusicalScore.new()
+  const id = await saveScore(score.value)
+  currentScoreId.value = id
+  saveSettingsToDB()
 }
 
 watch(score, () => {
-  console.log('#######', score.value, score.value.id, score.value.title)
-  currentScoreId.value = score.value.id
+  console.log('#######', score.value, score.value?.id, score.value?.title)
+  currentScoreId.value = score.value?.id
 })
 
 watch(currentScoreId, async newCurrentScoreId => {
@@ -40,6 +43,17 @@ watch(currentScoreId, async newCurrentScoreId => {
     }
   }
 })
+
+const deleteClicked = async () => {
+  await deleteScore(score.value.id)
+  score.value = null
+  currentScoreId.value = null
+  // saveSettingsToDB()
+}
+
+const saveClicked = async () => {
+  await saveScore(score.value)
+}
 
 const allTitles = () => {
   if (score.value == null || scores.value.includes(score.value.title)) {
@@ -82,14 +96,14 @@ const allTitles = () => {
         icon="pi pi-delete"
         severity="secondary"
         variant="text"
-        @click="deleteScore(score.value.id)"
+        @click="deleteClicked"
         >delete</p-button
       >
       <p-button
         icon="pi pi-save"
         severity="secondary"
         variant="text"
-        @click="saveScore(score.value)"
+        @click="saveClicked"
         >save</p-button
       >
     </p-inputgroupaddon>

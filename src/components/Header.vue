@@ -2,7 +2,7 @@
 import { computed, nextTick, ref, toRefs, watch } from 'vue'
 import ScoreSelector from './ScoreSelector.vue'
 import ProjectSelector from './ProjectSelector.vue'
-import SettingsDialog from './SettingsDialog.vue'
+import ScoreDialog from './ScoreDialog.vue'
 import { useSound } from '@/composables/useSound'
 import { useCursor } from '@/composables/useCursor'
 
@@ -13,7 +13,7 @@ const currentVoiceId = ref(0)
 const { play, pause, isPlaying } = useSound()
 
 const isDarkMode = ref(false)
-const showSettingsDialog = ref(false)
+const showScoreDialog = ref(false)
 
 const toggleMode = () => {
   console.log('toggleMode')
@@ -89,7 +89,7 @@ watch(currentVoiceId, () => {
         <p-button
           icon="pi pi-cog"
           class="settings-button"
-          @click="showSettingsDialog = true"
+          @click="showScoreDialog = true"
         />
         <p-button
           v-if="!isPlaying"
@@ -120,9 +120,9 @@ watch(currentVoiceId, () => {
       />
     </template>
   </p-toolbar>
-  <SettingsDialog
-    :visible="showSettingsDialog"
-    @update:visible="showSettingsDialog = $event"
+  <ScoreDialog
+    :visible="showScoreDialog"
+    @update:visible="showScoreDialog = $event"
     @save="handleSave"
   />
 </template>

@@ -83,11 +83,28 @@ export const useKeys = (score: Ref<MusicalScore>, drawScore: Function) => {
       keydowns = keydowns.slice(0, -1)
       note.value.fretNumber = parseInt(keydowns)
     } else if (pressedKey == 'Delete') {
-      if (isCtrlPressed) {
-        track.value.removeBarAt(bar.value.index())
-      } else {
+      // if (isCtrlPressed) {
+      //   track.value.removeBarAt(bar.value.index())
+      // } else {
+      // debugger
+      if (!note.value.isRest()) {
         note.value.fretNumber = NaN
+      } else if (note.value._voiceElement._voice._bar.empty()) {
+        const next = note.value.next('ArrowLeft')
+        note.value._voiceElement._voice._bar._track.removeBarAt(
+          note.value._voiceElement._voice._bar.index(),
+        )
+        note.value = next
+      } else if (note.value._voiceElement.empty()) {
+        const next = note.value.next('ArrowLeft')
+        note.value._voiceElement._voice.removeElementAt(
+          note.value._voiceElement.index(),
+        )
+        note.value = next
       }
+      drawScore()
+
+      // }
     } else if (pressedKey == 'Insert') {
       // applyToActiveNotes((_, __, note) => {
       // const currentBar = note._voiceElement._voice._bar
@@ -120,7 +137,6 @@ export const useKeys = (score: Ref<MusicalScore>, drawScore: Function) => {
           const nextNode = note.value.next(pressedKey)
           note.value = nextNode
         }
-
         drawScore()
         return
       }

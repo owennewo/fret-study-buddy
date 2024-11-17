@@ -25,6 +25,11 @@ class Bar {
     }
   }
 
+  empty = () =>
+    this.voices
+      .flatMap(voice => voice.elements)
+      .filter(element => !element.empty()).length == 0
+
   toJSON(): object {
     return {
       timeSignature: this.timeSignature,
