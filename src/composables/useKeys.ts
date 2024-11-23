@@ -1,19 +1,14 @@
-import { MusicalScore } from '@/models/MusicalScore'
+import { Score } from '@/models/Score'
 import { computed, type Ref } from 'vue'
 import * as d3 from 'd3'
-import { useIndexedDBStore } from '@/stores/useIndexedDBStore'
 import type { NotePosition } from '@/models/NotePosition'
-import type { VoiceElement } from '@/models/VoiceElement'
-// import { useSettings } from '@/composables/useSettings'
 import { useCursor } from './useCursor'
 
-export const useKeys = (score: Ref<MusicalScore>, drawScore: Function) => {
-  const { track, bar, voice, element, note, resetCursor } = useCursor()
+export const useKeys = (score: Ref<Score>, drawScore: Function) => {
+  const { track, bar, voiceId, element, note, resetCursor } = useCursor()
 
   let keydowns = ''
-  const applyToActiveNotes = (
-    callback: (element, node, note: NotePosition) => void,
-  ) => {
+  const applyToActiveNotes = (callback: (element, node, note: NotePosition) => void) => {
     d3.selectAll('g.note.active').each((node, index, nodes) => {
       const note = d3.select(nodes[index]).datum()
       callback(nodes[index], node, note)
@@ -24,34 +19,6 @@ export const useKeys = (score: Ref<MusicalScore>, drawScore: Function) => {
   const selectedTrack = computed(() => {
     return score.value.tracks[0]
   })
-
-  // const selectedBar = computed(()=> {
-  //   return score.value.tracks[0]
-  // })
-
-  // const selectedVoice = computed(()=> {
-  //   return selectedTrack.value.voices[currentVoiceId.value]
-  // })
-
-  const applyToActiveVoiceElements = (
-    callback: (element, node, voiceElement: VoiceElement) => void,
-  ) => {
-    const uniqueParents = new Set()
-
-    // Select all active note nodes
-    d3.selectAll('g.note.active').each((node, index, nodes) => {
-      const parent = nodes[index].parentNode
-
-      // If the parent hasn't been processed yet, add to the set and call callback
-      if (!uniqueParents.has(parent)) {
-        uniqueParents.add(parent)
-        const parentDatum = d3.select(parent).datum() // Get data bound to the parent
-        callback(parent, node, parentDatum) // Call callback with the parent element
-      }
-    })
-
-    drawScore()
-  }
 
   const handleKeys = (event: KeyboardEvent) => {
     const pressedKey = event.key
@@ -70,9 +37,8 @@ export const useKeys = (score: Ref<MusicalScore>, drawScore: Function) => {
     if (!isNaN(Number(pressedKey))) {
       keydowns += pressedKey
       console.log(`Number key pressed: ${keydowns}`)
-      applyToActiveNotes(
-        (_, __, note) => (note.fretNumber = parseInt(keydowns)),
-      )
+      note.value.fretNumber = parseInt(keydowns)
+      drawScore()
     } else if (pressedKey == ']') {
       element.value.duration /= 2
     } else if (pressedKey == '[') {
@@ -83,31 +49,19 @@ export const useKeys = (score: Ref<MusicalScore>, drawScore: Function) => {
       keydowns = keydowns.slice(0, -1)
       note.value.fretNumber = parseInt(keydowns)
     } else if (pressedKey == 'Delete') {
-      // if (isCtrlPressed) {
-      //   track.value.removeBarAt(bar.value.index())
-      // } else {
-      // debugger
       if (!note.value.isRest()) {
         note.value.fretNumber = NaN
-      } else if (note.value._voiceElement._voice._bar.empty()) {
-        const next = note.value.next('ArrowLeft')
-        note.value._voiceElement._voice._bar._track.removeBarAt(
-          note.value._voiceElement._voice._bar.index(),
-        )
-        note.value = next
-      } else if (note.value._voiceElement.empty()) {
-        const next = note.value.next('ArrowLeft')
-        note.value._voiceElement._voice.removeElementAt(
-          note.value._voiceElement.index(),
-        )
-        note.value = next
+      } else if (note.value._element.empty()) {
+        let nextNote = note.value.next('ArrowLeft')
+        note.value._element._voice.removeElementAt(note.value._element.index())
+        if (note.value._element._voice.elements.length == 0) {
+          nextNote = nextNote.next('ArrowLeft')
+          note.value._element._voice._bar._track.removeBarAt(note.value._element._voice._bar.index())
+        }
+        note.value = nextNote
       }
       drawScore()
-
-      // }
     } else if (pressedKey == 'Insert') {
-      // applyToActiveNotes((_, __, note) => {
-      // const currentBar = note._voiceElement._voice._bar
       track.value.addBar(bar.value.index())
       // })
     } else if (pressedKey == 'Escape') {
@@ -124,54 +78,19 @@ export const useKeys = (score: Ref<MusicalScore>, drawScore: Function) => {
       keydowns = ''
       if (
         selectedTrack.value.bars
-          .flatMap(bar =>
-            bar.voices.flatMap(voice =>
-              voice.elements.flatMap(element => element.notes),
-            ),
-          )
+          .flatMap(bar => bar.voices.flatMap(voice => voice.elements.flatMap(element => element.notes)))
           .filter(n => n.active).length == 0
       ) {
         if (note.value == null) {
           resetCursor()
+          // debugger
         } else {
-          const nextNode = note.value.next(pressedKey)
+          const nextNode = note.value.next(pressedKey, voiceId.value)
           note.value = nextNode
         }
         drawScore()
         return
       }
-
-      // applyToActiveNotes((noteElement, _, note) => {
-      //   note.active = false
-      //   let condition = null // note.location;
-      //   const { e: x1, f: y1 } = noteElement.getScreenCTM()
-
-      //   if (pressedKey == 'ArrowUp') {
-      //     condition = (x1: number, x2: number, y1: number, y2: number) =>
-      //       y2 < y1
-      //   } else if (pressedKey == 'ArrowDown') {
-      //     condition = (x1: number, x2: number, y1: number, y2: number) =>
-      //       y2 > y1
-      //   } else if (pressedKey == 'ArrowRight') {
-      //     if (
-      //       note._voiceElement.isLast() &&
-      //       !note._voiceElement._voice.isComplete()
-      //     ) {
-      //       note._voiceElement._voice.extend()
-      //       drawScore()
-      //       // the new element is likely to get selected below
-      //     }
-
-      //     condition = (x1: number, x2: number, y1: number, y2: number) =>
-      //       x2 > x1
-      //   } else if (pressedKey == 'ArrowLeft') {
-      //     condition = (x1: number, x2: number, y1: number, y2: number) =>
-      //       x2 < x1
-      //   }
-
-      //   const nextNote = note.moveActive(pressedKey)
-
-      // })
     } else {
       console.log('ignoring keypress: ', pressedKey)
     }

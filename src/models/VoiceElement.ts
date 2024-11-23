@@ -127,15 +127,15 @@ class VoiceElement {
   }
 
   static fromJSON(voice: Voice, data: any): VoiceElement {
-    const voiceElement = new VoiceElement(voice, data.duration)
+    const element = new VoiceElement(voice, data.duration)
     const notes: NotePosition[] = data.notes
       ? data.notes.map((noteData: any) =>
-          NotePosition.fromJSON(voiceElement, noteData),
+          NotePosition.fromJSON(element, noteData),
         )
       : []
-    voiceElement.notes = notes
-    voiceElement.addRestNotes()
-    return voiceElement
+    element.notes = notes
+    element.addRestNotes()
+    return element
   }
 
   toJSON(): object {

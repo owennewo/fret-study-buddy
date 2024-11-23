@@ -69,7 +69,7 @@ type MoveDirection = 'ArrowUp' | 'ArrowDown' | 'ArrowRight' | 'ArrowLeft'
 type Finger = typeof NaN | 0 | 1 | 2 | 3 | 4
 
 class NotePosition {
-  _voiceElement: VoiceElement
+  _element: VoiceElement
   stringIndex: number // 1 to 6 (1 = high E, 6 = low E)
   fretNumber: number // e.g., 0 (open string), 1, 2, etc.
   techniques: Technique[] // Optional technique
@@ -78,14 +78,14 @@ class NotePosition {
   leftHandFinger: Finger = NaN
 
   constructor(
-    voiceElement: VoiceElement,
+    element: VoiceElement,
     stringIndex: number,
     fretNumber: number,
     techniques: Technique[] = [],
     leftHandFinger: Finger = NaN,
     rightHandFinger: Finger = NaN,
   ) {
-    this._voiceElement = voiceElement
+    this._element = element
     this.stringIndex = stringIndex
     this.fretNumber = fretNumber
     this.techniques = techniques
@@ -132,7 +132,7 @@ class NotePosition {
   isRest = (): boolean => isNaN(this.fretNumber)
 
   pitch = (): string => {
-    const instrument = this._voiceElement._voice._bar._track.instrument
+    const instrument = this._element._voice._bar._track.instrument
     const base = instrument.tuning[this.stringIndex - 1]
     const keyIndex = NotePosition.toNoteIndex(base) + this.fretNumber
     return NotePosition.toNoteName(keyIndex)
@@ -140,59 +140,59 @@ class NotePosition {
 
   debug = (prefix: string = 'note'): void => {
     console.log(prefix, {
-      fretNumber: this.fretNumber,
-      tailCount: this._voiceElement.tailCount(),
-      tailTypeName: this._voiceElement.tailTypeName(),
-      location: this._voiceElement.location(),
-      duration: this._voiceElement.duration,
+      note: {
+        fretNumber: this.fretNumber,
+        tailCount: this._element.tailCount(),
+        tailTypeName: this._element.tailTypeName(),
+        location: this._element.location(),
+        duration: this._element.duration,
+      },
+      element: this._element.index() + '/' + this._element._voice.elements.length,
+      voice: this._element._voice.index() + '/' + this._element._voice._bar.voices.length,
+      bar: this._element._voice._bar.index() + '/' + this._element._voice._bar._track.bars.length,
+      track: this._element._voice._bar._track.index() + '/' + this._element._voice._bar._track._score.tracks.length,
     })
   }
 
   index = () => {
-    return this._voiceElement.notes.indexOf(this)
+    return this._element.notes.indexOf(this)
   }
 
   next = (direction: MoveDirection): NotePosition => {
     let noteIndex = this.index()
-    let elementIndex = this._voiceElement.index()
-    const voiceIndex = this._voiceElement._voice.index()
-    let barIndex = this._voiceElement._voice._bar.index()
+    let elementIndex = this._element.index()
+    const voiceIndex = this._element._voice.index()
+    let barIndex = this._element._voice._bar.index()
     switch (direction) {
       case 'ArrowUp':
         noteIndex = Math.max(noteIndex - 1, 0)
-        return this._voiceElement.notes[noteIndex]
+        return this._element.notes[noteIndex]
       case 'ArrowDown':
-        noteIndex = Math.min(noteIndex + 1, this._voiceElement.notes.length - 1)
-        return this._voiceElement.notes[noteIndex]
+        noteIndex = Math.min(noteIndex + 1, this._element.notes.length - 1)
+        return this._element.notes[noteIndex]
       case 'ArrowRight':
-        if (elementIndex == this._voiceElement._voice.elements.length - 1) {
+        if (elementIndex == this._element._voice.elements.length - 1) {
           // last element of bar
-          if (this._voiceElement._voice.isComplete()) {
+          if (this._element._voice.isComplete()) {
             // no room, so we need to move to the next bar or extend the score
-            if (
-              barIndex ==
-              this._voiceElement._voice._bar._track.bars.length - 1
-            ) {
-              const newBar = this._voiceElement._voice._bar._track.addBar()
-              const nextElement = newBar.voices[voiceIndex].extend()
-              return nextElement.notes[0]
+            if (barIndex == this._element._voice._bar._track.bars.length - 1) {
+              // last bar so extend
+              const newBar = this._element._voice._bar._track.addBar()
+              const nextElement = newBar.voices[voiceIndex].addElement()
+              return nextElement.notes[noteIndex]
+            } else {
+              const nextElement = this._element._voice._bar._track.bars[barIndex + 1].voices[voiceIndex].elements[0]
+              return nextElement.notes[noteIndex]
             }
           } else {
             // there is room in this bar for a new element
-            const newElement = this._voiceElement._voice.extend()
-            return newElement.notes[0]
+            const newElement = this._element._voice.addElement()
+            return newElement.notes[noteIndex]
           }
         } else {
           // not the last element of the bar
-          // elementIndex = Math.min(
-          //   elementIndex + 1,
-          //   this._voiceElement._voice.elements.length - 1,
-          // )
-          return this._voiceElement._voice.elements[elementIndex + 1].notes[
-            noteIndex
-          ]
+          return this._element._voice.elements[elementIndex + 1].notes[noteIndex]
         }
-      // }
 
       case 'ArrowLeft':
         if (elementIndex == 0) {
@@ -200,20 +200,17 @@ class NotePosition {
             return this
           } else {
             barIndex -= 1
-            const nextBar = this._voiceElement._voice._bar._track.bars[barIndex]
+            const nextBar = this._element._voice._bar._track.bars[barIndex]
             if (nextBar.voices[voiceIndex].elements.length == 0) {
               nextBar.voices[voiceIndex].extend()
             }
             const nextElementId = nextBar.voices[voiceIndex].elements.length - 1
-            const nextElement =
-              nextBar.voices[voiceIndex].elements[nextElementId]
+            const nextElement = nextBar.voices[voiceIndex].elements[nextElementId]
             return nextElement.notes[noteIndex]
           }
         } else {
           elementIndex = Math.max(elementIndex - 1, 0)
-          return this._voiceElement._voice.elements[elementIndex].notes[
-            noteIndex
-          ]
+          return this._element._voice.elements[elementIndex].notes[noteIndex]
         }
     }
   }
@@ -243,15 +240,13 @@ class NotePosition {
         techniques: this.techniques,
       },
       isNaN(this.leftHandFinger) ? {} : { leftHandFinger: this.leftHandFinger },
-      isNaN(this.rightHandFinger)
-        ? {}
-        : { rightHandFinger: this.rightHandFinger },
+      isNaN(this.rightHandFinger) ? {} : { rightHandFinger: this.rightHandFinger },
     )
   }
 
-  static fromJSON(voiceElement: VoiceElement, data: any): NotePosition {
+  static fromJSON(element: element, data: any): NotePosition {
     return new NotePosition(
-      voiceElement,
+      element,
       data.stringIndex,
       data.fretNumber,
       data.techniques,

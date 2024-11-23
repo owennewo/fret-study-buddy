@@ -5,7 +5,7 @@ interface TimeSignature {
   beatValue: number // e.g., 4 for quarter note, 8 for eighth note
 }
 
-class MusicalScore {
+class Score {
   id: number | null
   title: string
   tempo: number
@@ -46,11 +46,9 @@ class MusicalScore {
     }
   }
 
-  clone(keepId = false): MusicalScore {
+  clone(keepId = false): Score {
     // deep copy, e.g. to store in indexdb which throws DataCloneError when not happy
-    const clonedScore = JSON.parse(
-      JSON.stringify(this.toJSON()),
-    ) as MusicalScore
+    const clonedScore = JSON.parse(JSON.stringify(this.toJSON())) as Score
     if (keepId && this.id) {
       clonedScore.id = this.id
     }
@@ -62,8 +60,8 @@ class MusicalScore {
     this.tracks.flatMap(track => track.bars).forEach(bar => bar.update())
   }
 
-  static fromJSON(data: any): MusicalScore {
-    const score = new MusicalScore(data.title, data.tempo, data.timeSignature)
+  static fromJSON(data: any): Score {
+    const score = new Score(data.title, data.tempo, data.timeSignature)
     score.barsPerLine = data.barsPerLine
     score.id = data.id
     score.tracks = data.tracks.map((trackData: any) =>
@@ -73,8 +71,8 @@ class MusicalScore {
     return score
   }
 
-  static new(): MusicalScore {
-    const score = new MusicalScore('Untitled', 100, {
+  static new(): Score {
+    const score = new Score('Untitled', 100, {
       beatsPerBar: 4,
       beatValue: 4,
     })
@@ -87,4 +85,4 @@ class MusicalScore {
   }
 }
 
-export { MusicalScore, type TimeSignature }
+export { Score, type TimeSignature }

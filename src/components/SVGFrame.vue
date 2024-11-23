@@ -1,16 +1,13 @@
 <script setup lang="ts">
-import { ref, onMounted, watch, toRefs } from 'vue'
+import { ref, onMounted, watch, nextTick } from 'vue'
 import { useSVG } from '@/composables/useSVG'
 import { useKeys } from '@/composables/useKeys'
-// import { useSettings } from '@/composables/useSettings'
-import { useIndexedDBStore } from '@/stores/useIndexedDBStore'
 import { useCursor } from '@/composables/useCursor'
+import type { NotePosition } from '@/models/NotePosition'
 
 const svgRef = ref<SVGElement | null>(null)
 
-// const { score } = toRefs(useIndexedDBStore())
-
-const { score, voice } = toRefs(useCursor())
+const { score, track, bar, voiceId, voice, element, note, resetCursor } = useCursor()
 
 const { drawScore } = useSVG(svgRef)
 
@@ -25,23 +22,37 @@ onMounted(() => {
 })
 
 watch(
-  score,
+  [score, voiceId],
   () => {
-    // console.log('Score changed in useSVG')
-    drawScore()
+    nextTick(() => {
+      drawScore()
+    })
   },
   { deep: true },
 )
+
+watch(note, (newNote: NotePosition) => {
+  if (newNote) {
+    resetCursor()
+    //   element.value = newNote._element
+    //   voice.value = newNote._element._voice
+    //   if (voice.value != voiceId.value) {
+    //     // voiceId.value = voice.value
+    //     console.log('need to switch voice', voice.value)
+    //   }
+
+    //   bar.value = newNote._element._voice._bar
+    //   track.value = newNote._element._voice._bar._track
+    //   drawScore()
+    // } else {
+    //   console.log('################ note is null')
+  }
+})
 </script>
 
 <template>
   <div class="svgContainer">
-    <svg
-      ref="svgRef"
-      xmlns="http://www.w3.org/2000/svg"
-      class="svgFrame"
-      viewBox="0 0 1000 1000"
-    ></svg>
+    <svg ref="svgRef" xmlns="http://www.w3.org/2000/svg" class="svgFrame" viewBox="0 0 1000 1000"></svg>
   </div>
 </template>
 
@@ -101,6 +112,7 @@ line {
 
 text {
   fill: var(--foreground-color);
+  stroke: var(--foreground-color);
   text-anchor: middle;
 }
 
@@ -128,22 +140,35 @@ line.note {
   stroke: var(--foreground-color);
 }
 
-line.error {
+g.bar.error line.bar {
   stroke: var(--error-color);
+}
+
+g.bar.current line.bar {
+  stroke-width: 4;
 }
 
 .note > rect {
   fill: var(--background-color);
 }
-.note.active > rect {
+.note.current > rect {
   fill: var(--foreground-color);
 }
 
-.note.active > text {
+.note.current > text {
   stroke: var(--background-color);
+  fill: var(--background-color);
 }
 
 .title {
   color: var(--foreground-color);
+}
+
+g.voice {
+  opacity: 0.5;
+}
+
+g.voice.selected {
+  opacity: 1;
 }
 </style>

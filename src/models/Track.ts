@@ -1,16 +1,16 @@
 import { Instrument } from '@/models/Instruments'
 import { Bar } from './Bar'
-import type { MusicalScore } from './MusicalScore'
+import type { Score } from './Score'
 import { Voice } from './Voice'
 
 class Track {
-  _score: MusicalScore
+  _score: Score
   instrument: Instrument
   voiceCount: number
   bars: Bar[]
 
   constructor(
-    score: MusicalScore,
+    score: Score,
     instrumentName: string = 'Guitar',
     tuningName: string = 'Standard',
     toneName: string = 'Default',
@@ -23,10 +23,10 @@ class Track {
 
   addBar(index: number = NaN): Bar {
     const bar = new Bar(this, this._score.timeSignature)
-    const voice = new Voice(bar)
 
     for (let i = 0; i < this.voiceCount; i++) {
-      bar.addVoice(voice)
+      // const voice = new Voice(bar)
+      bar.addVoice()
     }
     if (isNaN(index)) {
       this.bars.push(bar)
@@ -34,6 +34,10 @@ class Track {
       this.bars.splice(index, 0, bar)
     }
     return bar
+  }
+
+  index(): number {
+    return this._score.tracks.indexOf(this)
   }
 
   stringCount = () => this.instrument.tuning.length
@@ -54,17 +58,12 @@ class Track {
     }
   }
 
-  static new(score: MusicalScore): Track {
+  static new(score: Score): Track {
     return new Track(score, 'Guitar', 'Standard', 'Default')
   }
 
-  static fromJSON(score: MusicalScore, data: any): Track {
-    const track = new Track(
-      score,
-      data.instrumentName,
-      data.tuningName,
-      data.toneName,
-    )
+  static fromJSON(score: Score, data: any): Track {
+    const track = new Track(score, data.instrumentName, data.tuningName, data.toneName)
     track.voiceCount = data.voiceCount ?? 1
     track.bars = data.bars.map((barData: any) => Bar.fromJSON(track, barData))
     return track

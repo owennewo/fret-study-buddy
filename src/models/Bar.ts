@@ -1,5 +1,5 @@
 import { Voice } from './Voice'
-import { type TimeSignature } from './MusicalScore'
+import { type TimeSignature } from './Score'
 import type { Track } from './Track'
 
 class Bar {
@@ -13,9 +13,9 @@ class Bar {
     this.voices = []
   }
 
-  addVoice(voice: Voice): void {
-    this.voices.push(voice)
-  }
+  // addVoice(voice: Voice): void {
+  //   this.voices.push(voice)
+  // }
 
   index = () => this._track.bars.indexOf(this)
 
@@ -25,10 +25,14 @@ class Bar {
     }
   }
 
-  empty = () =>
-    this.voices
-      .flatMap(voice => voice.elements)
-      .filter(element => !element.empty()).length == 0
+  addVoice = (): Voice => {
+    // debugger
+    const voice = new Voice(this)
+    this.voices.push(voice)
+    return voice
+  }
+
+  empty = () => this.voices.flatMap(voice => voice.elements).filter(element => !element.empty()).length == 0
 
   toJSON(): object {
     return {
@@ -48,17 +52,9 @@ class Bar {
         barBeats += element.duration
       })
       if (barBeats != this.timeSignature.beatsPerBar) {
-        console.error(
-          'Bar does not add up to time signature',
-          barBeats,
-          this.timeSignature.beatsPerBar,
-        )
+        console.error('Bar does not add up to time signature', barBeats, this.timeSignature.beatsPerBar)
       } else {
-        console.log(
-          'Bar adds up to time signature',
-          barBeats,
-          this.timeSignature.beatsPerBar,
-        )
+        console.log('Bar adds up to time signature', barBeats, this.timeSignature.beatsPerBar)
       }
     })
   }
@@ -69,17 +65,13 @@ class Bar {
       typeof data.timeSignature.beatsPerBar !== 'number' ||
       typeof data.timeSignature.beatValue !== 'number'
     ) {
-      throw new Error(
-        "Invalid data format: 'timeSignature' must have 'beatsPerBar' and 'beatValue' as numbers.",
-      )
+      throw new Error("Invalid data format: 'timeSignature' must have 'beatsPerBar' and 'beatValue' as numbers.")
     }
 
     const bar = new Bar(track, data.timeSignature)
 
     if (data.voices && Array.isArray(data.voices)) {
-      bar.voices = data.voices.map((voiceData: any) =>
-        Voice.fromJSON(bar, voiceData),
-      )
+      bar.voices = data.voices.map((voiceData: any) => Voice.fromJSON(bar, voiceData))
     } else {
       throw new Error("Invalid data format: 'voices' should be an array.")
     }

@@ -2,7 +2,7 @@
 import { ref, toRefs, watch } from 'vue'
 import { useIndexedDBStore } from '@/stores/useIndexedDBStore'
 import { useCursor } from '@/composables/useCursor'
-import { MusicalScore } from '@/models/MusicalScore'
+import { Score } from '@/models/Score'
 import { useSettingsStore } from '@/stores/settingsStore'
 
 const currentScoreId = ref(null)
@@ -11,12 +11,12 @@ const { saveScore, loadScore, deleteScore } = useIndexedDBStore()
 
 const { scores } = toRefs(useIndexedDBStore())
 
-const { score, bar, track, voice, element } = toRefs(useCursor())
+const { score, bar, track, voice, element } = useCursor()
 const { saveSettingsToDB } = useSettingsStore()
 
 const newScore = async () => {
   console.log('New Score')
-  score.value = MusicalScore.new()
+  score.value = Score.new()
   const id = await saveScore(score.value)
   currentScoreId.value = id
   saveSettingsToDB()
@@ -79,33 +79,13 @@ const allTitles = () => {
       </template>
       <template #footer>
         <div class="p-3">
-          <p-button
-            label="Add New"
-            @click="newScore"
-            fluid
-            severity="secondary"
-            text
-            size="small"
-            icon="pi pi-plus"
-          />
+          <p-button label="Add New" @click="newScore" fluid severity="secondary" text size="small" icon="pi pi-plus" />
         </div>
       </template>
     </p-select>
     <p-inputgroupaddon>
-      <p-button
-        icon="pi pi-delete"
-        severity="secondary"
-        variant="text"
-        @click="deleteClicked"
-        >delete</p-button
-      >
-      <p-button
-        icon="pi pi-save"
-        severity="secondary"
-        variant="text"
-        @click="saveClicked"
-        >save</p-button
-      >
+      <p-button icon="pi pi-delete" severity="secondary" variant="text" @click="deleteClicked">delete</p-button>
+      <p-button icon="pi pi-save" severity="secondary" variant="text" @click="saveClicked">save</p-button>
     </p-inputgroupaddon>
   </p-inputgroup>
 </template>

@@ -5,7 +5,7 @@ import { useCursor } from '@/composables/useCursor'
 
 // import { useIndexedDBStore } from '@/stores/useIndexedDBStore'
 
-const { score } = toRefs(useCursor())
+const { score } = useCursor()
 
 const props = defineProps({
   visible: Boolean,
@@ -73,55 +73,27 @@ watch(visible, () => {
 
       <div class="field"> -->
         <label for="barsPerLine">Bars per Line</label>
-        <p-inputnumber
-          v-model="score.barsPerLine"
-          id="barsPerLine"
-          :min="1"
-          showButtons
-        />
+        <p-inputnumber v-model="score.barsPerLine" id="barsPerLine" :min="1" showButtons />
       </div>
 
       <div class="field">
         <label>Time Signature</label>
         <div class="field-group">
-          <p-inputnumber
-            v-model="score.timeSignature.beatsPerBar"
-            placeholder="Beats per Bar"
-            :min="1"
-            showButtons
-          />
+          <p-inputnumber v-model="score.timeSignature.beatsPerBar" placeholder="Beats per Bar" :min="1" showButtons />
           <span>/</span>
-          <p-inputnumber
-            v-model="score.timeSignature.beatValue"
-            placeholder="Beat Value"
-            :min="1"
-            showButtons
-          />
+          <p-inputnumber v-model="score.timeSignature.beatValue" placeholder="Beat Value" :min="1" showButtons />
         </div>
       </div>
 
       <p-tabs :value="0">
         <p-tablist>
-          <p-tab
-            v-for="(track, index) in score.tracks"
-            :key="index"
-            :value="index"
-            >Track {{ index }}</p-tab
-          >
+          <p-tab v-for="(track, index) in score.tracks" :key="index" :value="index">Track {{ index }}</p-tab>
           <p-tab :value="1">
-            <p-button
-              icon="pi pi-plus"
-              class="p-button-text add-track-icon"
-              @click="addTrack"
-            />
+            <p-button icon="pi pi-plus" class="p-button-text add-track-icon" @click="addTrack" />
           </p-tab>
         </p-tablist>
         <p-tabpanels>
-          <p-tabpanel
-            v-for="(track, index) in score.tracks"
-            :key="index"
-            :value="index"
-          >
+          <p-tabpanel v-for="(track, index) in score.tracks" :key="index" :value="index">
             <div class="field">
               <label>Instrument</label>
               <div class="field-group">
@@ -158,14 +130,7 @@ watch(visible, () => {
 
               <div class="field">
                 <label for="voiceCount">Voice Count</label>
-                <p-inputnumber
-                  v-model="track.voiceCount"
-                  id="voiceCount"
-                  :min="1"
-                  :max="4"
-                  showButtons
-                  :step="1"
-                />
+                <p-inputnumber v-model="track.voiceCount" id="voiceCount" :min="1" :max="4" showButtons :step="1" />
               </div>
             </div>
           </p-tabpanel>
@@ -175,12 +140,7 @@ watch(visible, () => {
     </div>
 
     <template #footer>
-      <p-button
-        label="Close"
-        icon="pi pi-times"
-        class="p-button-secondary"
-        @click="onClose()"
-      />
+      <p-button label="Close" icon="pi pi-times" class="p-button-secondary" @click="onClose()" />
     </template>
   </p-dialog>
 </template>

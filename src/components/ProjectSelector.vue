@@ -10,7 +10,7 @@ import { useSettingsStore } from '@/stores/settingsStore'
 
 const { createProject, loadProjects, loadProject } = useIndexedDBStore()
 const { projects } = toRefs(useIndexedDBStore())
-const { project } = toRefs(useCursor())
+const { project } = useCursor()
 const showAddProject = ref(false)
 const newProjectName = ref('')
 
@@ -42,12 +42,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <Select
-    v-model="project"
-    :options="projects"
-    placeholder="Select a Project"
-    class="w-full md:w-56"
-  >
+  <Select v-model="project" :options="projects" placeholder="Select a Project" class="w-full md:w-56">
     <template #dropdownicon>
       <i class="pi pi-book" />
     </template>
@@ -69,33 +64,16 @@ onMounted(async () => {
     </template>
   </Select>
 
-  <Dialog
-    v-model:visible="showAddProject"
-    modal
-    header="Add Project"
-    :style="{ width: '25rem' }"
-  >
+  <Dialog v-model:visible="showAddProject" modal header="Add Project" :style="{ width: '25rem' }">
     <span class="text-surface-500 dark:text-surface-400 block mb-8">
       You will be able to add new tabs to this project.
     </span>
     <div class="flex items-center gap-4 mb-4">
-      <label for="newProjectName" class="font-semibold w-24"
-        >Project Name</label
-      >
-      <InputText
-        id="newProjectName"
-        v-model="newProjectName"
-        class="flex-auto"
-        autocomplete="off"
-      />
+      <label for="newProjectName" class="font-semibold w-24">Project Name</label>
+      <InputText id="newProjectName" v-model="newProjectName" class="flex-auto" autocomplete="off" />
     </div>
     <div class="flex justify-end gap-2">
-      <Button
-        type="button"
-        label="Cancel"
-        severity="secondary"
-        @click="showAddProject = false"
-      />
+      <Button type="button" label="Cancel" severity="secondary" @click="showAddProject = false" />
       <Button type="button" label="Save" @click="addProjectClicked" />
     </div>
   </Dialog>

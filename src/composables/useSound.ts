@@ -9,7 +9,7 @@ import type { Bar } from '@/models/Bar'
 import { useCursor } from './useCursor'
 
 export const useSound = () => {
-  const { score } = toRefs(useCursor())
+  const { score } = useCursor()
   // const { score } = toRefs(useIndexedDBStore())
   const isPlaying = ref(false)
 
@@ -78,10 +78,7 @@ export const useSound = () => {
       await Tone.Transport.cancel(0)
     }
 
-    Tone.Transport.timeSignature = [
-      score.value.timeSignature.beatsPerBar,
-      score.value.timeSignature.beatValue,
-    ]
+    Tone.Transport.timeSignature = [score.value.timeSignature.beatsPerBar, score.value.timeSignature.beatValue]
     Tone.Transport.bpm.value = score.value.tempo
     isPlaying.value = true
     await Tone.start()
@@ -105,8 +102,7 @@ export const useSound = () => {
           .map((element: VoiceElement, element_index) => {
             if (!element.isRest()) {
               const time =
-                (element.location() +
-                  bar_index * bar.timeSignature.beatsPerBar) *
+                (element.location() + bar_index * bar.timeSignature.beatsPerBar) *
                 Tone.Time(`${bar.timeSignature.beatsPerBar}n`).toSeconds()
               tuples.push([time, element])
             }

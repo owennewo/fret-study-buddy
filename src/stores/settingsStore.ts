@@ -5,7 +5,7 @@ import { useCursor } from '@/composables/useCursor'
 import { useIndexedDBStore } from '@/stores/useIndexedDBStore'
 
 export const useSettingsStore = defineStore('settingsStore', () => {
-  const { project, score } = toRefs(useCursor())
+  const { project, score } = useCursor()
 
   const { loadProject, loadScore } = useIndexedDBStore()
 

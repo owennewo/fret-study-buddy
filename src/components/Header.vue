@@ -6,9 +6,7 @@ import ScoreDialog from './ScoreDialog.vue'
 import { useSound } from '@/composables/useSound'
 import { useCursor } from '@/composables/useCursor'
 
-const { score, track } = toRefs(useCursor())
-
-const currentVoiceId = ref(0)
+const { score, track, bar, voice, element, note, voiceId } = useCursor()
 
 const { play, pause, isPlaying } = useSound()
 
@@ -32,18 +30,15 @@ const handleSave = () => {
 }
 
 const voiceOptions = computed(() => {
-  const options = Array.from(
-    { length: track.value.voiceCount ?? 1 },
-    (_, i) => ({
-      key: '' + (i + 1),
-      value: i + 1,
-    }),
-  )
+  const options = Array.from({ length: track.value?.voiceCount ?? 1 }, (_, i) => ({
+    label: '' + (i + 1),
+    value: i,
+  }))
   return options
 })
 
-watch(currentVoiceId, () => {
-  console.log('currentVoiceId-header', currentVoiceId.value)
+watch(voiceId, () => {
+  console.log('voice-header', voiceId.value)
 })
 </script>
 <template>
@@ -86,45 +81,41 @@ watch(currentVoiceId, () => {
       <div class="toolbar-center">
         <ProjectSelector />
         <ScoreSelector />
-        <p-button
-          icon="pi pi-cog"
-          class="settings-button"
-          @click="showScoreDialog = true"
-        />
-        <p-button
-          v-if="!isPlaying"
-          icon="pi pi-play"
-          class="settings-button"
-          @click="play"
-        />
-        <p-button
-          v-if="isPlaying"
-          icon="pi pi-pause"
-          class="settings-button"
-          @click="pause"
-        />
+        <p-button icon="pi pi-cog" class="settings-button" @click="showScoreDialog = true" />
+        <p-button v-if="!isPlaying" icon="pi pi-play" class="settings-button" @click="play" />
+        <p-button v-if="isPlaying" icon="pi pi-pause" class="settings-button" @click="pause" />
         <p-selectbutton
-          v-model="currentVoiceId"
-          :options="scoreOptions"
-          optionLabel="key"
+          v-model="voiceId"
+          :options="voiceOptions"
+          optionLabel="label"
           optionValue="value"
+          :allowEmpty="false"
         ></p-selectbutton>
+        <table style="border: 1px solid black" class="debug">
+          <tr>
+            <th>t</th>
+            <th>b</th>
+            <th>v</th>
+            <th>e</th>
+            <th>n</th>
+            <th>f</th>
+          </tr>
+          <tr v-if="score">
+            <td>{{ track?.index() ?? '?' }}</td>
+            <td>{{ bar?.index() ?? '?' }}</td>
+            <td>{{ voice?.index() ?? '?' }}</td>
+            <td>{{ element?.index() ?? '?' }}</td>
+            <td>{{ note?.index() ?? '?' }}</td>
+            <td>{{ isNaN(note?.fretNumber) ? '~' : (note?.fretNumber ?? '?') }}</td>
+          </tr>
+        </table>
       </div>
     </template>
     <template #end>
-      <p-togglebutton
-        @click="toggleMode"
-        v-model="isDarkMode"
-        onLabel="Light"
-        offLabel="Dark"
-      />
+      <p-togglebutton @click="toggleMode" v-model="isDarkMode" onLabel="Light" offLabel="Dark" />
     </template>
   </p-toolbar>
-  <ScoreDialog
-    :visible="showScoreDialog"
-    @update:visible="showScoreDialog = $event"
-    @save="handleSave"
-  />
+  <ScoreDialog :visible="showScoreDialog" @update:visible="showScoreDialog = $event" @save="handleSave" />
 </template>
 
 <style scoped>
@@ -146,5 +137,16 @@ line.icon-secondary {
   stroke: var(--p-toolbar-background, white);
   fill: var(--p-toolbar-background, white);
   stroke-width: 4;
+}
+
+table.debug {
+  border: 1px solid black;
+  border-collapse: collapse;
+  /* margin: 0 auto; */
+  tr,
+  th,
+  td {
+    border: 1px solid lightgray;
+  }
 }
 </style>

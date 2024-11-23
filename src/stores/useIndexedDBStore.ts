@@ -1,4 +1,4 @@
-import { MusicalScore } from '@/models/MusicalScore'
+import { Score } from '@/models/Score'
 import { defineStore } from 'pinia'
 import { ref, type Ref } from 'vue'
 import { openDB, type IDBPDatabase } from 'idb'
@@ -9,7 +9,7 @@ import { useCursor } from '@/composables/useCursor'
 export const useIndexedDBStore = defineStore('indexedDBStore', () => {
   const projects: Ref<Array<string>> = ref([]) // List of all databases
   const scores = ref([]) // List of titles in the selected project
-  // const { project, score } = toRefs(useCursor())
+  // const { project, score } = useCursor()
 
   const SCORES_STORE = 'Scores'
 
@@ -23,9 +23,7 @@ export const useIndexedDBStore = defineStore('indexedDBStore', () => {
 
   const loadProjects = async () => {
     if (indexedDB.databases) {
-      projects.value = (await indexedDB.databases())
-        .filter(db => db.name !== 'appDatabase')
-        .map(db => db.name) as []
+      projects.value = (await indexedDB.databases()).filter(db => db.name !== 'appDatabase').map(db => db.name) as []
     } else {
       console.warn('indexedDB.databases() not supported in this browser.')
     }
@@ -90,10 +88,10 @@ export const useIndexedDBStore = defineStore('indexedDBStore', () => {
       return null
     }
     console.log('loaded score:', scoreId, '-', fetchedScore?.title)
-    return MusicalScore.fromJSON(fetchedScore)
+    return Score.fromJSON(fetchedScore)
   }
 
-  const saveScore = async (score: MusicalScore) => {
+  const saveScore = async (score: Score) => {
     const clonedScore = score.clone(true)
 
     if (clonedScore.id) {
