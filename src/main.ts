@@ -2,17 +2,22 @@ import './assets/main.css'
 import 'primeicons/primeicons.css'
 
 import { createApp } from 'vue'
+import ToastService from 'primevue/toastservice'
 import { createPinia } from 'pinia'
 import App from './App.vue'
 import PrimeVue from 'primevue/config'
 import Aura from '@primevue/themes/aura'
 import {
+  Badge,
   Button,
+  Column,
+  DataTable,
   Dialog,
   InputGroup,
   InputGroupAddon,
   InputNumber,
   InputText,
+  Popover,
   Select,
   SelectButton,
   Tab,
@@ -20,6 +25,7 @@ import {
   TabPanel,
   TabPanels,
   Tabs,
+  Toast,
   ToggleButton,
   Toolbar,
 } from 'primevue'
@@ -35,6 +41,7 @@ app.use(PrimeVue, {
     },
   },
 })
+app.use(ToastService)
 app.component('p-button', Button)
 app.component('p-toolbar', Toolbar)
 app.component('p-select', Select)
@@ -50,5 +57,10 @@ app.component('p-tabpanels', TabPanels)
 app.component('p-tabpanel', TabPanel)
 app.component('p-tablist', TabList)
 app.component('p-tab', Tab)
+app.component('p-badge', Badge)
+app.component('p-popover', Popover)
+app.component('p-datatable', DataTable)
+app.component('p-column', Column)
+app.component('p-toast', Toast)
 
 app.mount('#app')

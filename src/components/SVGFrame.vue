@@ -11,10 +11,6 @@ const { score, track, bar, voiceId, voice, element, note, resetCursor } = useCur
 
 const { drawScore } = useSVG(svgRef)
 
-watch(voice, () => {
-  console.log('currentVoiceId-svg-frame', voice.value)
-})
-
 useKeys(score, drawScore)
 
 onMounted(() => {
@@ -145,7 +141,7 @@ g.bar.error line.bar {
 }
 
 g.bar.current line.bar {
-  stroke-width: 4;
+  stroke-width: 3;
 }
 
 .note > rect {

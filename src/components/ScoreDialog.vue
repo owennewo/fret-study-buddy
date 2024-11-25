@@ -45,10 +45,6 @@ const handleEvent = event => {
   }
   event.stopPropagation()
 }
-
-watch(visible, () => {
-  console.log('visible', visible)
-})
 </script>
 
 <template>

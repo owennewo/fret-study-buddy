@@ -9,7 +9,7 @@ import type { Bar } from '@/models/Bar'
 import { useCursor } from './useCursor'
 
 export const useSound = () => {
-  const { score } = useCursor()
+  const { score, trackId } = useCursor()
   // const { score } = toRefs(useIndexedDBStore())
   const isPlaying = ref(false)
 
@@ -65,7 +65,7 @@ export const useSound = () => {
       return
     }
 
-    const selectedTrack = score.value.tracks[0]
+    const selectedTrack = score.value.tracks[trackId.value]
     instrument = await loadInstrument(selectedTrack)
     console.log(instrument)
 

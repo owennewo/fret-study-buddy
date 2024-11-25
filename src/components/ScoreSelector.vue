@@ -11,7 +11,7 @@ const { saveScore, loadScore, deleteScore } = useIndexedDBStore()
 
 const { scores } = toRefs(useIndexedDBStore())
 
-const { score, bar, track, voice, element } = useCursor()
+const { score, bar, track, voice, element, resetCursor } = useCursor()
 const { saveSettingsToDB } = useSettingsStore()
 
 const newScore = async () => {
@@ -36,10 +36,7 @@ watch(currentScoreId, async newCurrentScoreId => {
     saveSettingsToDB()
 
     if (loadedScore) {
-      track.value = loadedScore.tracks[0]
-      bar.value = track.value.bars[0]
-      voice.value = bar.value.voices[0]
-      element.value = voice.value.elements[0]
+      resetCursor()
     }
   }
 })

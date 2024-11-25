@@ -70,7 +70,7 @@ type Finger = typeof NaN | 0 | 1 | 2 | 3 | 4
 
 class NotePosition {
   _element: VoiceElement
-  stringIndex: number // 1 to 6 (1 = high E, 6 = low E)
+  // stringIndex: number // 1 to 6 (1 = high E, 6 = low E)
   fretNumber: number // e.g., 0 (open string), 1, 2, etc.
   techniques: Technique[] // Optional technique
   active: boolean = false // used for UI feedback
@@ -79,14 +79,14 @@ class NotePosition {
 
   constructor(
     element: VoiceElement,
-    stringIndex: number,
+    // stringIndex: number,
     fretNumber: number,
     techniques: Technique[] = [],
     leftHandFinger: Finger = NaN,
     rightHandFinger: Finger = NaN,
   ) {
     this._element = element
-    this.stringIndex = stringIndex
+    // this.stringIndex = stringIndex
     this.fretNumber = fretNumber
     this.techniques = techniques
     this.leftHandFinger = leftHandFinger !== null ? NaN : leftHandFinger
@@ -133,7 +133,7 @@ class NotePosition {
 
   pitch = (): string => {
     const instrument = this._element._voice._bar._track.instrument
-    const base = instrument.tuning[this.stringIndex - 1]
+    const base = instrument.tuning[this.index()]
     const keyIndex = NotePosition.toNoteIndex(base) + this.fretNumber
     return NotePosition.toNoteName(keyIndex)
   }
@@ -235,7 +235,7 @@ class NotePosition {
   toJSON(): object {
     return Object.assign(
       {
-        stringIndex: this.stringIndex,
+        // stringIndex: this.stringIndex,
         fretNumber: this.fretNumber,
         techniques: this.techniques,
       },
@@ -247,7 +247,7 @@ class NotePosition {
   static fromJSON(element: element, data: any): NotePosition {
     return new NotePosition(
       element,
-      data.stringIndex,
+      // data.stringIndex,
       data.fretNumber,
       data.techniques,
       data.leftHandFinger,

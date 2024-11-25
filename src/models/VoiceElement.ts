@@ -21,9 +21,7 @@ class VoiceElement {
   }
 
   isRest(): boolean {
-    return (
-      this.notes.length == 0 || this.notes.every(note => isNaN(note.fretNumber))
-    )
+    return this.notes.length == 0 || this.notes.every(note => isNaN(note.fretNumber))
   }
 
   isNote(): boolean {
@@ -84,10 +82,7 @@ class VoiceElement {
       return TailType.Flag
     }
 
-    if (
-      Math.floor(nextElement?.location()) + 1 !=
-      Math.ceil(nextElement?.location() + nextElement?.duration)
-    ) {
+    if (Math.floor(nextElement?.location()) + 1 != Math.ceil(nextElement?.location() + nextElement?.duration)) {
       return TailType.Flag
     } else {
       return TailType.Beam
@@ -119,19 +114,17 @@ class VoiceElement {
   addRestNotes(): void {
     const stringLength = this._voice._bar._track.instrument.tuning.length
     for (let i = 0; i < stringLength; i++) {
-      if (this.notes.find(note => note.stringIndex === i + 1)) {
+      if (this.notes.find(note => note.index() === i)) {
         continue
       }
-      this.notes.push(new NotePosition(this, i + 1, NaN))
+      this.notes.push(new NotePosition(this, NaN))
     }
   }
 
   static fromJSON(voice: Voice, data: any): VoiceElement {
     const element = new VoiceElement(voice, data.duration)
     const notes: NotePosition[] = data.notes
-      ? data.notes.map((noteData: any) =>
-          NotePosition.fromJSON(element, noteData),
-        )
+      ? data.notes.map((noteData: any) => NotePosition.fromJSON(element, noteData))
       : []
     element.notes = notes
     element.addRestNotes()
@@ -141,9 +134,7 @@ class VoiceElement {
   toJSON(): object {
     return {
       duration: this.duration,
-      notes: this.notes
-        .filter(note => note.fretNumber !== null && !isNaN(note.fretNumber))
-        .map(note => note.toJSON()),
+      notes: this.notes.filter(note => note.fretNumber !== null && !isNaN(note.fretNumber)).map(note => note.toJSON()),
     }
   }
 }

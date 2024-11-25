@@ -58,6 +58,24 @@ class Track {
     }
   }
 
+  verify(): void {
+    this.bars.forEach(bar => {
+      if (bar.voices.length > this.voiceCount) {
+        console.log('Too many voices in bar, removing some')
+        bar.voices = bar.voices.slice(0, this.voiceCount)
+      }
+    })
+    if (this.bars.length == 0) {
+      this.addBar()
+    }
+    if (this.bars[0].voices.length == 0) {
+      this.bars[0].addVoice()
+    }
+    if (this.bars[0].voices[0].elements.length == 0) {
+      this.bars[0].voices[0].addElement()
+    }
+  }
+
   static new(score: Score): Track {
     return new Track(score, 'Guitar', 'Standard', 'Default')
   }

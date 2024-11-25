@@ -5,6 +5,7 @@ import SVGFrame from './components/SVGFrame.vue'
 
 <template>
   <main>
+    <p-toast />
     <Header></Header>
     <SVGFrame></SVGFrame>
   </main>

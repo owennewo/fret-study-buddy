@@ -13,6 +13,8 @@ const { play, pause, isPlaying } = useSound()
 const isDarkMode = ref(false)
 const showScoreDialog = ref(false)
 
+const errorPopover = ref()
+
 const toggleMode = () => {
   console.log('toggleMode')
   nextTick(() => {
@@ -25,6 +27,10 @@ const toggleMode = () => {
   })
 }
 
+const toggleErrorPopover = event => {
+  errorPopover.value.toggle(event)
+}
+
 const handleSave = () => {
   console.log('handleSave')
 }
@@ -35,10 +41,6 @@ const voiceOptions = computed(() => {
     value: i,
   }))
   return options
-})
-
-watch(voiceId, () => {
-  console.log('voice-header', voiceId.value)
 })
 </script>
 <template>
@@ -92,23 +94,34 @@ watch(voiceId, () => {
           :allowEmpty="false"
         ></p-selectbutton>
         <table style="border: 1px solid black" class="debug">
-          <tr>
-            <th>t</th>
-            <th>b</th>
-            <th>v</th>
-            <th>e</th>
-            <th>n</th>
-            <th>f</th>
-          </tr>
-          <tr v-if="score">
-            <td>{{ track?.index() ?? '?' }}</td>
-            <td>{{ bar?.index() ?? '?' }}</td>
-            <td>{{ voice?.index() ?? '?' }}</td>
-            <td>{{ element?.index() ?? '?' }}</td>
-            <td>{{ note?.index() ?? '?' }}</td>
-            <td>{{ isNaN(note?.fretNumber) ? '~' : (note?.fretNumber ?? '?') }}</td>
-          </tr>
+          <thead>
+            <tr>
+              <th>t</th>
+              <th>b</th>
+              <th>v</th>
+              <th>e</th>
+              <th>n</th>
+              <th>f</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-if="score">
+              <td>{{ track?.index() ?? '?' }}</td>
+              <td>{{ bar?.index() ?? '?' }}</td>
+              <td>{{ voice?.index() ?? '?' }}</td>
+              <td>{{ element?.index() ?? '?' }}</td>
+              <td>{{ note?.index() ?? '?' }}</td>
+              <td>{{ isNaN(note?.fretNumber) ? '~' : (note?.fretNumber ?? '?') }}</td>
+            </tr>
+          </tbody>
         </table>
+        <p-badge
+          v-if="score?.errors().length > 0"
+          @click="toggleErrorPopover"
+          severity="danger"
+          size="xlarge"
+          :value="score?.errors().length"
+        ></p-badge>
       </div>
     </template>
     <template #end>
@@ -116,6 +129,18 @@ watch(voiceId, () => {
     </template>
   </p-toolbar>
   <ScoreDialog :visible="showScoreDialog" @update:visible="showScoreDialog = $event" @save="handleSave" />
+  <p-popover ref="errorPopover">
+    <p-datatable :value="score?.errors()" tableStyle="min-width: 50rem">
+      <p-column field="track" header="Track" class="w-1/6"></p-column>
+      <p-column field="bar" header="Bar" class="w-1/6"></p-column>
+      <p-column field="voice" header="Voice" class="w-1/6" bodyClass="whitespace-nowrap"></p-column>
+      <p-column field="error" header="Error" sortable class="w-1/6">
+        <template #body="slotProps">
+          Duration is {{ slotProps.data.duration }} beat (expecting {{ slotProps.data.expectedDuration }})
+        </template>
+      </p-column>
+    </p-datatable>
+  </p-popover>
 </template>
 
 <style scoped>

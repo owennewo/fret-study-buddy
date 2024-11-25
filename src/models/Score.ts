@@ -5,6 +5,15 @@ interface TimeSignature {
   beatValue: number // e.g., 4 for quarter note, 8 for eighth note
 }
 
+interface Error {
+  track: number
+  bar: number
+  voice: number
+  // element: number
+  duration: number
+  expectedDuration: number
+}
+
 class Score {
   id: number | null
   title: string
@@ -55,6 +64,36 @@ class Score {
     return clonedScore
   }
 
+  errors(): Error[] {
+    const errors: Error[] = []
+    this.tracks.forEach((track, trackIndex) => {
+      track.bars.forEach((bar, barIndex) => {
+        bar.voices.forEach((voice, voiceIndex) => {
+          // voice.elements.forEach((element, element) => {
+          if (voice.duration() != this.timeSignature.beatsPerBar) {
+            errors.push({
+              track: trackIndex + 1,
+              bar: barIndex + 1,
+              voice: voiceIndex + 1,
+              duration: voice.duration(),
+              expectedDuration: this.timeSignature.beatsPerBar,
+            })
+          }
+          // })
+        })
+      })
+    })
+    return errors
+  }
+
+  verify() {
+    // debugger
+    console.log('verify score')
+    this.tracks.forEach(track => {
+      track.verify()
+    })
+  }
+
   update(): void {
     console.log('update score')
     this.tracks.flatMap(track => track.bars).forEach(bar => bar.update())
@@ -64,9 +103,7 @@ class Score {
     const score = new Score(data.title, data.tempo, data.timeSignature)
     score.barsPerLine = data.barsPerLine
     score.id = data.id
-    score.tracks = data.tracks.map((trackData: any) =>
-      Track.fromJSON(score, trackData),
-    )
+    score.tracks = data.tracks.map((trackData: any) => Track.fromJSON(score, trackData))
     score.update()
     return score
   }

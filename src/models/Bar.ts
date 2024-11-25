@@ -29,6 +29,7 @@ class Bar {
     // debugger
     const voice = new Voice(this)
     this.voices.push(voice)
+    voice.addElement()
     return voice
   }
 
