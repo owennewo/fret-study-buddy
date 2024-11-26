@@ -63,13 +63,14 @@ const handleEvent = event => {
       </div>
 
       <div class="field">
-        <label for="tempo">Tempo</label>
-        <p-inputnumber v-model="score.tempo" id="tempo" :min="1" />
-        <!-- </div>
-
-      <div class="field"> -->
-        <label for="barsPerLine">Bars per Line</label>
-        <p-inputnumber v-model="score.barsPerLine" id="barsPerLine" :min="1" showButtons />
+        <div class="field-group">
+          <label for="tempo">Tempo</label>
+          <p-inputnumber v-model="score.tempo" id="tempo" :min="1" />
+          <label for="barsPerLine">Bars per Line</label>
+          <p-inputnumber v-model="score.barsPerLine" id="barsPerLine" :min="1" showButtons />
+          <label for="fontSize">Font size</label>
+          <p-inputnumber v-model="score.fontSize" id="fontSize" :min="4" showButtons />
+        </div>
       </div>
 
       <div class="field">
@@ -93,17 +94,12 @@ const handleEvent = event => {
             <div class="field">
               <label>Instrument</label>
               <div class="field-group">
-                <!-- <div class="field">
-                  <label :for="'instrument-' + index">Instrument</label> -->
                 <p-select
                   v-model="track.instrument.instrumentName"
                   :options="instrumentOptions"
                   :id="'instrument-' + index"
                   placeholder="Select Instrument"
                 />
-                <!-- </div>
-
-                <div class="field"-->
                 <label :for="'tuning-' + index">Tuning</label>
                 <p-select
                   v-model="track.instrument.tuningName"
@@ -111,17 +107,12 @@ const handleEvent = event => {
                   :id="'tuning-' + index"
                   placeholder="Select Tuning"
                 />
-
-                <!-- <div class="field">
-                    <label :for="'tone-' + index">Tone</label> -->
                 <p-select
                   v-model="track.instrument.toneName"
                   :options="toneOptions(track.instrument.instrumentName)"
                   :id="'tone-' + index"
                   placeholder="Select Tone"
                 />
-                <!-- </div> -->
-                <!-- </div> -->
               </div>
 
               <div class="field">

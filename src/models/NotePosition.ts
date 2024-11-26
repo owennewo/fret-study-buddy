@@ -161,7 +161,7 @@ class NotePosition {
   next = (direction: MoveDirection): NotePosition => {
     let noteIndex = this.index()
     let elementIndex = this._element.index()
-    const voiceIndex = this._element._voice.index()
+    const voiceIndex = Math.max(this._element._voice.index(), 0)
     let barIndex = this._element._voice._bar.index()
     switch (direction) {
       case 'ArrowUp':
@@ -178,8 +178,8 @@ class NotePosition {
             if (barIndex == this._element._voice._bar._track.bars.length - 1) {
               // last bar so extend
               const newBar = this._element._voice._bar._track.addBar()
-              const nextElement = newBar.voices[voiceIndex].addElement()
-              return nextElement.notes[noteIndex]
+              return newBar.voices[voiceIndex].elements[0].notes[noteIndex]
+              // return nextElement.notes[noteIndex]
             } else {
               const nextElement = this._element._voice._bar._track.bars[barIndex + 1].voices[voiceIndex].elements[0]
               return nextElement.notes[noteIndex]

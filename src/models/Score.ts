@@ -19,6 +19,7 @@ class Score {
   title: string
   tempo: number
   barsPerLine: number
+  fontSize: number
   timeSignature: TimeSignature
   tracks: Track[]
 
@@ -30,6 +31,7 @@ class Score {
     this.id = null
     this.title = title
     this.barsPerLine = 4
+    this.fontSize = 12
     this.tempo = tempo
     this.timeSignature = timeSignature
     this.tracks = []
@@ -51,6 +53,7 @@ class Score {
       tempo: this.tempo,
       timeSignature: this.timeSignature,
       barsPerLine: this.barsPerLine,
+      fontSize: this.fontSize,
       tracks: this.tracks.map(track => track.toJSON()),
     }
   }
@@ -103,6 +106,7 @@ class Score {
     const score = new Score(data.title, data.tempo, data.timeSignature)
     score.barsPerLine = data.barsPerLine
     score.id = data.id
+    score.fontSize = data.fontSize ?? 12
     score.tracks = data.tracks.map((trackData: any) => Track.fromJSON(score, trackData))
     score.update()
     return score

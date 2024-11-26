@@ -5,7 +5,7 @@ import type { NotePosition } from '@/models/NotePosition'
 import { useCursor } from './useCursor'
 import { useToast } from 'primevue/usetoast'
 
-export const useKeys = (score: Ref<Score>, drawScore: Function) => {
+export const useKeys = (score: Ref<Score>, drawScore: () => void) => {
   const { track, trackId, bar, voiceId, element, note, resetCursor } = useCursor()
 
   const toast = useToast()
@@ -14,14 +14,6 @@ export const useKeys = (score: Ref<Score>, drawScore: Function) => {
   let command = null
   let subCommand = null
   let bounceFlag = false
-
-  const applyToActiveNotes = (callback: (element, node, note: NotePosition) => void) => {
-    d3.selectAll('g.note.active').each((node, index, nodes) => {
-      const note = d3.select(nodes[index]).datum()
-      callback(nodes[index], node, note)
-    })
-    drawScore()
-  }
 
   const selectedTrack = computed(() => {
     return score.value.tracks[trackId.value]
@@ -46,8 +38,8 @@ export const useKeys = (score: Ref<Score>, drawScore: Function) => {
       keydowns += pressedKey
       console.log(`Number key pressed: ${keydowns}`)
       const value = parseInt(keydowns)
-      if (command == 'move' && subCommand == 'track') {
-        console.log('Moving to track', value - 1)
+      if (command == 'goto' && subCommand == 'track') {
+        console.log('Goto to track', value - 1)
         if (score.value.tracks.length > value - 1) {
           const newTrack = score.value.tracks[value - 1]
           const barIndex = Math.min(bar.value.index(), newTrack.bars.length - 1)
@@ -59,14 +51,60 @@ export const useKeys = (score: Ref<Score>, drawScore: Function) => {
               command = null
               subCommand = null
               keydowns = ''
-              console.log('clearing move command')
+              console.log('clearing goto command')
             }
           }, 2000)
         } else {
           toast.add({ severity: 'warn', summary: 'Moving track', detail: 'Cannot move to track ' + value, life: 3000 })
         }
-      } else if (command == 'move' && subCommand == 'voice') {
-        console.log('Moving to voice', value - 1)
+      } else if (command == 'move' && subCommand == 'bar') {
+        console.log('Move to bar', value - 1)
+        if (bar.value.index() + 1 == value) {
+          console.log('Already on bat', value - 1)
+          toast.add({
+            severity: 'warn',
+            summary: 'Moving bar',
+            detail: `Cannot move current bar ${bar.value.index() + 1} to same index ${value}`,
+            life: 3000,
+          })
+        } else if (track.value.bars.length > value - 1) {
+          const currentBarIndex = bar.value.index()
+          const newBarIndex = value - 1
+
+          // move track
+          track.value.bars.splice(newBarIndex, 0, track.value.bars.splice(currentBarIndex, 1)[0])
+
+          command = null
+          subCommand = null
+          keydowns = ''
+          console.log('clearing goto command')
+        }
+      } else if (command == 'move' && subCommand == 'track') {
+        console.log('Move to track', value - 1)
+        if (track.value.index() + 1 == value) {
+          console.log('Already on track', value - 1)
+          toast.add({
+            severity: 'warn',
+            summary: 'Moving track',
+            detail: `Cannot move current track ${track.value.index() + 1} to same index ${value}`,
+            life: 3000,
+          })
+        } else if (score.value.tracks.length > value - 1) {
+          const currentTrackIndex = track.value.index()
+          const newTrackIndex = value - 1
+
+          // move track
+          score.value.tracks.splice(newTrackIndex, 0, score.value.tracks.splice(currentTrackIndex, 1)[0])
+
+          command = null
+          subCommand = null
+          keydowns = ''
+          console.log('clearing goto command')
+        } else {
+          toast.add({ severity: 'warn', summary: 'Moving track', detail: 'Cannot move to track ' + value, life: 3000 })
+        }
+      } else if (command == 'goto' && subCommand == 'voice') {
+        console.log('Goto to voice', value - 1)
         if (track.value.voiceCount > value - 1) {
           voiceId.value = value - 1
           bounceFlag = true
@@ -77,8 +115,8 @@ export const useKeys = (score: Ref<Score>, drawScore: Function) => {
         } else {
           toast.add({ severity: 'warn', summary: 'Moving voice', detail: 'Cannot move to voice ' + value, life: 3000 })
         }
-      } else if (command == 'move' && subCommand == 'bar') {
-        console.log('Moving to bar', value - 1)
+      } else if (command == 'goto' && subCommand == 'bar') {
+        console.log('Goto to bar', value - 1)
         if (track.value.bars.length > value - 1) {
           note.value = track.value.bars[value - 1].voices[0].elements[0].notes[0]
           bounceFlag = true
@@ -87,7 +125,7 @@ export const useKeys = (score: Ref<Score>, drawScore: Function) => {
               command = null
               subCommand = null
               keydowns = ''
-              console.log('clearing move command')
+              console.log('clearing goto command')
             }
           }, 2000)
         } else {
@@ -128,9 +166,8 @@ export const useKeys = (score: Ref<Score>, drawScore: Function) => {
       } else if (pressedKey == 'Insert') {
         track.value.addBar(bar.value.index())
       } else if (pressedKey == 'Escape') {
-        applyToActiveNotes((_, __, note) => {
-          note.active = false
-        })
+        note.value = null
+        drawScore()
       } else if (
         pressedKey == 'ArrowUp' ||
         pressedKey == 'ArrowDown' ||
@@ -153,6 +190,9 @@ export const useKeys = (score: Ref<Score>, drawScore: Function) => {
           drawScore()
           return
         }
+      } else if (pressedKey == 'g') {
+        command = 'goto'
+        console.log('activating goto command')
       } else if (pressedKey == 'm') {
         command = 'move'
         console.log('activating move command')

@@ -102,7 +102,7 @@ svg {
 }
 
 line {
-  stroke-width: 2;
+  stroke-width: 1;
   stroke: var(--foreground-color);
 }
 
@@ -110,6 +110,9 @@ text {
   fill: var(--foreground-color);
   stroke: var(--foreground-color);
   text-anchor: middle;
+  dominant-baseline: central;
+  font-family: sans-serif;
+  stroke-width: 0.5;
 }
 
 textarea {
@@ -128,11 +131,22 @@ textarea {
 </style>
 <style>
 g.note.rest {
-  opacity: 0.1;
+  opacity: 0;
+}
+
+g.note.rest:hover {
+  opacity: 0.5;
+  rect {
+    fill: var(--foreground-color);
+  }
+}
+
+g.note.rest.current {
+  opacity: 1;
 }
 
 line.note {
-  stroke-width: 0.5;
+  stroke-width: 0.75;
   stroke: var(--foreground-color);
 }
 
@@ -141,11 +155,12 @@ g.bar.error line.bar {
 }
 
 g.bar.current line.bar {
-  stroke-width: 3;
+  stroke-width: 2;
 }
 
 .note > rect {
   fill: var(--background-color);
+  cursor: pointer;
 }
 .note.current > rect {
   fill: var(--foreground-color);
@@ -160,11 +175,24 @@ g.bar.current line.bar {
   color: var(--foreground-color);
 }
 
-g.voice {
+g.voice text {
   opacity: 0.5;
+  cursor: pointer;
 }
 
-g.voice.selected {
+g.voice.current text {
   opacity: 1;
+}
+
+g.voice.selected text {
+  opacity: 1;
+}
+
+g.instrument text {
+  text-anchor: end;
+}
+
+g.instrument text.instrument-name {
+  text-anchor: middle;
 }
 </style>
