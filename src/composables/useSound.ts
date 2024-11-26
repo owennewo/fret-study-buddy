@@ -1,12 +1,13 @@
 import * as Tone from 'tone'
 // import { useIndexedDBStore } from '@/stores/useIndexedDBStore'
-import { ref, toRefs } from 'vue'
+import { ref } from 'vue'
 import { timeMillisecond } from 'd3'
 import type { VoiceElement } from '@/models/VoiceElement'
 import type { Voice } from '@/models/Voice'
 import type { Track } from '@/models/Track'
 import type { Bar } from '@/models/Bar'
 import { useCursor } from './useCursor'
+// import { Sampler } from 'tone'
 
 export const useSound = () => {
   const { score, trackId } = useCursor()
@@ -39,7 +40,7 @@ export const useSound = () => {
       const filename = item.replace('#', 's') // d# -> ds
       // these urls are specific to nbrowsky sample folder structure and filename
       return Object.assign(acc, { [item]: `${filename}.mp3` })
-    }, {} as any)
+    }, {}) as any
 
     console.log('sampleUrls', sampleUrls)
     const sampler = new Tone.Sampler({
@@ -48,8 +49,6 @@ export const useSound = () => {
       attack: 0.01,
       release: 0.2,
       onload: async () => {
-        // await sampler.loaded;
-        // startPlayback();
         console.log(`Instrument ${track.instrument.instrumentName} loaded`)
       },
     }).toDestination()

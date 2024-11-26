@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { ref, onMounted, watch, nextTick } from 'vue'
+import { ref, onMounted, watch, nextTick, type Ref } from 'vue'
 import { useSVG } from '@/composables/useSVG'
 import { useKeys } from '@/composables/useKeys'
 import { useCursor } from '@/composables/useCursor'
 import type { NotePosition } from '@/models/NotePosition'
 
-const svgRef = ref<SVGElement | null>(null)
+const svgRef = ref<SVGSVGElement | null>(null)
 
-const { score, track, bar, voiceId, voice, element, note, resetCursor } = useCursor()
+const { score, voiceId, note, resetCursor } = useCursor()
 
 const { drawScore } = useSVG(svgRef)
 
@@ -27,21 +27,9 @@ watch(
   { deep: true },
 )
 
-watch(note, (newNote: NotePosition) => {
+watch(note, (newNote: Ref<NotePosition | null>) => {
   if (newNote) {
     resetCursor()
-    //   element.value = newNote._element
-    //   voice.value = newNote._element._voice
-    //   if (voice.value != voiceId.value) {
-    //     // voiceId.value = voice.value
-    //     console.log('need to switch voice', voice.value)
-    //   }
-
-    //   bar.value = newNote._element._voice._bar
-    //   track.value = newNote._element._voice._bar._track
-    //   drawScore()
-    // } else {
-    //   console.log('################ note is null')
   }
 })
 </script>

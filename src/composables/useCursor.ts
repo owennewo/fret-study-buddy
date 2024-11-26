@@ -1,16 +1,21 @@
-import type { Score } from '@/models/Score'
+import type { Bar } from '@/models/Bar'
+import type { NotePosition } from '@/models/NotePosition'
+import { Score } from '@/models/Score'
+import type { Track } from '@/models/Track'
+import type { Voice } from '@/models/Voice'
+import type { VoiceElement } from '@/models/VoiceElement'
 // import type { NotePosition } from '@/models/NotePosition'
 import { ref, watch, type Ref } from 'vue'
 
-const project: Ref<string | null> = ref(null)
-const score: Ref<Score | null> = ref(null)
+const project: Ref<string> = ref('')
+const score: Ref<Score> = ref(Score.new())
 const trackId: Ref<number> = ref(0)
-const track = ref(null)
-const bar = ref(null)
-const voice = ref(null)
-const voiceId = ref(0)
-const element = ref(null)
-const note = ref(null)
+const track: Ref<Track | null> = ref(null)
+const bar: Ref<Bar | null> = ref(null)
+const voice: Ref<Voice | null> = ref(null)
+const voiceId: Ref<number> = ref(0)
+const element: Ref<VoiceElement | null> = ref(null)
+const note: Ref<NotePosition | null> = ref(null)
 
 export const useCursor = () => {
   const resetCursor = () => {
@@ -66,7 +71,7 @@ export const useCursor = () => {
   }
 
   watch(voiceId, () => {
-    console.log('switching voiceId', voiceId.value, voice.value.index())
+    console.log('switching voiceId', voiceId.value, voice.value?.index())
     resetCursor()
   })
 

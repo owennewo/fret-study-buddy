@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, ref, toRefs, watch } from 'vue'
+import { computed, nextTick, ref } from 'vue'
 import ScoreSelector from './ScoreSelector.vue'
 import ProjectSelector from './ProjectSelector.vue'
 import ScoreDialog from './ScoreDialog.vue'
@@ -111,7 +111,7 @@ const voiceOptions = computed(() => {
               <td>{{ voice?.index() ?? '?' }}</td>
               <td>{{ element?.index() ?? '?' }}</td>
               <td>{{ note?.index() ?? '?' }}</td>
-              <td>{{ isNaN(note?.fretNumber) ? '~' : (note?.fretNumber ?? '?') }}</td>
+              <td>{{ isNaN(note?.fretNumber as number) ? '~' : (note?.fretNumber ?? '?') }}</td>
             </tr>
           </tbody>
         </table>

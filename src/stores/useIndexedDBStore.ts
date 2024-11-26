@@ -2,14 +2,12 @@ import { Score } from '@/models/Score'
 import { defineStore } from 'pinia'
 import { ref, type Ref } from 'vue'
 import { openDB, type IDBPDatabase } from 'idb'
-// import { useSettings } from '@/composables/useSettings'
-
-import { useCursor } from '@/composables/useCursor'
 
 export const useIndexedDBStore = defineStore('indexedDBStore', () => {
-  const projects: Ref<Array<string>> = ref([]) // List of all databases
-  const scores = ref([]) // List of titles in the selected project
-  // const { project, score } = useCursor()
+  const projects: Ref<Array<string>> = ref([])
+  const scores: Ref<Array<ScoreLite>> = ref([])
+
+  type ScoreLite = { id: number; title: string }
 
   const SCORES_STORE = 'Scores'
 
@@ -54,7 +52,7 @@ export const useIndexedDBStore = defineStore('indexedDBStore', () => {
     loadProjects()
   }
 
-  const deleteProject = async projectName => {
+  const deleteProject = async (projectName: string) => {
     await indexedDB.deleteDatabase(projectName)
     // if (project.value === projectName) {
     //   // project.value = null
@@ -78,7 +76,7 @@ export const useIndexedDBStore = defineStore('indexedDBStore', () => {
   }
 
   const loadScore = async (scoreId: number) => {
-    if (!scoreId) {
+    if (!scoreId || !db) {
       return null
     }
 
@@ -94,11 +92,13 @@ export const useIndexedDBStore = defineStore('indexedDBStore', () => {
   const saveScore = async (score: Score) => {
     const clonedScore = score.clone(true)
 
+    if (!db) return
+
     if (clonedScore.id) {
       await db.put(SCORES_STORE, clonedScore)
     } else {
       const newId = await db.add(SCORES_STORE, clonedScore, undefined)
-      score.id = newId
+      score.id = newId as number
     }
     await loadScores()
     return score.id
@@ -106,6 +106,7 @@ export const useIndexedDBStore = defineStore('indexedDBStore', () => {
 
   // Delete a score in the selected project
   const deleteScore = async (scoreId: number) => {
+    if (!db) return
     await db.delete(SCORES_STORE, scoreId)
     await loadScores()
   }

@@ -1,8 +1,8 @@
 import { defineStore } from 'pinia'
-import { toRefs } from 'vue'
 import { openDB } from 'idb'
 import { useCursor } from '@/composables/useCursor'
 import { useIndexedDBStore } from '@/stores/useIndexedDBStore'
+import type { Score } from '@/models/Score'
 
 export const useSettingsStore = defineStore('settingsStore', () => {
   const { project, score } = useCursor()
@@ -23,9 +23,9 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   async function loadSettingsFromDB() {
     const db = await getDB()
     const settings = await db.get('settings', 'appSettings')
-    if (settings) {
-      project.value = await loadProject(settings.currentProjectName || '')
-      score.value = await loadScore(settings.currentScoreId || 0)
+    if (settings && project.value && score.value) {
+      project.value = (await loadProject(settings.currentProjectName || '')) as string
+      score.value = (await loadScore(settings.currentScoreId || 0)) as Score
     }
   }
 

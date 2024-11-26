@@ -5,26 +5,27 @@ import { TailType, VoiceElement } from '@/models/VoiceElement'
 import { useCursor } from '@/composables/useCursor'
 import type { Bar } from '@/models/Bar'
 import type { Track } from '@/models/Track'
+import type { Voice } from '@/models/Voice'
 
-export const useSVG = (svgRef: Ref<SVGElement | null>) => {
-  const { score, track, bar, voice, voiceId, element, note, resetCursor } = useCursor()
+export const useSVG = (svgRef: Ref<SVGSVGElement | null>) => {
+  const { score, track, bar, voice, voiceId, element, note } = useCursor()
 
   const calcElementX = (element: VoiceElement, barWidth: number) =>
     element ? barWidth * (0.1 + (0.8 * element.location()) / element._voice._bar.timeSignature.beatsPerBar) : 0
 
   const calculateTrackY = (currentTrack: Track) => {
-    const trackY = score.value.tracks.reduce((acc, track) => {
+    const trackY = score.value?.tracks.reduce((acc, track) => {
       if (track.index() >= currentTrack.index()) {
         return acc
       } else {
-        return acc + (track.stringCount() - 1 + 4) * score.value.fontSize
+        return acc + (track.stringCount() - 1 + 4) * score.value?.fontSize
       }
     }, 0)
 
     return trackY
   }
 
-  const drawTrackText = (gBar: d3.Selection, theTrack: Track, barPadding) => {
+  const drawTrackText = (gBar: d3.Selection, theTrack: Track, barPadding: number) => {
     const gInstrument = gBar
       .selectAll('g.instrument')
       .data([theTrack.instrument])
@@ -37,7 +38,10 @@ export const useSVG = (svgRef: Ref<SVGElement | null>) => {
       .data([theTrack.instrument])
       .join('g')
       .attr('class', 'instrument-name')
-      .attr('transform', `translate(0, ${(theTrack.instrument.tuning.length * score.value.fontSize) / 2}) rotate(-90) `)
+      .attr(
+        'transform',
+        `translate(0, ${(theTrack.instrument.tuning.length * score.value?.fontSize) / 2}) rotate(-90) `,
+      )
 
     gInstrumentName
       .selectAll('text.instrument-name')
@@ -116,7 +120,7 @@ export const useSVG = (svgRef: Ref<SVGElement | null>) => {
           .attr('class', d => {
             return `note ${d === note.value ? 'current' : ''} ${isNaN(d.fretNumber) ? 'rest' : ''}`
           })
-          .attr('transform', (n, nodeIndex) => {
+          .attr('transform', n => {
             const noteY = barPadding + (n.index() - 0.5) * score.value.fontSize
             return `translate(0, ${noteY})`
           })
@@ -261,22 +265,19 @@ export const useSVG = (svgRef: Ref<SVGElement | null>) => {
       .attr('x', barPadding * 0.25)
       .attr('y', barPadding * 0.5)
       .attr('font-size', `${score.value.fontSize}px`)
-      .text(bar => barIndex + 1)
+      .text(barIndex + 1)
 
     // Bar Lines
     drawBarLines(gBar, theBar, barIndex, barWidth, barPadding, barHeight)
 
-    const voices = theBar.voices.reduce(
-      (acc, voice) => {
-        if (voice.index() === voiceId.value) {
-          acc.push(voice) // Add topVoice to the end
-        } else {
-          acc.unshift(voice) // Add other voices to the beginning
-        }
-        return acc
-      },
-      [] as typeof bar.voices,
-    )
+    const voices = theBar.voices.reduce((acc, voice) => {
+      if (voice.index() === voiceId.value) {
+        acc.push(voice) // Add topVoice to the end
+      } else {
+        acc.unshift(voice) // Add other voices to the beginning
+      }
+      return acc
+    }, [] as Array<Voice>)
     gBar
       .selectAll('g.voice')
       .data(voices, (_, voiceIndex) => 'bar-' + voiceIndex + '-voices')
@@ -286,8 +287,8 @@ export const useSVG = (svgRef: Ref<SVGElement | null>) => {
         (v, voiceIndex) =>
           `voice ${v === voice.value ? 'current' : ''} ${voiceIndex} ${voiceId.value} ${voiceIndex == voices.length - 1 ? 'selected' : ''} ${voiceIndex} ${voiceId.value}`,
       )
-      .each(function (v, voiceIndex) {
-        const gVoice = d3.select(this)
+      .each((v, voiceIndex, voices) => {
+        const gVoice = d3.select(voices[voiceIndex])
 
         drawVoice(gVoice, v, barIndex, voiceIndex, barWidth, barPadding, stringCount)
       })
@@ -308,7 +309,7 @@ export const useSVG = (svgRef: Ref<SVGElement | null>) => {
       const svg = d3.select(svgRef.value)
 
       const svgWidth = svgRef.value?.viewBox?.baseVal.width
-      const svgHeight = svgRef.value?.viewBox?.baseVal.height
+      // const svgHeight = svgRef.value?.viewBox?.baseVal.height
 
       const numberOfTracks = score.value.tracks.length
       const barWidth = (svgWidth - 4 * score.value.fontSize) / score.value.barsPerLine

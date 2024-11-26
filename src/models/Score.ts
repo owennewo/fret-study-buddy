@@ -9,7 +9,6 @@ interface Error {
   track: number
   bar: number
   voice: number
-  // element: number
   duration: number
   expectedDuration: number
 }

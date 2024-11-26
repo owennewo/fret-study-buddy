@@ -1,7 +1,6 @@
 import { Instrument } from '@/models/Instruments'
 import { Bar } from './Bar'
 import type { Score } from './Score'
-import { Voice } from './Voice'
 
 class Track {
   _score: Score

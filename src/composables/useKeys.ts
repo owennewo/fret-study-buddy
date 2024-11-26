@@ -1,7 +1,6 @@
 import { Score } from '@/models/Score'
 import { computed, type Ref } from 'vue'
 import * as d3 from 'd3'
-import type { NotePosition } from '@/models/NotePosition'
 import { useCursor } from './useCursor'
 import { useToast } from 'primevue/usetoast'
 
@@ -11,8 +10,8 @@ export const useKeys = (score: Ref<Score>, drawScore: () => void) => {
   const toast = useToast()
 
   let keydowns = ''
-  let command = null
-  let subCommand = null
+  let command = ''
+  let subCommand = ''
   let bounceFlag = false
 
   const selectedTrack = computed(() => {
@@ -27,10 +26,13 @@ export const useKeys = (score: Ref<Score>, drawScore: () => void) => {
     // special keys (work even if no score is loaded)
 
     if (isCtrlPressed && pressedKey == 'n') {
-      newScore()
+      score.value = Score.new()
       event.preventDefault()
     }
-    if (!score.value) return
+    if (!score.value || !track.value || !bar.value || !note.value || !element.value || voiceId.value == null) {
+      debugger
+      return
+    }
 
     // normal keys (require a score to be loaded)
 
@@ -48,8 +50,8 @@ export const useKeys = (score: Ref<Score>, drawScore: () => void) => {
           bounceFlag = true
           setTimeout(() => {
             if (bounceFlag == true) {
-              command = null
-              subCommand = null
+              command = ''
+              subCommand = ''
               keydowns = ''
               console.log('clearing goto command')
             }
@@ -74,9 +76,7 @@ export const useKeys = (score: Ref<Score>, drawScore: () => void) => {
           // move track
           track.value.bars.splice(newBarIndex, 0, track.value.bars.splice(currentBarIndex, 1)[0])
 
-          command = null
-          subCommand = null
-          keydowns = ''
+          command = subCommand = keydowns = ''
           console.log('clearing goto command')
         }
       } else if (command == 'move' && subCommand == 'track') {
@@ -96,9 +96,7 @@ export const useKeys = (score: Ref<Score>, drawScore: () => void) => {
           // move track
           score.value.tracks.splice(newTrackIndex, 0, score.value.tracks.splice(currentTrackIndex, 1)[0])
 
-          command = null
-          subCommand = null
-          keydowns = ''
+          command = subCommand = keydowns = ''
           console.log('clearing goto command')
         } else {
           toast.add({ severity: 'warn', summary: 'Moving track', detail: 'Cannot move to track ' + value, life: 3000 })
@@ -108,9 +106,7 @@ export const useKeys = (score: Ref<Score>, drawScore: () => void) => {
         if (track.value.voiceCount > value - 1) {
           voiceId.value = value - 1
           bounceFlag = true
-          command = null
-          subCommand = null
-          keydowns = ''
+          command = subCommand = keydowns = ''
           console.log('clearing move command')
         } else {
           toast.add({ severity: 'warn', summary: 'Moving voice', detail: 'Cannot move to voice ' + value, life: 3000 })
@@ -122,9 +118,7 @@ export const useKeys = (score: Ref<Score>, drawScore: () => void) => {
           bounceFlag = true
           setTimeout(() => {
             if (bounceFlag == true) {
-              command = null
-              subCommand = null
-              keydowns = ''
+              command = subCommand = keydowns = ''
               console.log('clearing goto command')
             }
           }, 2000)
@@ -144,8 +138,8 @@ export const useKeys = (score: Ref<Score>, drawScore: () => void) => {
         element.value.duration *= 2
       } else if (pressedKey == 'Enter') {
         keydowns = ''
-        command = null
-        subCommand = null
+        command = ''
+        subCommand = ''
       } else if (pressedKey == 'Backspace') {
         keydowns = keydowns.slice(0, -1)
         note.value.fretNumber = parseInt(keydowns)
@@ -184,7 +178,7 @@ export const useKeys = (score: Ref<Score>, drawScore: () => void) => {
           if (note.value == null) {
             resetCursor()
           } else {
-            const nextNode = note.value.next(pressedKey, voiceId.value)
+            const nextNode = note.value.next(pressedKey)
             note.value = nextNode
           }
           drawScore()

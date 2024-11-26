@@ -186,7 +186,7 @@ class NotePosition {
             }
           } else {
             // there is room in this bar for a new element
-            const newElement = this._element._voice.addElement()
+            const newElement = this._element._voice.addElement() as VoiceElement
             return newElement.notes[noteIndex]
           }
         } else {
@@ -202,7 +202,7 @@ class NotePosition {
             barIndex -= 1
             const nextBar = this._element._voice._bar._track.bars[barIndex]
             if (nextBar.voices[voiceIndex].elements.length == 0) {
-              nextBar.voices[voiceIndex].extend()
+              nextBar.voices[voiceIndex].addElement()
             }
             const nextElementId = nextBar.voices[voiceIndex].elements.length - 1
             const nextElement = nextBar.voices[voiceIndex].elements[nextElementId]
@@ -244,7 +244,7 @@ class NotePosition {
     )
   }
 
-  static fromJSON(element: element, data: any): NotePosition {
+  static fromJSON(element: VoiceElement, data: any): NotePosition {
     return new NotePosition(
       element,
       // data.stringIndex,

@@ -1,30 +1,30 @@
-<script setup>
+<script setup lang="ts">
 import { ref, toRefs, watch } from 'vue'
 import { useIndexedDBStore } from '@/stores/useIndexedDBStore'
 import { useCursor } from '@/composables/useCursor'
 import { Score } from '@/models/Score'
 import { useSettingsStore } from '@/stores/settingsStore'
 
-const currentScoreId = ref(null)
+const currentScoreId = ref(-1)
 
 const { saveScore, loadScore, deleteScore } = useIndexedDBStore()
 
 const { scores } = toRefs(useIndexedDBStore())
 
-const { score, bar, track, voice, element, resetCursor } = useCursor()
+const { score, resetCursor } = useCursor()
 const { saveSettingsToDB } = useSettingsStore()
 
 const newScore = async () => {
   console.log('New Score')
   score.value = Score.new()
   const id = await saveScore(score.value)
-  currentScoreId.value = id
+  currentScoreId.value = id as number
   saveSettingsToDB()
 }
 
 watch(score, () => {
   console.log('#######', score.value, score.value?.id, score.value?.title)
-  currentScoreId.value = score.value?.id
+  currentScoreId.value = score.value?.id ?? -1
 })
 
 watch(currentScoreId, async newCurrentScoreId => {
@@ -32,7 +32,7 @@ watch(currentScoreId, async newCurrentScoreId => {
   if (newCurrentScoreId != null) {
     const loadedScore = await loadScore(newCurrentScoreId)
     console.log('Loaded Score:', score.value)
-    score.value = loadedScore
+    score.value = loadedScore as Score
     saveSettingsToDB()
 
     if (loadedScore) {
@@ -42,10 +42,12 @@ watch(currentScoreId, async newCurrentScoreId => {
 })
 
 const deleteClicked = async () => {
-  await deleteScore(score.value.id)
-  score.value = null
-  currentScoreId.value = null
-  // saveSettingsToDB()
+  if (score.value?.id == null) {
+    return
+  }
+  await deleteScore(score.value?.id)
+  score.value = Score.new()
+  currentScoreId.value = -1
 }
 
 const saveClicked = async () => {
@@ -53,11 +55,12 @@ const saveClicked = async () => {
 }
 
 const allTitles = () => {
-  if (score.value == null || scores.value.includes(score.value.title)) {
-    return scores.value
-  } else {
-    return [{ id: null, value: score.value.title }, ...scores.value]
-  }
+  // debugger
+  // if (score.value == null || scores.value.includes(score.value?.title)) {
+  return scores.value
+  // } else {
+  //   return [{ id: null, value: score.value.title }, ...scores.value]
+  // }
 }
 </script>
 
