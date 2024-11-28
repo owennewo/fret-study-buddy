@@ -96,7 +96,8 @@ export const useSVG = (svgRef: Ref<SVGSVGElement | null>) => {
           )
           .join('text')
           .attr('class', 'left-hand')
-          .attr('x', 15)
+          .attr('font-size', score.value.fontSize)
+          .attr('x', score.value.fontSize)
           .attr('y', (_, index) => (9 + index) * score.value.fontSize)
           .text(n => n.leftHand())
 
@@ -109,6 +110,7 @@ export const useSVG = (svgRef: Ref<SVGSVGElement | null>) => {
           )
           .join('text')
           .attr('class', 'left-hand')
+          .attr('font-size', score.value.fontSize)
           .attr('x', 0) //calcElementX(element))
           .attr('y', (_, index) => (9 + index) * score.value.fontSize)
           .text(n => n.rightHand())
@@ -201,6 +203,19 @@ export const useSVG = (svgRef: Ref<SVGSVGElement | null>) => {
           })
           .attr('font-size', score.value.fontSize)
           .attr('class', n => `note ${n._element.index() == voiceId.value ? 'voice' : ''}`)
+
+        gNote
+          .selectAll('path.hammer')
+          .data(n => [n].filter(n => n.techniques.includes('h')))
+          .join('path')
+          .attr(
+            'd',
+            n =>
+              `M ${score.value.fontSize / 4}, -${score.value.fontSize / 4}
+               A ${n._element.duration * 100},${score.value.fontSize * 2} 0 0,1 ${n._element.duration * 100}, -${score.value.fontSize / 4}`,
+          )
+          .attr('fill', 'none')
+          .attr('class', 'hammer')
       })
   }
 

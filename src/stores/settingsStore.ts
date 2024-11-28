@@ -23,7 +23,8 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   async function loadSettingsFromDB() {
     const db = await getDB()
     const settings = await db.get('settings', 'appSettings')
-    if (settings && project.value && score.value) {
+
+    if (settings) {
       project.value = (await loadProject(settings.currentProjectName || '')) as string
       score.value = (await loadScore(settings.currentScoreId || 0)) as Score
     }

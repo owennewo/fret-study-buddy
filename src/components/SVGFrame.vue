@@ -183,4 +183,9 @@ g.instrument text {
 g.instrument text.instrument-name {
   text-anchor: middle;
 }
+
+path.hammer {
+  stroke: var(--foreground-color);
+  stroke-width: 2;
+}
 </style>

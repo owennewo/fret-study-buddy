@@ -110,6 +110,16 @@ class NotePosition {
     }
   }
 
+  toggleTechnique(technique: Technique): void {
+    if (this.techniques.includes(technique)) {
+      console.log('removing', technique)
+      this.techniques = this.techniques.filter(t => t !== technique)
+    } else {
+      console.log('adding', technique)
+      this.techniques.push(technique)
+    }
+  }
+
   static toKeyIndex = (keyName: string) => {
     return KEYS.find(key => key.name === keyName)?.index ?? -1
   }
@@ -256,4 +266,4 @@ class NotePosition {
   }
 }
 
-export { NotePosition, type Technique }
+export { NotePosition, Technique }

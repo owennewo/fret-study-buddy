@@ -3,6 +3,7 @@ import { computed, type Ref } from 'vue'
 import * as d3 from 'd3'
 import { useCursor } from './useCursor'
 import { useToast } from 'primevue/usetoast'
+import { Technique } from '@/models/NotePosition'
 
 export const useKeys = (score: Ref<Score>, drawScore: () => void) => {
   const { track, trackId, bar, voiceId, element, note, resetCursor } = useCursor()
@@ -40,7 +41,19 @@ export const useKeys = (score: Ref<Score>, drawScore: () => void) => {
       keydowns += pressedKey
       console.log(`Number key pressed: ${keydowns}`)
       const value = parseInt(keydowns)
-      if (command == 'goto' && subCommand == 'track') {
+      if (command == 'lefthand') {
+        if (value >= 0 && value < 5) {
+          note.value.leftHandFinger = value
+        }
+        keydowns = ''
+        command = ''
+      } else if (command == 'righthand') {
+        if (value >= 0 && value < 5) {
+          note.value.rightHandFinger = value
+        }
+        keydowns = ''
+        command = ''
+      } else if (command == 'goto' && subCommand == 'track') {
         console.log('Goto to track', value - 1)
         if (score.value.tracks.length > value - 1) {
           const newTrack = score.value.tracks[value - 1]
@@ -160,7 +173,9 @@ export const useKeys = (score: Ref<Score>, drawScore: () => void) => {
       } else if (pressedKey == 'Insert') {
         track.value.addBar(bar.value.index())
       } else if (pressedKey == 'Escape') {
-        note.value = null
+        // note.value = null
+        command = ''
+        subCommand = ''
         drawScore()
       } else if (
         pressedKey == 'ArrowUp' ||
@@ -199,6 +214,18 @@ export const useKeys = (score: Ref<Score>, drawScore: () => void) => {
       } else if (pressedKey == 'v') {
         subCommand = 'voice'
         console.log('activating move voice command')
+      } else if (pressedKey == 'h') {
+        note.value.toggleTechnique(Technique.HammerOn)
+      } else if (pressedKey == 'p') {
+        note.value.toggleTechnique(Technique.PullOff)
+      } else if (pressedKey == 'l') {
+        command = 'lefthand'
+        subCommand = ''
+        keydowns = ''
+      } else if (pressedKey == 'r') {
+        command = 'righthand'
+        subCommand = ''
+        keydowns = ''
       } else {
         console.log('ignoring keypress: ', pressedKey)
       }
