@@ -59,7 +59,7 @@ enum Technique {
   Bend = 'b',
   Harmonic = '^',
   PalmMute = 'x',
-  Vibrato = '~',
+  Vibrato = 'v',
   Tie = '=',
 }
 
@@ -191,12 +191,14 @@ class NotePosition {
               return newBar.voices[voiceIndex].elements[0].notes[noteIndex]
               // return nextElement.notes[noteIndex]
             } else {
-              const nextElement = this._element._voice._bar._track.bars[barIndex + 1].voices[voiceIndex].elements[0]
-              return nextElement.notes[noteIndex]
+              const newElement = this._element._voice._bar._track.bars[barIndex + 1].voices[voiceIndex].elements[0]
+              newElement.duration = this._element.duration
+              return newElement.notes[noteIndex]
             }
           } else {
             // there is room in this bar for a new element
             const newElement = this._element._voice.addElement() as VoiceElement
+            newElement.duration = this._element.duration
             return newElement.notes[noteIndex]
           }
         } else {

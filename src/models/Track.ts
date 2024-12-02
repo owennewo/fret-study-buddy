@@ -21,7 +21,10 @@ class Track {
   }
 
   addBar(index: number = NaN): Bar {
-    const bar = new Bar(this, this._score.timeSignature)
+    const previousIndex = this.bars.length - 1
+    const timeSignature =
+      previousIndex == -1 ? this._score.timeSignature : { ...this.bars[previousIndex].timeSignature }
+    const bar = new Bar(this, timeSignature)
 
     for (let i = 0; i < this.voiceCount; i++) {
       // const voice = new Voice(bar)

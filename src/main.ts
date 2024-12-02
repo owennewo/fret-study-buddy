@@ -8,11 +8,18 @@ import App from './App.vue'
 import PrimeVue from 'primevue/config'
 import Aura from '@primevue/themes/aura'
 import {
+  Accordion,
+  AccordionContent,
+  AccordionHeader,
+  AccordionPanel,
   Badge,
   Button,
+  Checkbox,
   Column,
   DataTable,
   Dialog,
+  FloatLabel,
+  IftaLabel,
   InputGroup,
   InputGroupAddon,
   InputNumber,
@@ -62,5 +69,11 @@ app.component('p-popover', Popover)
 app.component('p-datatable', DataTable)
 app.component('p-column', Column)
 app.component('p-toast', Toast)
-
+app.component('p-accordion', Accordion)
+app.component('p-accordionpanel', AccordionPanel)
+app.component('p-accordionheader', AccordionHeader)
+app.component('p-accordioncontent', AccordionContent)
+app.component('p-checkbox', Checkbox)
+app.component('p-floatlabel', FloatLabel)
+app.component('p-iftalabel', IftaLabel)
 app.mount('#app')

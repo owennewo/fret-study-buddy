@@ -1,42 +1,74 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 html,
 body {
-  margin: 0px;
+  height: 100%;
+  font-family: Arial, sans-serif;
 }
 
-/* @import './base.css';
+/* Grid Layout */
+body {
+  display: grid;
+  grid-template-rows: 60px 1fr 40px; /* Header, content, footer */
+  grid-template-columns: 1fr; /* Full width for all rows */
+  height: 100vh; /* Full viewport height */
+}
 
+/* Header and Footer */
+header {
+  background: #007acc;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1rem;
+  height: 60px; /* Fixed height */
+  flex-shrink: 0; /* Prevent shrinking */
+}
 
+footer {
+  background: #f4f4f4;
+  text-align: center;
+  line-height: 40px;
+  height: 40px; /* Fixed height */
+  flex-shrink: 0; /* Prevent shrinking */
+}
+
+/* Main Content Area */
+.content {
+  grid-row: 2; /* Place in the second row */
+  display: grid;
+  grid-template-columns: 250px 1fr; /* Aside and main content */
+  grid-template-rows: 1fr; /* Stretch to fill available height */
+  height: 100%; /* Fill space between header and footer */
+}
+
+aside {
+  background: #f8f9fa;
+  border-right: 1px solid #ddd;
+  padding: 1rem;
+  overflow-y: auto; /* Allow scrolling if content exceeds height */
+  transition: width 0.3s ease; /* Smooth transition for resizing */
+  width: 300px;
+}
+
+main {
+  display: flex;
+  background: #fff;
+  padding: 1rem;
+  flex-direction: row;
+  flex-grow: 1; /* Take remaining space */
+  overflow: auto; /* Ensure scrollable content if it overflows */
+}
 
 #app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  font-weight: normal;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100vh; /* Restrict height to viewport */
+  box-sizing: border-box; /* Ensure padding/borders are included in height */
 }
-
-a,
-.green {
-  text-decoration: none;
-  color: hsla(160, 100%, 37%, 1);
-  transition: 0.4s;
-  padding: 3px;
-}
-
-@media (hover: hover) {
-  a:hover {
-    background-color: hsla(160, 100%, 37%, 0.2);
-  }
-}
-
-@media (min-width: 1024px) {
-  body {
-    display: flex;
-    place-items: center;
-  }
-
-  #app {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    padding: 0 2rem;
-  }
-} */

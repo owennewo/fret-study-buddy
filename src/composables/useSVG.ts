@@ -216,6 +216,24 @@ export const useSVG = (svgRef: Ref<SVGSVGElement | null>) => {
           )
           .attr('fill', 'none')
           .attr('class', 'hammer')
+
+        gNote
+          .selectAll('path.bend')
+          .data(n => [n].filter(n => n.techniques.includes('b')))
+          .join('path')
+          .attr('transform', `translate ( ${1.5 * score.value.fontSize} 0 )`)
+          .attr('d', n => `M 0 0 C 4 0 7 0 7 -9 L 4 -6 M 7 -9 L 10 -6`)
+          .attr('fill', 'none')
+          .attr('class', 'bend')
+
+        gNote
+          .selectAll('path.vibrato')
+          .data(n => [n].filter(n => n.techniques.includes('v')))
+          .join('path')
+          .attr('transform', `translate ( 0 -${0.5 * score.value.fontSize} )`)
+          .attr('d', n => `M 0 0 a 2 1 0 0 1 5 0 A 2 1 0 0 0 10 0`)
+          .attr('fill', 'none')
+          .attr('class', 'vibrato')
       })
   }
 

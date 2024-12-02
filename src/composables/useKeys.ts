@@ -209,11 +209,19 @@ export const useKeys = (score: Ref<Score>, drawScore: () => void) => {
         subCommand = 'track'
         console.log('activating move track command')
       } else if (pressedKey == 'b') {
-        subCommand = 'bar'
-        console.log('activating move bar command')
+        if (command) {
+          subCommand = 'bar'
+          console.log('activating move bar command')
+        } else {
+          note.value.toggleTechnique(Technique.Bend)
+        }
       } else if (pressedKey == 'v') {
-        subCommand = 'voice'
-        console.log('activating move voice command')
+        if (command) {
+          subCommand = 'voice'
+          console.log('activating move voice command')
+        } else {
+          note.value.toggleTechnique(Technique.Vibrato)
+        }
       } else if (pressedKey == 'h') {
         note.value.toggleTechnique(Technique.HammerOn)
       } else if (pressedKey == 'p') {

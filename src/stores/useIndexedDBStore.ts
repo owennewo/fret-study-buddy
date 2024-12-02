@@ -54,11 +54,6 @@ export const useIndexedDBStore = defineStore('indexedDBStore', () => {
 
   const deleteProject = async (projectName: string) => {
     await indexedDB.deleteDatabase(projectName)
-    // if (project.value === projectName) {
-    //   // project.value = null
-    //   scores.value = []
-    //   // score.value = null
-    // }
     await loadProjects()
   }
 
@@ -69,6 +64,7 @@ export const useIndexedDBStore = defineStore('indexedDBStore', () => {
     }
 
     const titles = await db?.getAll(SCORES_STORE)
+    console.log('loaded scores:', titles.length)
     scores.value = titles.map(score => ({
       id: score.id,
       title: score.title,

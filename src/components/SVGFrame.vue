@@ -35,23 +35,25 @@ watch(note, (newNote: Ref<NotePosition | null>) => {
 </script>
 
 <template>
-  <div class="svgContainer">
-    <svg ref="svgRef" xmlns="http://www.w3.org/2000/svg" class="svgFrame" viewBox="0 0 1000 1000"></svg>
-  </div>
+  <article class="score">
+    <svg ref="svgRef" xmlns="http://www.w3.org/2000/svg" class="score" viewBox="0 0 1000 600"></svg>
+  </article>
 </template>
 
 <style scoped>
-.svgContainer {
+article.score {
   flex: 1; /* Make container take remaining space */
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.svgFrame {
+svg.score {
   width: 100%;
   height: 100%;
   border: 1px black solid;
+  margin: 0 auto;
+  background-color: var(--background-color);
 }
 </style>
 
@@ -82,11 +84,6 @@ watch(note, (newNote: Ref<NotePosition | null>) => {
 
 .bpm {
   width: 100px;
-}
-
-svg {
-  margin: 0 auto;
-  background-color: var(--background-color);
 }
 
 line {
@@ -184,7 +181,9 @@ g.instrument text.instrument-name {
   text-anchor: middle;
 }
 
-path.hammer {
+path.hammer,
+path.bend,
+path.vibrato {
   stroke: var(--foreground-color);
   stroke-width: 2;
 }

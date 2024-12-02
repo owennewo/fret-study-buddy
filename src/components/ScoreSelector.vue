@@ -53,15 +53,6 @@ const deleteClicked = async () => {
 const saveClicked = async () => {
   await saveScore(score.value)
 }
-
-const allTitles = () => {
-  // debugger
-  // if (score.value == null || scores.value.includes(score.value?.title)) {
-  return scores.value
-  // } else {
-  //   return [{ id: null, value: score.value.title }, ...scores.value]
-  // }
-}
 </script>
 
 <template>
@@ -84,8 +75,8 @@ const allTitles = () => {
       </template>
     </p-select>
     <p-inputgroupaddon>
-      <p-button icon="pi pi-delete" severity="secondary" variant="text" @click="deleteClicked">delete</p-button>
-      <p-button icon="pi pi-save" severity="secondary" variant="text" @click="saveClicked">save</p-button>
+      <p-button icon="pi pi-trash" severity="secondary" @click="deleteClicked"></p-button>
+      <p-button icon="pi pi-save" severity="secondary" @click="saveClicked"></p-button>
     </p-inputgroupaddon>
   </p-inputgroup>
 </template>
