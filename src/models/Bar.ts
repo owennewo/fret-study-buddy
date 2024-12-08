@@ -1,55 +1,83 @@
 import { Voice } from './Voice'
-import { type TimeSignature } from './Score'
+import { Score, type TimeSignature } from './Score'
 import type { Track } from './Track'
 
 class Bar {
   _track: Track
   timeSignature: TimeSignature
-  voices: Voice[]
+  _voices: Voice[]
 
   constructor(track: Track, timeSignature: TimeSignature) {
     this._track = track
     this.timeSignature = timeSignature
-    this.voices = []
+    this._voices = []
   }
 
-  // addVoice(voice: Voice): void {
-  //   this.voices.push(voice)
-  // }
+  score = (): Score => this.track().score()
+  track = (): Track => this._track
 
-  index = () => this._track.bars.indexOf(this)
+  next = (extend = true): Bar | null => {
+    if (this.index() == this.track()._bars.length - 1) {
+      if (extend) {
+        return this.track().addBar()
+      } else {
+        return null
+      }
+    } else {
+      return this.track()._bars[this.index() + 1]
+    }
+  }
+
+  prev = (): Bar => {
+    return this.track()._bars[Math.max(this.index() - 1, 0)]
+  }
+
+  first = (): Bar => {
+    return this.track()._bars[0]
+  }
+
+  last = (): Bar => {
+    return this.track()._bars[this.track()._bars.length - 1]
+  }
+
+  index = () => this.track()._bars.indexOf(this)
 
   removeVoiceAt(index: number): void {
-    if (index >= 0 && index < this.voices.length) {
-      this.voices.splice(index, 1)
+    if (index >= 0 && index < this._voices.length) {
+      this._voices.splice(index, 1)
     }
+  }
+
+  clone = (): Bar => {
+    const barJson = this.toJSON()
+    return Bar.fromJSON(this.track(), barJson)
   }
 
   addVoice = (): Voice => {
     // debugger
     const voice = new Voice(this)
-    this.voices.push(voice)
+    this._voices.push(voice)
     voice.addElement()
     return voice
   }
 
-  empty = () => this.voices.flatMap(voice => voice.elements).filter(element => !element.empty()).length == 0
+  empty = () => this._voices.flatMap(voice => voice._elements).filter(element => !element.empty()).length == 0
 
   toJSON(): object {
     return {
       timeSignature: this.timeSignature,
-      voices: this.voices.map(voice => voice.toJSON()),
+      voices: this._voices.map(voice => voice.toJSON()),
     }
   }
 
   isError = (): boolean => {
-    return this.voices.some(voice => voice.isError())
+    return this._voices.some(voice => voice.isError())
   }
 
   update(): void {
-    this.voices.forEach(voice => {
+    this._voices.forEach(voice => {
       let barBeats = 0
-      voice.elements.forEach(element => {
+      voice._elements.forEach(element => {
         barBeats += element.duration
       })
       if (barBeats != this.timeSignature.beatsPerBar) {
@@ -72,7 +100,7 @@ class Bar {
     const bar = new Bar(track, data.timeSignature)
 
     if (data.voices && Array.isArray(data.voices)) {
-      bar.voices = data.voices.map((voiceData: any) => Voice.fromJSON(bar, voiceData))
+      bar._voices = data.voices.map((voiceData: any) => Voice.fromJSON(bar, voiceData))
     } else {
       throw new Error("Invalid data format: 'voices' should be an array.")
     }

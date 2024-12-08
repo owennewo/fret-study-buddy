@@ -1,17 +1,15 @@
 <script setup lang="ts">
 import { ref, onMounted, watch, nextTick, type Ref } from 'vue'
 import { useSVG } from '@/composables/useSVG'
-import { useKeys } from '@/composables/useKeys'
+import { useKeys } from '@/composables/keys/useKeys'
 import { useCursor } from '@/composables/useCursor'
 import type { NotePosition } from '@/models/NotePosition'
 
-const svgRef = ref<SVGSVGElement | null>(null)
-
 const { score, voiceId, note, resetCursor } = useCursor()
 
-const { drawScore } = useSVG(svgRef)
+const { drawScore, svgRef } = useSVG()
 
-useKeys(score, drawScore)
+useKeys()
 
 onMounted(() => {
   console.log('SVG loaded:', svgRef.value)
@@ -60,15 +58,19 @@ svg.score {
 <style>
 :root {
   /* Normal mode colors */
-  --background-color: beige;
+  --border-color: #999;
+  --background-color: #f0f0f0;
   --foreground-color: #333;
+  --foreground-hover-color: #666;
   --error-color: red;
 }
 
 .dark-mode {
   /* Dark mode colors */
+  --border-color: #555;
   --background-color: #333;
-  --foreground-color: beige;
+  --foreground-color: #f0f0f0;
+  --foreground-hover-color: #aaa;
   --error-color: red;
 }
 </style>

@@ -16,11 +16,12 @@ interface Error {
 class Score {
   id: number | null
   title: string
+  url: string
   tempo: number
   barsPerLine: number
   fontSize: number
   timeSignature: TimeSignature
-  tracks: Track[]
+  _tracks: Track[]
 
   constructor(
     title: string = 'Untitled',
@@ -32,28 +33,31 @@ class Score {
     this.barsPerLine = 4
     this.fontSize = 12
     this.tempo = tempo
+    this.url = ''
     this.timeSignature = timeSignature
-    this.tracks = []
+    this._tracks = []
   }
 
   addTrack(track: Track = Track.new(this)): void {
-    this.tracks.push(track)
+    this._tracks.push(track)
+    track.addBar()
   }
 
   removeTrack(trackIndex: number): void {
-    if (trackIndex >= 0 && trackIndex < this.tracks.length) {
-      this.tracks.splice(trackIndex, 1)
+    if (trackIndex >= 0 && trackIndex < this._tracks.length) {
+      this._tracks.splice(trackIndex, 1)
     }
   }
 
   toJSON(): object {
     return {
       title: this.title,
+      url: this.url,
       tempo: this.tempo,
       timeSignature: this.timeSignature,
       barsPerLine: this.barsPerLine,
       fontSize: this.fontSize,
-      tracks: this.tracks.map(track => track.toJSON()),
+      tracks: this._tracks.map(track => track.toJSON()),
     }
   }
 
@@ -68,9 +72,9 @@ class Score {
 
   errors(): Error[] {
     const errors: Error[] = []
-    this.tracks.forEach((track, trackIndex) => {
-      track.bars.forEach((bar, barIndex) => {
-        bar.voices.forEach((voice, voiceIndex) => {
+    this._tracks.forEach((track, trackIndex) => {
+      track._bars.forEach((bar, barIndex) => {
+        bar._voices.forEach((voice, voiceIndex) => {
           // voice.elements.forEach((element, element) => {
           if (voice.duration() != this.timeSignature.beatsPerBar) {
             errors.push({
@@ -91,22 +95,24 @@ class Score {
   verify() {
     // debugger
     console.log('verify score')
-    this.tracks.forEach(track => {
+    this._tracks.forEach(track => {
       track.verify()
     })
   }
 
   update(): void {
     console.log('update score')
-    this.tracks.flatMap(track => track.bars).forEach(bar => bar.update())
+    this._tracks.flatMap(track => track._bars).forEach(bar => bar.update())
   }
+  _
 
   static fromJSON(data: any): Score {
     const score = new Score(data.title, data.tempo, data.timeSignature)
     score.barsPerLine = data.barsPerLine
     score.id = data.id
     score.fontSize = data.fontSize ?? 12
-    score.tracks = data.tracks.map((trackData: any) => Track.fromJSON(score, trackData))
+    score.url = data.url ?? ''
+    score._tracks = data.tracks.map((trackData: any) => Track.fromJSON(score, trackData))
     score.update()
     return score
   }
@@ -117,10 +123,7 @@ class Score {
       beatValue: 4,
     })
     const track = Track.new(score)
-
     score.addTrack(track)
-    track.addBar()
-    // bar.addVoice(voice)
     return score
   }
 }

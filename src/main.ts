@@ -7,6 +7,7 @@ import { createPinia } from 'pinia'
 import App from './App.vue'
 import PrimeVue from 'primevue/config'
 import Aura from '@primevue/themes/aura'
+import Tooltip from 'primevue/tooltip'
 import {
   Accordion,
   AccordionContent,
@@ -24,6 +25,7 @@ import {
   InputGroupAddon,
   InputNumber,
   InputText,
+  Menubar,
   Popover,
   Select,
   SelectButton,
@@ -49,6 +51,9 @@ app.use(PrimeVue, {
   },
 })
 app.use(ToastService)
+
+app.directive('tooltip', Tooltip)
+
 app.component('p-button', Button)
 app.component('p-toolbar', Toolbar)
 app.component('p-select', Select)
@@ -75,5 +80,6 @@ app.component('p-accordionheader', AccordionHeader)
 app.component('p-accordioncontent', AccordionContent)
 app.component('p-checkbox', Checkbox)
 app.component('p-floatlabel', FloatLabel)
-app.component('p-iftalabel', IftaLabel)
+app.component('p-menubar', Menubar)
+
 app.mount('#app')

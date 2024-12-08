@@ -1,12 +1,13 @@
 import { Instrument } from '@/models/Instruments'
 import { Bar } from './Bar'
 import type { Score } from './Score'
+// import type { MoveDirection } from './NotePosition'
 
 class Track {
   _score: Score
   instrument: Instrument
   voiceCount: number
-  bars: Bar[]
+  _bars: Bar[]
 
   constructor(
     score: Score,
@@ -17,36 +18,44 @@ class Track {
     this._score = score
     this.instrument = new Instrument(instrumentName, tuningName, toneName)
     this.voiceCount = 1
-    this.bars = []
+    this._bars = []
   }
 
-  addBar(index: number = NaN): Bar {
-    const previousIndex = this.bars.length - 1
-    const timeSignature =
-      previousIndex == -1 ? this._score.timeSignature : { ...this.bars[previousIndex].timeSignature }
-    const bar = new Bar(this, timeSignature)
+  score = (): Score => this._score
 
-    for (let i = 0; i < this.voiceCount; i++) {
-      // const voice = new Voice(bar)
-      bar.addVoice()
+  addBar(index: number = NaN, newBar: Bar | null = null): Bar {
+    let bar = newBar
+
+    if (newBar == null) {
+      const previousIndex = this._bars.length - 1
+      const timeSignature =
+        previousIndex == -1 ? this._score.timeSignature : { ...this._bars[previousIndex].timeSignature }
+      bar = new Bar(this, timeSignature)
     }
     if (isNaN(index)) {
-      this.bars.push(bar)
+      this._bars.push(bar!)
     } else {
-      this.bars.splice(index, 0, bar)
+      this._bars.splice(index, 0, bar!)
     }
-    return bar
+
+    if (newBar == null) {
+      for (let i = 0; i < this.voiceCount; i++) {
+        bar!.addVoice()
+      }
+    }
+
+    return bar!
   }
 
   index(): number {
-    return this._score.tracks.indexOf(this)
+    return this.score()._tracks.indexOf(this)
   }
 
   stringCount = () => this.instrument.tuning.length
 
   removeBarAt(index: number): void {
-    if (index >= 0 && index < this.bars.length) {
-      this.bars.splice(index, 1)
+    if (index >= 0 && index < this._bars.length) {
+      this._bars.splice(index, 1)
     }
   }
 
@@ -56,25 +65,41 @@ class Track {
       tuningName: this.instrument.tuningName,
       toneName: this.instrument.toneName,
       voiceCount: this.voiceCount ?? 1,
-      bars: this.bars.map(bar => bar.toJSON()),
+      bars: this._bars.map(bar => bar.toJSON()),
     }
   }
 
+  next = (): Track => {
+    return this.score()._tracks[Math.min(this.index() + 1, this.score()._tracks.length - 1)]
+  }
+
+  prev = (): Track => {
+    return this.score()._tracks[Math.max(this.index() - 1, 0)]
+  }
+
+  first = (): Track => {
+    return this.score()._tracks[0]
+  }
+
+  last = (): Track => {
+    return this.score()._tracks[this.score()._tracks.length - 1]
+  }
+
   verify(): void {
-    this.bars.forEach(bar => {
-      if (bar.voices.length > this.voiceCount) {
+    this._bars.forEach(bar => {
+      if (bar._voices.length > this.voiceCount) {
         console.log('Too many voices in bar, removing some')
-        bar.voices = bar.voices.slice(0, this.voiceCount)
+        bar._voices = bar._voices.slice(0, this.voiceCount)
       }
     })
-    if (this.bars.length == 0) {
+    if (this._bars.length == 0) {
       this.addBar()
     }
-    if (this.bars[0].voices.length == 0) {
-      this.bars[0].addVoice()
+    if (this._bars[0]._voices.length == 0) {
+      this._bars[0].addVoice()
     }
-    if (this.bars[0].voices[0].elements.length == 0) {
-      this.bars[0].voices[0].addElement()
+    if (this._bars[0]._voices[0]._elements.length == 0) {
+      this._bars[0]._voices[0].addElement()
     }
   }
 
@@ -85,7 +110,7 @@ class Track {
   static fromJSON(score: Score, data: any): Track {
     const track = new Track(score, data.instrumentName, data.tuningName, data.toneName)
     track.voiceCount = data.voiceCount ?? 1
-    track.bars = data.bars.map((barData: any) => Bar.fromJSON(track, barData))
+    track._bars = data.bars.map((barData: any) => Bar.fromJSON(track, barData))
     return track
   }
 }

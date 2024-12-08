@@ -82,11 +82,13 @@ export const useIndexedDBStore = defineStore('indexedDBStore', () => {
       return null
     }
     console.log('loaded score:', scoreId, '-', fetchedScore?.title)
+    console.log(fetchedScore)
     return Score.fromJSON(fetchedScore)
   }
 
   const saveScore = async (score: Score) => {
     const clonedScore = score.clone(true)
+    console.log('saving score:', clonedScore)
 
     if (!db) return
 

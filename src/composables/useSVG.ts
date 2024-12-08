@@ -1,4 +1,4 @@
-import { nextTick, type Ref } from 'vue'
+import { nextTick, ref, type Ref } from 'vue'
 import * as d3 from 'd3'
 import { TailType, VoiceElement } from '@/models/VoiceElement'
 
@@ -7,14 +7,16 @@ import type { Bar } from '@/models/Bar'
 import type { Track } from '@/models/Track'
 import type { Voice } from '@/models/Voice'
 
-export const useSVG = (svgRef: Ref<SVGSVGElement | null>) => {
-  const { score, track, bar, voice, voiceId, element, note } = useCursor()
+const svgRef: Ref<SVGSVGElement | null> = ref(null)
+
+export const useSVG = () => {
+  const { score, track, trackId, bar, barId, voice, voiceId, element, elementId, note, noteId } = useCursor()
 
   const calcElementX = (element: VoiceElement, barWidth: number) =>
-    element ? barWidth * (0.1 + (0.8 * element.location()) / element._voice._bar.timeSignature.beatsPerBar) : 0
+    element ? barWidth * (0.1 + (0.8 * element.location()) / element.bar().timeSignature.beatsPerBar) : 0
 
   const calculateTrackY = (currentTrack: Track) => {
-    const trackY = score.value?.tracks.reduce((acc, track) => {
+    const trackY = score.value?._tracks.reduce((acc, track) => {
       if (track.index() >= currentTrack.index()) {
         return acc
       } else {
@@ -76,7 +78,7 @@ export const useSVG = (svgRef: Ref<SVGSVGElement | null>) => {
   ) => {
     gVoice
       .selectAll('g.element')
-      .data(v.elements, (_, elementIndex) => 'bar-' + barIndex + '-voice-' + voiceIndex + '-element-' + elementIndex)
+      .data(v._elements, (_, elementIndex) => 'bar-' + barIndex + '-voice-' + voiceIndex + '-element-' + elementIndex)
       .join('g')
       .attr('class', e => `element ${element.value == e ? 'current' : ''}`)
       .attr('transform', e => {
@@ -84,13 +86,13 @@ export const useSVG = (svgRef: Ref<SVGSVGElement | null>) => {
       })
       .each((v: VoiceElement, index: number, nodes: SVGElement[]) => {
         const gElement = d3.select(nodes[index])
-        const barIndex = v._voice._bar.index()
-        const voiceIndex = v._voice.index()
+        const barIndex = v.bar().index()
+        const voiceIndex = v.voice().index()
         const elementIndex = v.index()
         gElement
           .selectAll('text.left-hand')
           .data(
-            v.notes.filter(note => !isNaN(note.leftHandFinger)).reverse(),
+            v._notes.filter(note => !isNaN(note.leftHandFinger)).reverse(),
             (_, nodeIndex) =>
               'bar-' + barIndex + '-voice-' + voiceIndex + '-element-' + elementIndex + '-note-lh' + nodeIndex,
           )
@@ -104,7 +106,7 @@ export const useSVG = (svgRef: Ref<SVGSVGElement | null>) => {
         gElement
           .selectAll('text.right-hand')
           .data(
-            v.notes.filter(n => !isNaN(n.rightHandFinger)).reverse(),
+            v._notes.filter(n => !isNaN(n.rightHandFinger)).reverse(),
             (_, nodeIndex) =>
               'bar-' + barIndex + '-voice-' + voiceIndex + '-element-' + elementIndex + '-note-lh' + nodeIndex,
           )
@@ -117,7 +119,7 @@ export const useSVG = (svgRef: Ref<SVGSVGElement | null>) => {
 
         const gNote = gElement
           .selectAll('g.note')
-          .data(v.notes, (_, nodeIndex) => 'bar-' + barIndex + '-voice-' + voiceIndex + '-note-' + nodeIndex)
+          .data(v._notes, (_, nodeIndex) => 'bar-' + barIndex + '-voice-' + voiceIndex + '-note-' + nodeIndex)
           .join('g')
           .attr('class', d => {
             return `note ${d === note.value ? 'current' : ''} ${isNaN(d.fretNumber) ? 'rest' : ''}`
@@ -128,7 +130,12 @@ export const useSVG = (svgRef: Ref<SVGSVGElement | null>) => {
           })
           .on('click', (_, n) => {
             n.debug('click')
-            note.value = n
+            noteId.value = n.index()
+            elementId.value = n.element().index()
+            voiceId.value = n.voice().index()
+            barId.value = n.bar().index()
+            trackId.value = n.track().index()
+
             drawScore()
           })
 
@@ -160,8 +167,7 @@ export const useSVG = (svgRef: Ref<SVGSVGElement | null>) => {
             e =>
               score.value.fontSize * 0.5 +
               barWidth *
-                ((0.8 * (e.duration / (e.tailType() == TailType.Flag ? 2 : 1))) /
-                  e._voice._bar.timeSignature.beatsPerBar),
+                ((0.8 * (e.duration / (e.tailType() == TailType.Flag ? 2 : 1))) / e.bar().timeSignature.beatsPerBar),
           )
           .attr('y1', (_, beamIndex) => {
             // Position each additional beam slightly above the previous one
@@ -254,7 +260,7 @@ export const useSVG = (svgRef: Ref<SVGSVGElement | null>) => {
     // Horizontal Lines
     gBarLines
       .selectAll('line.bar.horizontal')
-      .data(theBar._track.instrument.tuning, (_, string_index) => 'bar-' + barIndex + '-lines-h' + string_index)
+      .data(theBar.track().instrument.tuning, (_, string_index) => 'bar-' + barIndex + '-lines-h' + string_index)
       .join('line')
       .attr('x1', 0)
       .attr('x2', barWidth)
@@ -286,7 +292,7 @@ export const useSVG = (svgRef: Ref<SVGSVGElement | null>) => {
   }
 
   const drawBar = (gBar: d3.Selection, theBar: Bar, barWidth: number, barPadding: number, barIndex: number) => {
-    const stringCount = theBar._track.stringCount() ?? 6
+    const stringCount = theBar.track().stringCount() ?? 6
     const barHeight = score.value.fontSize * (stringCount - 1) // 4 is for the top and bottom padding
 
     // Bar Names
@@ -303,7 +309,7 @@ export const useSVG = (svgRef: Ref<SVGSVGElement | null>) => {
     // Bar Lines
     drawBarLines(gBar, theBar, barIndex, barWidth, barPadding, barHeight)
 
-    const voices = theBar.voices.reduce((acc, voice) => {
+    const voices = theBar._voices.reduce((acc, voice) => {
       if (voice.index() === voiceId.value) {
         acc.push(voice) // Add topVoice to the end
       } else {
@@ -344,16 +350,16 @@ export const useSVG = (svgRef: Ref<SVGSVGElement | null>) => {
       const svgWidth = svgRef.value?.viewBox?.baseVal.width
       // const svgHeight = svgRef.value?.viewBox?.baseVal.height
 
-      const numberOfTracks = score.value.tracks.length
+      const numberOfTracks = score.value._tracks.length
       const barWidth = (svgWidth - 4 * score.value.fontSize) / score.value.barsPerLine
 
-      const totalStrings = score.value.tracks.reduce((acc, track) => acc + track.stringCount(), 0)
+      const totalStrings = score.value._tracks.reduce((acc, track) => acc + track.stringCount(), 0)
       const barPadding = score.value.fontSize * 2
       const trackHeight = score.value.fontSize * (totalStrings - numberOfTracks) + 2 * barPadding * numberOfTracks
 
       svg
         .selectAll('g.track')
-        .data(score.value.tracks)
+        .data(score.value._tracks)
         .join('g')
         .attr('class', t => `track ${track.value == t ? 'current' : ''}`)
         .attr('transform', track => `translate(0, ${calculateTrackY(track)})`)
@@ -362,7 +368,7 @@ export const useSVG = (svgRef: Ref<SVGSVGElement | null>) => {
           drawTrackText(gTrack, track, barPadding)
           gTrack
             .selectAll('g.bar')
-            .data(track.bars) //, (_, barIndex) => 'bar-' + barIndex)
+            .data(track._bars) //, (_, barIndex) => 'bar-' + barIndex)
             .join('g')
             .attr('class', b => `bar ${bar.value == b ? 'current' : ''} ${b.isError() ? 'error' : ''}`)
             .attr(
@@ -378,5 +384,5 @@ export const useSVG = (svgRef: Ref<SVGSVGElement | null>) => {
     })
   }
 
-  return { drawScore }
+  return { drawScore, svgRef }
 }

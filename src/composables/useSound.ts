@@ -64,7 +64,7 @@ export const useSound = () => {
       return
     }
 
-    const selectedTrack = score.value.tracks[trackId.value]
+    const selectedTrack = score.value._tracks[trackId.value]
     instrument = await loadInstrument(selectedTrack)
     console.log(instrument)
 
@@ -93,10 +93,10 @@ export const useSound = () => {
     const start = timeMillisecond()
     let playedCount = 0
 
-    const noteTuples = track.bars.reduce(
+    const noteTuples = track._bars.reduce(
       (tuples: Array<[number, any]>, bar: Bar, bar_index) => {
-        bar.voices
-          .flatMap((voice: Voice) => voice.elements)
+        bar._voices
+          .flatMap((voice: Voice) => voice._elements)
           .flat()
           .map((element: VoiceElement, element_index) => {
             if (!element.isRest()) {
@@ -114,7 +114,7 @@ export const useSound = () => {
 
     part = new Tone.Part((time, element: VoiceElement) => {
       const duration = element.duration
-      element.notes
+      element._notes
         .filter(note => !isNaN(note.fretNumber))
         .forEach(note => {
           // const keyIndex = toNoteIndex(base) + note.fretNumber

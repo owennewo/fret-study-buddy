@@ -48,7 +48,6 @@ footer {
 }
 
 aside {
-  background: #f8f9fa;
   border-right: 1px solid #ddd;
   padding: 1rem;
   overflow-y: auto; /* Allow scrolling if content exceeds height */
@@ -58,8 +57,7 @@ aside {
 
 main {
   display: flex;
-  background: #fff;
-  padding: 1rem;
+  padding: 0px;
   flex-direction: row;
   flex-grow: 1; /* Take remaining space */
   overflow: auto; /* Ensure scrollable content if it overflows */

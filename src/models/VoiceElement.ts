@@ -1,4 +1,7 @@
-import { NotePosition } from './NotePosition'
+import type { Bar } from './Bar'
+import { NotePosition, type MoveDirection } from './NotePosition'
+import type { Score } from './Score'
+import type { Track } from './Track'
 import type { Voice } from './Voice'
 
 enum TailType {
@@ -10,28 +13,49 @@ enum TailType {
 class VoiceElement {
   _voice: Voice
   duration: number // measured in beats could be a fraction (e.g., 0.5 for eighth note)
-  notes: NotePosition[] // 0 length = rest, 1 = note, 2+ = chord
+  _notes: NotePosition[] // 0 length = rest, 1 = note, 2+ = chord
   constructor(voice: Voice, duration: number, addRest = false) {
     this.duration = duration
-    this.notes = [] // Rest by default if `notes` is undefined
+    this._notes = [] // Rest by default if `notes` is undefined
     this._voice = voice
     if (addRest) {
       this.addRestNotes()
     }
   }
 
+  score = (): Score => this.track().score()
+  track = (): Track => this.bar().track()
+  bar = (): Bar => this.voice().bar()
+  voice = (): Voice => this._voice
+
+  next = (): VoiceElement => {
+    return this.voice()._elements[Math.min(this.index() + 1, this.voice()._elements.length - 1)]
+  }
+
+  prev = (): VoiceElement => {
+    return this.voice()._elements[Math.max(this.index() - 1, 0)]
+  }
+
+  first = (): VoiceElement => {
+    return this.voice()._elements[0]
+  }
+
+  last = (): VoiceElement => {
+    return this.voice()._elements[this.voice()._elements.length - 1]
+  }
+
   isRest(): boolean {
-    return this.notes.length == 0 || this.notes.every(note => isNaN(note.fretNumber))
+    return this._notes.length == 0 || this._notes.every(note => isNaN(note.fretNumber))
   }
 
   isNote(): boolean {
-    return this.notes.length == 1
+    return this._notes.length == 1
   }
 
   location(): number {
-    const index = this._voice.elements.indexOf(this)
+    const index = this._voice._elements.indexOf(this)
 
-    return this._voice.elements
+    return this._voice._elements
       .filter((element, i) => i < index)
       .reduce((acc, element) => {
         return acc + element.duration
@@ -39,23 +63,43 @@ class VoiceElement {
   }
 
   isChord(): boolean {
-    return this.notes.length > 1
+    return this._notes.length > 1
   }
 
-  next(): VoiceElement | null {
-    const index = this._voice.elements.indexOf(this)
-    if (index < this._voice.elements.length - 1) {
-      return this._voice.elements[index + 1]
+  // prev(): VoiceElement | null {
+  //   if (this.index() == 0) {
+  //     if (this.bar().index() == 0) {
+  //       return null
+  //     } else {
+  //       const
+  //     }
+  //     // look in previous bar
+  //     const voiceId = this._voice.index()
+  //     const prev
+
+  //   }
+  //   return this.voice()_voice._elements[index - 1]
+  // }
+
+  move(direction: MoveDirection): VoiceElement | null {
+    const elementIndex = this.index()
+
+    switch (direction) {
+      case 'ArrowUp':
+      case 'ArrowLeft':
+        return this._voice._elements[Math.max(elementIndex - 1, 0)]
+      case 'ArrowDown':
+      case 'ArrowRight':
+        return this._voice._elements[Math.min(elementIndex + 1, this._voice._elements.length - 1)]
     }
-    return null
   }
 
   empty = () => {
-    return this.notes.filter(note => !isNaN(note.fretNumber)).length == 0
+    return this._notes.filter(note => !isNaN(note.fretNumber)).length == 0
   }
 
   index(): number {
-    return this._voice.elements.indexOf(this)
+    return this._voice._elements.indexOf(this)
   }
 
   tailTypeName(): string {
@@ -70,14 +114,14 @@ class VoiceElement {
   }
 
   tailType(): TailType {
-    // if (this.notes.filter(note => !isNaN(note.fretNumber)).length > 0) {
+    // if (this._notes.filter(note => !isNaN(note.fretNumber)).length > 0) {
     //   debugger
     // }
 
     if (this.tailCount() == 0) {
       return TailType.None
     }
-    const nextElement = this.next()
+    const nextElement = this.move('ArrowRight')
     if (nextElement == null) {
       return TailType.Flag
     }
@@ -90,8 +134,8 @@ class VoiceElement {
   }
 
   isLast(): boolean {
-    const index = this._voice.elements.indexOf(this)
-    return this._voice.elements.length == index + 1
+    const index = this._voice._elements.indexOf(this)
+    return this._voice._elements.length == index + 1
   }
 
   tailCount(): number {
@@ -112,12 +156,12 @@ class VoiceElement {
   }
 
   addRestNotes(): void {
-    const stringLength = this._voice._bar._track.instrument.tuning.length
+    const stringLength = this.track().instrument.tuning.length
     for (let i = 0; i < stringLength; i++) {
-      if (this.notes.find(note => note.index() === i)) {
+      if (this._notes.find(note => note.index() === i)) {
         continue
       }
-      this.notes.push(new NotePosition(this, NaN))
+      this._notes.push(new NotePosition(this, NaN))
     }
   }
 
@@ -126,7 +170,7 @@ class VoiceElement {
     const notes: NotePosition[] = data.notes
       ? data.notes.map((noteData: any) => NotePosition.fromJSON(element, noteData))
       : []
-    element.notes = notes
+    element._notes = notes
     element.addRestNotes()
     return element
   }
@@ -134,7 +178,8 @@ class VoiceElement {
   toJSON(): object {
     return {
       duration: this.duration,
-      notes: this.notes.filter(note => note.fretNumber !== null && !isNaN(note.fretNumber)).map(note => note.toJSON()),
+      // notes: this._notes.filter(note => note.fretNumber !== null && !isNaN(note.fretNumber)).map(note => note.toJSON()),
+      notes: this._notes.map(note => note.toJSON()),
     }
   }
 }

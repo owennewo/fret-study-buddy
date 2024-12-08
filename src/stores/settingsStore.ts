@@ -32,11 +32,14 @@ export const useSettingsStore = defineStore('settingsStore', () => {
 
   async function saveSettingsToDB() {
     const db = await getDB()
-    await db.put('settings', {
+    const settings = {
       id: 'appSettings',
       currentProjectName: project.value,
       currentScoreId: score.value?.id,
-    })
+    }
+    console.log('saving settings', settings)
+
+    await db.put('settings', settings)
   }
 
   return {

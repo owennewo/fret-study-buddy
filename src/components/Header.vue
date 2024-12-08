@@ -1,19 +1,20 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import ScoreSelector from './ScoreSelector.vue'
-import ProjectSelector from './ProjectSelector.vue'
-import ScoreDialog from './ScoreDialog.vue'
+import { ref } from 'vue'
 import { useSound } from '@/composables/useSound'
 import { useCursor } from '@/composables/useCursor'
 
-const { score, track, bar, voice, element, note, voiceId } = useCursor()
+const { score } = useCursor()
 
 const { play, pause, isPlaying } = useSound()
 
 const isDarkMode = ref(false)
-const showScoreDialog = ref(false)
 
 const errorPopover = ref()
+
+const toggleSidebar = () => {
+  console.log('toggleSidebar')
+  document.body.classList.toggle('sidebar-open')
+}
 
 const toggleMode = () => {
   isDarkMode.value = !isDarkMode.value
@@ -23,18 +24,6 @@ const toggleMode = () => {
 const toggleErrorPopover = event => {
   errorPopover.value.toggle(event)
 }
-
-const handleSave = () => {
-  console.log('handleSave')
-}
-
-const voiceOptions = computed(() => {
-  const options = Array.from({ length: track.value?.voiceCount ?? 1 }, (_, i) => ({
-    label: '' + (i + 1),
-    value: i,
-  }))
-  return options
-})
 </script>
 <template>
   <header>
@@ -75,40 +64,9 @@ const voiceOptions = computed(() => {
       </template>
       <template #center>
         <div class="toolbar-center">
-          <!-- <ProjectSelector /> -->
-          <!-- <ScoreSelector /> -->
-          <p-button icon="pi pi-cog" class="settings-button" @click="showScoreDialog = true" />
           <p-button v-if="!isPlaying" icon="pi pi-play" class="settings-button" @click="play" />
           <p-button v-if="isPlaying" icon="pi pi-pause" class="settings-button" @click="pause" />
-          <p-selectbutton
-            v-model="voiceId"
-            :options="voiceOptions"
-            optionLabel="label"
-            optionValue="value"
-            :allowEmpty="false"
-          ></p-selectbutton>
-          <table style="border: 1px solid black" class="debug">
-            <thead>
-              <tr>
-                <th>t</th>
-                <th>b</th>
-                <th>v</th>
-                <th>e</th>
-                <th>n</th>
-                <th>f</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-if="score">
-                <td>{{ track?.index() ?? '?' }}</td>
-                <td>{{ bar?.index() ?? '?' }}</td>
-                <td>{{ voice?.index() ?? '?' }}</td>
-                <td>{{ element?.index() ?? '?' }}</td>
-                <td>{{ note?.index() ?? '?' }}</td>
-                <td>{{ isNaN(note?.fretNumber as number) ? '~' : (note?.fretNumber ?? '?') }}</td>
-              </tr>
-            </tbody>
-          </table>
+
           <p-badge
             v-if="score?.errors().length > 0"
             @click="toggleErrorPopover"
@@ -122,9 +80,11 @@ const voiceOptions = computed(() => {
         <p-button @click="toggleMode" :icon="`pi ${isDarkMode ? 'pi-sun' : 'pi-moon'}`" />
         <!-- <p-button @click="toggleMode" v-model="isDarkMode" :icon=`pi {isDarkMode? 'pi-sun': 'pi-moon'}` /> -->
         <!-- <p-togglebutton @click="toggleMode" v-model="isDarkMode" onLabel="Light" offLabel="Dark" /> -->
+        <button class="p-button p-button-text" @click="toggleSidebar">
+          <i class="pi pi-bars"></i>
+        </button>
       </template>
     </p-toolbar>
-    <ScoreDialog :visible="showScoreDialog" @update:visible="showScoreDialog = $event" @save="handleSave" />
     <p-popover ref="errorPopover">
       <p-datatable :value="score?.errors()" tableStyle="min-width: 50rem">
         <p-column field="track" header="Track" class="w-1/6"></p-column>

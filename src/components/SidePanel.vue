@@ -4,10 +4,11 @@ import { Technique } from '@/models/NotePosition'
 import { Score } from '@/models/Score'
 import { useSettingsStore } from '@/stores/settingsStore'
 import { useIndexedDBStore } from '@/stores/useIndexedDBStore'
-import { onMounted, ref, toRefs, watch } from 'vue'
+import { computed, onMounted, ref, toRefs, watch } from 'vue'
+import { instruments } from '@/models/Instruments'
 
 const { projects, scores } = toRefs(useIndexedDBStore())
-const { project, score, track, bar, voice, element, note, resetCursor } = useCursor()
+const { project, score, track, bar, voice, voiceId, element, note, mode, resetCursor } = useCursor()
 
 const { createProject, loadProjects, loadProject, loadScore, saveScore, deleteScore } = useIndexedDBStore()
 const { saveSettingsToDB, loadSettingsFromDB } = useSettingsStore()
@@ -16,8 +17,15 @@ const showAddProject = ref(false)
 const newProjectName = ref('')
 const currentScoreId = ref(-1)
 
-watch(bar, () => {
-  console.log('bar', bar.value?.timeSignature)
+const activeTab = ref(0)
+
+watch(mode, () => {
+  activeTab.value = mode.value
+})
+
+watch(score, () => {
+  console.log('#######', score.value, score.value?.id, score.value?.title)
+  currentScoreId.value = score.value?.id ?? -1
 })
 
 watch(project, async () => {
@@ -74,6 +82,36 @@ const newScore = async () => {
   saveSettingsToDB()
 }
 
+const instrumentOptions = computed(() => Object.keys(instruments))
+
+const tuningOptions = instrumentName => {
+  if (!instrumentName) return []
+  return Object.keys(instruments[instrumentName].tunings)
+}
+
+const toneOptions = instrumentName => {
+  if (!instrumentName) return []
+  return Object.keys(instruments[instrumentName].tones)
+}
+
+const addTrack = () => {
+  score.value.addTrack()
+}
+
+const removeTrack = index => {
+  if (score.value._tracks.length > 1) {
+    score.value._tracks.splice(index, 1)
+  }
+}
+
+const voiceOptions = computed(() => {
+  const options = Array.from({ length: track.value?.voiceCount ?? 1 }, (_, i) => ({
+    label: '' + (i + 1),
+    value: i,
+  }))
+  return options
+})
+
 onMounted(async () => {
   await loadProjects()
   await loadSettingsFromDB()
@@ -91,10 +129,10 @@ const techniqueList = () => {
 }
 </script>
 <template>
-  <aside>
-    <p-accordion value="0">
-      <p-accordionpanel value="0">
-        <p-accordionheader>Project</p-accordionheader>
+  <aside class="side-panel">
+    <p-accordion :value="activeTab">
+      <p-accordionpanel :value="0">
+        <p-accordionheader>Open</p-accordionheader>
         <p-accordioncontent class="vertically-spaced">
           <p-floatlabel variant="on">
             <p-select
@@ -162,13 +200,21 @@ const techniqueList = () => {
           </p-floatlabel>
         </p-accordioncontent>
       </p-accordionpanel>
-      <p-accordionpanel v-if="score" value="1">
+      <p-accordionpanel v-if="score" :value="1">
         <p-accordionheader>Score</p-accordionheader>
         <p-accordioncontent class="vertically-spaced">
           <p-floatlabel variant="on">
             <p-inputtext v-model="score.title" inputId="title" variant="filled" />
             <label for="title">Title</label>
           </p-floatlabel>
+          <p-floatlabel variant="on">
+            <p-inputtext v-model="score.url" inputId="url" variant="filled" style="width: 200px" />
+            <a v-if="score.url" :href="score.url" target="_blank" class="p-button-icon" style="float: right">
+              <i class="pi pi-external-link"></i>
+            </a>
+            <label for="url">Url</label>
+          </p-floatlabel>
+
           <p-floatlabel variant="on">
             <p-inputnumber v-model="score.tempo" inputId="tempo" variant="filled" :min="1" :step="5" showButtons />
             <label for="tempo">Tempo</label>
@@ -178,7 +224,7 @@ const techniqueList = () => {
             <label for="barsPerLine">Bars per Line</label>
           </p-floatlabel>
           <p-floatlabel variant="on">
-            <p-inputnumber v-model="score.fontSize" id="fontSize" :min="4" showButtons variant="filled" />
+            <p-inputnumber v-model="score.fontSize" id="fontSize" :min="4" showButtons :step="2" variant="filled" />
             <label for="fontSize">Font size</label>
           </p-floatlabel>
 
@@ -206,14 +252,66 @@ const techniqueList = () => {
           </p-floatlabel>
         </p-accordioncontent>
       </p-accordionpanel>
-      <p-accordionpanel v-if="track" value="2">
-        <p-accordionheader>Track {{ track?.index() + 1 }} / {{ score.tracks.length }} </p-accordionheader>
+      <p-accordionpanel v-if="track" :value="2">
+        <p-accordionheader>Track {{ track?.index() + 1 }} / {{ score._tracks.length }} </p-accordionheader>
         <p-accordioncontent>
-          <p class="m-0">Track details</p>
+          <p-tabs :value="0">
+            <p-tablist>
+              <p-tab v-for="(track, index) in score._tracks" :key="index" :value="index">Track {{ index }}</p-tab>
+              <p-tab :value="1">
+                <p-button icon="pi pi-plus" class="p-button-text add-track-icon" @click="addTrack" />
+              </p-tab>
+            </p-tablist>
+            <p-tabpanels>
+              <p-tabpanel v-for="(track, index) in score._tracks" :key="index" :value="index" class="vertically-spaced">
+                <p-floatlabel variant="on">
+                  <p-select
+                    v-model="track.instrument.instrumentName"
+                    :options="instrumentOptions"
+                    inputId="instrument"
+                    :id="'instrument-' + index"
+                    placeholder="Select Instrument"
+                  />
+                  <label for="instrument">Instrument</label>
+                </p-floatlabel>
+                <p-floatlabel variant="on">
+                  <p-select
+                    v-model="track.instrument.tuningName"
+                    :options="tuningOptions(track.instrument.instrumentName)"
+                    :id="'tuning-' + index"
+                    placeholder="Select Tuning"
+                  />
+                  <label :for="'tuning-' + index">Tuning</label>
+                </p-floatlabel>
+                <p-floatlabel variant="on">
+                  <p-select
+                    v-model="track.instrument.toneName"
+                    :options="toneOptions(track.instrument.instrumentName)"
+                    :id="'tone-' + index"
+                    placeholder="Select Tone"
+                  />
+                  <label :for="'tone-' + index">Tone</label>
+                </p-floatlabel>
+                <p-floatlabel variant="on">
+                  <p-inputnumber
+                    v-model="track.voiceCount"
+                    id="voiceCount"
+                    :min="1"
+                    :max="4"
+                    showButtons
+                    :step="1"
+                    class="small"
+                  />
+                  <label for="voiceCount">Voice Count</label>
+                </p-floatlabel>
+              </p-tabpanel>
+              <p-tabpanel :value="score._tracks.length"> </p-tabpanel>
+            </p-tabpanels>
+          </p-tabs>
         </p-accordioncontent>
       </p-accordionpanel>
-      <p-accordionpanel v-if="bar" value="3">
-        <p-accordionheader v-if="track">Bar {{ bar?.index() + 1 }} / {{ track.bars.length }}</p-accordionheader>
+      <p-accordionpanel v-if="bar" :value="3">
+        <p-accordionheader v-if="track">Bar {{ bar?.index() + 1 }} / {{ track._bars.length }}</p-accordionheader>
         <p-accordioncontent>
           <div class="field">
             <label>Time Signature</label>
@@ -238,20 +336,26 @@ const techniqueList = () => {
           </div>
         </p-accordioncontent>
       </p-accordionpanel>
-      <p-accordionpanel v-if="voice" value="4">
-        <p-accordionheader>Voice {{ voice?.index() + 1 }} / {{ bar.voices.length }} </p-accordionheader>
+      <p-accordionpanel v-if="voice" :value="4">
+        <p-accordionheader>Voice {{ voice?.index() + 1 }} / {{ bar!._voices.length }} </p-accordionheader>
         <p-accordioncontent>
-          <p class="m-0">Voice details</p>
+          <p-selectbutton
+            v-model="voiceId"
+            :options="voiceOptions"
+            optionLabel="label"
+            optionValue="value"
+            :allowEmpty="false"
+          ></p-selectbutton>
         </p-accordioncontent>
       </p-accordionpanel>
-      <p-accordionpanel v-if="element" value="5">
-        <p-accordionheader>Element {{ element?.index() + 1 }} / {{ voice.elements.length }} </p-accordionheader>
+      <p-accordionpanel v-if="element" :value="5">
+        <p-accordionheader>Element {{ element?.index() + 1 }} / {{ voice!._elements.length }} </p-accordionheader>
         <p-accordioncontent>
           <p-inputnumber v-model="element.duration" placeholder="Duration" showButtons class="small" />
         </p-accordioncontent>
       </p-accordionpanel>
-      <p-accordionpanel v-if="note" value="6">
-        <p-accordionheader>Note {{ note?.index() + 1 }} / {{ element.notes.length }} </p-accordionheader>
+      <p-accordionpanel v-if="note" :value="6">
+        <p-accordionheader>Note {{ note?.index() + 1 }} / {{ element!._notes.length }} </p-accordionheader>
         <p-accordioncontent>
           <p-inputnumber v-model="note.fretNumber" placeholder="Duration" showButtons class="small" />
           <p-inputnumber v-model="note.leftHandFinger" placeholder="leftHandFinger" showButtons class="small" />
@@ -270,9 +374,19 @@ const techniqueList = () => {
 .small input {
   width: 8ch;
 }
-.p-accordioncontent-content {
+
+div.vertically-spaced,
+div.vertically-spaced > * {
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+aside.side-panel {
+  display: block;
+}
+
+body.sidebar-open aside.side-panel {
+  display: none;
 }
 </style>

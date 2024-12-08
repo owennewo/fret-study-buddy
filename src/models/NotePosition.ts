@@ -1,3 +1,7 @@
+import type { Bar } from './Bar'
+import type { Score } from './Score'
+import type { Track } from './Track'
+import type { Voice } from './Voice'
 import type { VoiceElement } from './VoiceElement'
 
 const KEYS = [
@@ -70,7 +74,6 @@ type Finger = typeof NaN | 0 | 1 | 2 | 3 | 4
 
 class NotePosition {
   _element: VoiceElement
-  // stringIndex: number // 1 to 6 (1 = high E, 6 = low E)
   fretNumber: number // e.g., 0 (open string), 1, 2, etc.
   techniques: Technique[] // Optional technique
   active: boolean = false // used for UI feedback
@@ -79,18 +82,38 @@ class NotePosition {
 
   constructor(
     element: VoiceElement,
-    // stringIndex: number,
     fretNumber: number,
     techniques: Technique[] = [],
     leftHandFinger: Finger = NaN,
     rightHandFinger: Finger = NaN,
   ) {
     this._element = element
-    // this.stringIndex = stringIndex
     this.fretNumber = fretNumber
     this.techniques = techniques
     this.leftHandFinger = leftHandFinger !== null ? NaN : leftHandFinger
     this.rightHandFinger = rightHandFinger !== null ? NaN : rightHandFinger
+  }
+
+  score = (): Score => this.track().score()
+  track = (): Track => this.bar().track()
+  bar = (): Bar => this.voice().bar()
+  voice = (): Voice => this.element().voice()
+  element = (): VoiceElement => this._element
+
+  next = (): NotePosition => {
+    return this.element()._notes[Math.min(this.index() + 1, this.element()._notes.length - 1)]
+  }
+
+  prev = (): NotePosition => {
+    return this.element()._notes[Math.max(this.index() - 1, 0)]
+  }
+
+  first = (): NotePosition => {
+    return this.element()._notes[0]
+  }
+
+  last = (): NotePosition => {
+    return this.element()._notes[this.element()._notes.length - 1]
   }
 
   leftHand(): string {
@@ -142,7 +165,7 @@ class NotePosition {
   isRest = (): boolean => isNaN(this.fretNumber)
 
   pitch = (): string => {
-    const instrument = this._element._voice._bar._track.instrument
+    const instrument = this.track().instrument
     const base = instrument.tuning[this.index()]
     const keyIndex = NotePosition.toNoteIndex(base) + this.fretNumber
     return NotePosition.toNoteName(keyIndex)
@@ -157,72 +180,81 @@ class NotePosition {
         location: this._element.location(),
         duration: this._element.duration,
       },
-      element: this._element.index() + '/' + this._element._voice.elements.length,
-      voice: this._element._voice.index() + '/' + this._element._voice._bar.voices.length,
-      bar: this._element._voice._bar.index() + '/' + this._element._voice._bar._track.bars.length,
-      track: this._element._voice._bar._track.index() + '/' + this._element._voice._bar._track._score.tracks.length,
+      element: this._element.index() + '/' + this.voice()._elements.length,
+      voice: this.voice().index() + '/' + this.bar()._voices.length,
+      bar: this.bar().index() + '/' + this.track()._bars.length,
+      track: this.track().index() + '/' + this.score()._tracks.length,
     })
   }
 
   index = () => {
-    return this._element.notes.indexOf(this)
+    return this._element._notes.indexOf(this)
   }
 
-  next = (direction: MoveDirection): NotePosition => {
+  move = (direction: MoveDirection): NotePosition => {
     let noteIndex = this.index()
     let elementIndex = this._element.index()
-    const voiceIndex = Math.max(this._element._voice.index(), 0)
-    let barIndex = this._element._voice._bar.index()
+    const voiceIndex = Math.max(this.voice().index(), 0)
+    let barIndex = this.bar().index()
     switch (direction) {
       case 'ArrowUp':
         noteIndex = Math.max(noteIndex - 1, 0)
-        return this._element.notes[noteIndex]
+        return this._element._notes[noteIndex]
       case 'ArrowDown':
-        noteIndex = Math.min(noteIndex + 1, this._element.notes.length - 1)
-        return this._element.notes[noteIndex]
+        noteIndex = Math.min(noteIndex + 1, this._element._notes.length - 1)
+        return this._element._notes[noteIndex]
       case 'ArrowRight':
-        if (elementIndex == this._element._voice.elements.length - 1) {
+        if (elementIndex == this.voice()._elements.length - 1) {
           // last element of bar
-          if (this._element._voice.isComplete()) {
+          if (this.voice().isComplete()) {
             // no room, so we need to move to the next bar or extend the score
-            if (barIndex == this._element._voice._bar._track.bars.length - 1) {
+            if (barIndex == this.track()._bars.length - 1) {
               // last bar so extend
-              const newBar = this._element._voice._bar._track.addBar()
-              return newBar.voices[voiceIndex].elements[0].notes[noteIndex]
-              // return nextElement.notes[noteIndex]
+              const newBar = this.track().addBar()
+              return newBar._voices[voiceIndex]._elements[0]._notes[noteIndex]
+              // return nextElement._notes[noteIndex]
             } else {
-              const newElement = this._element._voice._bar._track.bars[barIndex + 1].voices[voiceIndex].elements[0]
+              const newElement = this.track()._bars[barIndex + 1]._voices[voiceIndex]._elements[0]
               newElement.duration = this._element.duration
-              return newElement.notes[noteIndex]
+              return newElement._notes[noteIndex]
             }
           } else {
             // there is room in this bar for a new element
-            const newElement = this._element._voice.addElement() as VoiceElement
+            const newElement = this.voice().addElement() as VoiceElement
             newElement.duration = this._element.duration
-            return newElement.notes[noteIndex]
+            return newElement._notes[noteIndex]
           }
         } else {
           // not the last element of the bar
-          return this._element._voice.elements[elementIndex + 1].notes[noteIndex]
+          return this.voice()._elements[elementIndex + 1]._notes[noteIndex]
         }
-
       case 'ArrowLeft':
         if (elementIndex == 0) {
           if (barIndex == 0) {
             return this
           } else {
             barIndex -= 1
-            const nextBar = this._element._voice._bar._track.bars[barIndex]
-            if (nextBar.voices[voiceIndex].elements.length == 0) {
-              nextBar.voices[voiceIndex].addElement()
+            const nextBar = this.track()._bars[barIndex]
+            if (nextBar._voices[voiceIndex].empty()) {
+              nextBar._voices[voiceIndex].addElement()
             }
-            const nextElementId = nextBar.voices[voiceIndex].elements.length - 1
-            const nextElement = nextBar.voices[voiceIndex].elements[nextElementId]
-            return nextElement.notes[noteIndex]
+            const nextElementId = nextBar._voices[voiceIndex]._elements.length - 1
+            const nextElement = nextBar._voices[voiceIndex]._elements[nextElementId]
+            console.log('nextElement', nextElement, noteIndex)
+            const nextNote = nextElement._notes[noteIndex]
+
+            console.log('bar', nextNote.bar().index())
+            console.log('voice', nextNote.voice().index())
+            console.log('element', nextNote._element.index())
+            console.log('note', nextNote.index())
+
+            console.log('nextNote', nextNote)
+
+            return nextNote
           }
         } else {
           elementIndex = Math.max(elementIndex - 1, 0)
-          return this._element._voice.elements[elementIndex].notes[noteIndex]
+          return this.voice()._elements[elementIndex]._notes[noteIndex]
         }
     }
   }
@@ -247,7 +279,6 @@ class NotePosition {
   toJSON(): object {
     return Object.assign(
       {
-        // stringIndex: this.stringIndex,
         fretNumber: this.fretNumber,
         techniques: this.techniques,
       },
@@ -257,15 +288,8 @@ class NotePosition {
   }
 
   static fromJSON(element: VoiceElement, data: any): NotePosition {
-    return new NotePosition(
-      element,
-      // data.stringIndex,
-      data.fretNumber,
-      data.techniques,
-      data.leftHandFinger,
-      data.rightHandFinger,
-    )
+    return new NotePosition(element, data.fretNumber ?? NaN, data.techniques, data.leftHandFinger, data.rightHandFinger)
   }
 }
 
-export { NotePosition, Technique }
+export { NotePosition, Technique, type MoveDirection }
