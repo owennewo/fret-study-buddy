@@ -1,3 +1,4 @@
+import { toRaw } from 'vue'
 import type { Bar } from './Bar'
 import type { Score } from './Score'
 import type { Track } from './Track'
@@ -173,6 +174,7 @@ class NotePosition {
 
   debug = (prefix: string = 'note'): void => {
     console.log(prefix, {
+      index: this.index(),
       note: {
         fretNumber: this.fretNumber,
         tailCount: this._element.tailCount(),
@@ -188,7 +190,7 @@ class NotePosition {
   }
 
   index = () => {
-    return this._element._notes.indexOf(this)
+    return this._element._notes.indexOf(toRaw(this))
   }
 
   move = (direction: MoveDirection): NotePosition => {

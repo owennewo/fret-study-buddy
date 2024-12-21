@@ -1,6 +1,7 @@
 import { Voice } from './Voice'
 import { Score, type TimeSignature } from './Score'
 import type { Track } from './Track'
+import { toRaw } from 'vue'
 
 class Bar {
   _track: Track
@@ -40,7 +41,7 @@ class Bar {
     return this.track()._bars[this.track()._bars.length - 1]
   }
 
-  index = () => this.track()._bars.indexOf(this)
+  index = () => this.track()._bars.indexOf(toRaw(this))
 
   removeVoiceAt(index: number): void {
     if (index >= 0 && index < this._voices.length) {
@@ -80,11 +81,11 @@ class Bar {
       voice._elements.forEach(element => {
         barBeats += element.duration
       })
-      if (barBeats != this.timeSignature.beatsPerBar) {
-        console.error('Bar does not add up to time signature', barBeats, this.timeSignature.beatsPerBar)
-      } else {
-        console.log('Bar adds up to time signature', barBeats, this.timeSignature.beatsPerBar)
-      }
+      // if (barBeats != this.timeSignature.beatsPerBar) {
+      //   console.error('Bar does not add up to time signature', barBeats, this.timeSignature.beatsPerBar)
+      // } else {
+      //   console.log('Bar adds up to time signature', barBeats, this.timeSignature.beatsPerBar)
+      // }
     })
   }
 

@@ -1,8 +1,8 @@
 import { useCursor } from '../useCursor'
-import { useSVG } from '../useSVG'
+import { useCanvas } from '../useCanvas'
 
-const { track, trackId, bar, voice, voiceId, element, note, resetCursor } = useCursor()
-const { drawScore } = useSVG()
+const { track, trackId } = useCursor()
+const { drawScore } = useCanvas()
 
 export const useTrackKeys = () => {
   const trackHandler = (event: KeyboardEvent) => {

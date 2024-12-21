@@ -94,7 +94,7 @@ class Score {
 
   verify() {
     // debugger
-    console.log('verify score')
+    // console.log('verify score')
     this._tracks.forEach(track => {
       track.verify()
     })

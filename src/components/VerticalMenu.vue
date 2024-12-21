@@ -51,7 +51,7 @@ const menuClicked = (menuIndex, item) => {
 </script>
 
 <template>
-  <div class="menu-container">
+  <div class="left-column">
     <ul>
       <li>
         <svg
@@ -118,7 +118,7 @@ const menuClicked = (menuIndex, item) => {
   </p-popover>
 </template>
 <style>
-.menu-container {
+.left-column {
   display: flex;
   flex-direction: column;
   justify-content: top;

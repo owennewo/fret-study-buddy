@@ -8,7 +8,7 @@ import { computed, onMounted, ref, toRefs, watch } from 'vue'
 import { instruments } from '@/models/Instruments'
 
 const { projects, scores } = toRefs(useIndexedDBStore())
-const { project, score, track, bar, voice, voiceId, element, note, mode, resetCursor } = useCursor()
+const { project, score, track, bar, voice, voiceId, element, note, mode } = useCursor()
 
 const { createProject, loadProjects, loadProject, loadScore, saveScore, deleteScore } = useIndexedDBStore()
 const { saveSettingsToDB, loadSettingsFromDB } = useSettingsStore()
@@ -43,10 +43,6 @@ watch(currentScoreId, async newCurrentScoreId => {
     console.log('Loaded Score:', score.value)
     score.value = loadedScore as Score
     saveSettingsToDB()
-
-    if (loadedScore) {
-      resetCursor()
-    }
   }
 })
 
@@ -105,9 +101,10 @@ const removeTrack = index => {
 }
 
 const voiceOptions = computed(() => {
-  const options = Array.from({ length: track.value?.voiceCount ?? 1 }, (_, i) => ({
+  const options = Array.from({ length: 4 }, (_, i) => ({
     label: '' + (i + 1),
     value: i,
+    class: `voice-${i}`,
   }))
   return options
 })
@@ -129,7 +126,19 @@ const techniqueList = () => {
 }
 </script>
 <template>
-  <aside class="side-panel">
+  <aside class="middle-column">
+    <p-selectbutton
+      v-model="voiceId"
+      :options="voiceOptions"
+      optionLabel="label"
+      optionValue="value"
+      :allowEmpty="false"
+    >
+      <template #option="{ option }">
+        <span :class="option.class">{{ option.label }}</span>
+      </template>
+    </p-selectbutton>
+
     <p-accordion :value="activeTab">
       <p-accordionpanel :value="0">
         <p-accordionheader>Open</p-accordionheader>
@@ -292,7 +301,7 @@ const techniqueList = () => {
                   />
                   <label :for="'tone-' + index">Tone</label>
                 </p-floatlabel>
-                <p-floatlabel variant="on">
+                <!-- <p-floatlabel variant="on">
                   <p-inputnumber
                     v-model="track.voiceCount"
                     id="voiceCount"
@@ -303,7 +312,7 @@ const techniqueList = () => {
                     class="small"
                   />
                   <label for="voiceCount">Voice Count</label>
-                </p-floatlabel>
+                </p-floatlabel> -->
               </p-tabpanel>
               <p-tabpanel :value="score._tracks.length"> </p-tabpanel>
             </p-tabpanels>
@@ -338,15 +347,7 @@ const techniqueList = () => {
       </p-accordionpanel>
       <p-accordionpanel v-if="voice" :value="4">
         <p-accordionheader>Voice {{ voice?.index() + 1 }} / {{ bar!._voices.length }} </p-accordionheader>
-        <p-accordioncontent>
-          <p-selectbutton
-            v-model="voiceId"
-            :options="voiceOptions"
-            optionLabel="label"
-            optionValue="value"
-            :allowEmpty="false"
-          ></p-selectbutton>
-        </p-accordioncontent>
+        <p-accordioncontent> </p-accordioncontent>
       </p-accordionpanel>
       <p-accordionpanel v-if="element" :value="5">
         <p-accordionheader>Element {{ element?.index() + 1 }} / {{ voice!._elements.length }} </p-accordionheader>
@@ -375,6 +376,22 @@ const techniqueList = () => {
   width: 8ch;
 }
 
+.voice-0 {
+  color: var(--voice-0-color);
+}
+
+.voice-1 {
+  color: var(--voice-1-color);
+}
+
+.voice-2 {
+  color: var(--voice-2-color);
+}
+
+.voice-3 {
+  color: var(--voice-3-color);
+}
+
 div.vertically-spaced,
 div.vertically-spaced > * {
   display: flex;
@@ -382,11 +399,11 @@ div.vertically-spaced > * {
   gap: 10px;
 }
 
-aside.side-panel {
+.middle-column {
   display: block;
 }
 
-body.sidebar-open aside.side-panel {
+body.sidebar-open .middle-column {
   display: none;
 }
 </style>

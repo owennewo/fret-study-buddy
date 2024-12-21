@@ -10,63 +10,27 @@ body {
   font-family: Arial, sans-serif;
 }
 
-/* Grid Layout */
-body {
-  display: grid;
-  grid-template-rows: 60px 1fr 40px; /* Header, content, footer */
-  grid-template-columns: 1fr; /* Full width for all rows */
-  height: 100vh; /* Full viewport height */
-}
-
-/* Header and Footer */
-header {
-  background: #007acc;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 1rem;
-  height: 60px; /* Fixed height */
-  flex-shrink: 0; /* Prevent shrinking */
-}
-
-footer {
-  background: #f4f4f4;
-  text-align: center;
-  line-height: 40px;
-  height: 40px; /* Fixed height */
-  flex-shrink: 0; /* Prevent shrinking */
-}
-
-/* Main Content Area */
-.content {
-  grid-row: 2; /* Place in the second row */
-  display: grid;
-  grid-template-columns: 250px 1fr; /* Aside and main content */
-  grid-template-rows: 1fr; /* Stretch to fill available height */
-  height: 100%; /* Fill space between header and footer */
-}
-
-aside {
-  border-right: 1px solid #ddd;
-  padding: 1rem;
-  overflow-y: auto; /* Allow scrolling if content exceeds height */
-  transition: width 0.3s ease; /* Smooth transition for resizing */
-  width: 300px;
-}
-
-main {
-  display: flex;
-  padding: 0px;
-  flex-direction: row;
-  flex-grow: 1; /* Take remaining space */
-  overflow: auto; /* Ensure scrollable content if it overflows */
-}
-
 #app {
   display: flex;
-  flex-direction: column;
-  width: 100%;
-  height: 100vh; /* Restrict height to viewport */
-  box-sizing: border-box; /* Ensure padding/borders are included in height */
+  width: 100vw;
+  height: 100%;
+}
+
+.middle-column {
+  width: 330px;
+  padding: 10px;
+  display: flex;
+}
+
+.right-column {
+  flex: 1;
+  /* background-color: lightcoral; */
+  overflow-x: auto;
+  /* padding: 10px; */
+}
+
+.right-column .content {
+  min-width: 100%;
+
+  width: 150%;
 }

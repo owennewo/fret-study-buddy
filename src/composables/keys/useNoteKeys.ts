@@ -1,9 +1,10 @@
 import { Technique } from '@/models/NotePosition'
 import { useCursor } from '../useCursor'
-import { useSVG } from '../useSVG'
+import { useCanvas } from '../useCanvas'
+import { nextTick } from 'vue'
 
-const { track, bar, barId, voice, voiceId, element, elementId, note, noteId, resetCursor } = useCursor()
-const { drawScore } = useSVG()
+const { track, bar, barId, voice, voiceId, element, elementId, note, noteId, redraw } = useCursor()
+const { drawScore } = useCanvas()
 
 export const useNoteKeys = () => {
   let pressedNumbers = ''
@@ -12,23 +13,22 @@ export const useNoteKeys = () => {
 
     switch (pressedKey) {
       case 'ArrowUp':
-        noteId.value = note.value.index() - 1
-        resetCursor()
+        noteId.value = Math.max(note.value.index() - 1, 0)
         drawScore()
         return
       case 'ArrowDown':
-        noteId.value = note.value.index() + 1
-        resetCursor()
+        noteId.value = Math.min(note.value.index() + 1, track.value!.stringCount() - 1)
         drawScore()
         return
       case 'ArrowRight':
+        console.log('arrow right')
         elementId.value = element.value.index() + 1
-        resetCursor()
-        drawScore()
+        nextTick(() => {
+          drawScore()
+        })
         return
       case 'ArrowLeft':
         elementId.value = element.value.index() - 1
-        resetCursor()
         drawScore()
         event.preventDefault()
         return
@@ -48,7 +48,6 @@ export const useNoteKeys = () => {
           track.value.removeBarAt(bar.value.index())
           barId.value = Math.min(barId.value - 1, 0)
           // note.value = moveNote
-          resetCursor()
         } else if (element.value.empty()) {
           voice.value.removeElementAt(element.value.index())
           elementId.value = Math.min(elementId.value, voice.value._elements.length - 1)

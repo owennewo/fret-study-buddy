@@ -1,49 +1,65 @@
 <script setup lang="ts">
 import { ref, onMounted, watch, nextTick, type Ref } from 'vue'
-import { useSVG } from '@/composables/useSVG'
+import { useCanvas } from '@/composables/useCanvas'
 import { useKeys } from '@/composables/keys/useKeys'
+import { useCommands } from '@/composables/useCommands'
 import { useCursor } from '@/composables/useCursor'
 import type { NotePosition } from '@/models/NotePosition'
 
-const { score, voiceId, note, resetCursor } = useCursor()
+const { score, voiceId } = useCursor()
 
-const { drawScore, svgRef } = useSVG()
+const { drawScore, canvasRef, canvasContainerRef } = useCanvas()
+
+useCommands()
 
 useKeys()
-
-onMounted(() => {
-  console.log('SVG loaded:', svgRef.value)
-})
 
 watch(
   [score, voiceId],
   () => {
-    nextTick(() => {
-      drawScore()
-    })
+    // nextTick(() => {
+    drawScore()
+    // })
   },
   { deep: true },
 )
-
-watch(note, (newNote: Ref<NotePosition | null>) => {
-  if (newNote) {
-    resetCursor()
-  }
-})
 </script>
 
 <template>
-  <article class="score">
-    <svg ref="svgRef" xmlns="http://www.w3.org/2000/svg" class="score" viewBox="0 0 1000 600"></svg>
-  </article>
+  <!-- <div class="canvas-parent"> -->
+  <div ref="canvasContainerRef" id="canvas-wrapper" class="right-column">
+    <canvas ref="canvasRef"></canvas>
+  </div>
+  <!-- </div> -->
 </template>
 
 <style scoped>
-article.score {
-  flex: 1; /* Make container take remaining space */
+/* .parent {
   display: flex;
-  align-items: center;
+  width: 100%;
+  height: 100vh;
+}
+
+article.score {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
   justify-content: center;
+  overflow-y: auto;
+  height: 100%;
+  border: 1px solid black;
+}
+
+.canvas-wrapper {
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: 0;
+  overflow-y: auto;
+  overflow-x: auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  scroll-behavior: smooth;
 }
 
 svg.score {
@@ -52,7 +68,7 @@ svg.score {
   border: 1px black solid;
   margin: 0 auto;
   background-color: var(--background-color);
-}
+} */
 </style>
 
 <style>
@@ -63,6 +79,26 @@ svg.score {
   --foreground-color: #333;
   --foreground-hover-color: #666;
   --error-color: red;
+  --voice-0-color: #8e0000; /* Darker red */
+  --voice-1-color: #4a0072; /* Darker purple */
+  --voice-2-color: #0000b2; /* Darker blue */
+  --voice-3-color: #004d40; /* Darker teal */
+  /* --voice-0-color: #c62828;
+  --voice-1-color: #7b1fa2;
+  --voice-2-color: #00f;
+  --voice-3-color: #00796b; */
+}
+
+#canvas-wrapper {
+  /* flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: 0;
+  overflow-y: auto;
+  overflow-x: auto;
+  display: flex;
+  justify-content: center;
+  align-items: center; */
+  scroll-behavior: smooth;
 }
 
 .dark-mode {

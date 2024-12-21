@@ -1,3 +1,4 @@
+import { toRaw } from 'vue'
 import type { Bar } from './Bar'
 import { NotePosition, type MoveDirection } from './NotePosition'
 import type { Score } from './Score'
@@ -114,10 +115,6 @@ class VoiceElement {
   }
 
   tailType(): TailType {
-    // if (this._notes.filter(note => !isNaN(note.fretNumber)).length > 0) {
-    //   debugger
-    // }
-
     if (this.tailCount() == 0) {
       return TailType.None
     }
@@ -134,7 +131,7 @@ class VoiceElement {
   }
 
   isLast(): boolean {
-    const index = this._voice._elements.indexOf(this)
+    const index = this._voice._elements.indexOf(toRaw(this))
     return this._voice._elements.length == index + 1
   }
 

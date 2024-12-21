@@ -1,3 +1,4 @@
+import { toRaw } from 'vue'
 import type { Bar } from './Bar'
 import type { MoveDirection } from './NotePosition'
 import type { Score } from './Score'
@@ -64,7 +65,7 @@ class Voice {
         return this._bar._voices[Math.max(voiceIndex - 1, 0)]
       case 'ArrowDown':
       case 'ArrowRight':
-        if (voiceIndex + 1 >= this.track().voiceCount) {
+        if (voiceIndex + 1 >= 4) {
           return this
         } else {
           if (voiceIndex >= this._bar._voices.length - 1) {
@@ -87,7 +88,7 @@ class Voice {
   }
 
   index(): number {
-    return this.bar()._voices.indexOf(this)
+    return this.bar()._voices.indexOf(toRaw(this))
   }
 
   toJSON(): object {

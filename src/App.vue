@@ -1,23 +1,19 @@
 <script setup lang="ts">
-import Header from './components/Header.vue'
-import SVGFrame from './components/SVGFrame.vue'
+import CanvasFrame from './components/CanvasFrame.vue'
 import SidePanel from './components/SidePanel.vue'
-import Footer from './components/Footer.vue'
 import VerticalMenu from './components/VerticalMenu.vue'
 </script>
 
 <template>
   <p-toast />
 
-  <div class="wrapper">
-    <VerticalMenu></VerticalMenu>
-    <!-- <Header></Header> -->
-    <main>
-      <SidePanel></SidePanel>
-      <SVGFrame></SVGFrame>
-    </main>
-    <!-- <Footer></Footer> -->
-  </div>
+  <!-- <div class="wrapper"> -->
+  <VerticalMenu></VerticalMenu>
+  <!-- <main> -->
+  <SidePanel></SidePanel>
+  <CanvasFrame></CanvasFrame>
+  <!-- </main> -->
+  <!-- </div> -->
 </template>
 
 <style scoped>

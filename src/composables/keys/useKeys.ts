@@ -1,98 +1,94 @@
-import { Score } from '@/models/Score'
-import { computed } from 'vue'
-import * as d3 from 'd3'
-import { useCursor } from '../useCursor'
-import { useToast } from 'primevue/usetoast'
-import { useBarKeys } from './useBarKeys'
-import { useNoteKeys } from './useNoteKeys'
-import { useTrackKeys } from './useTrackKeys'
-import { useVoiceKeys } from './useVoiceKeys'
+let sequence = ''
+
+interface RegexHandler {
+  handler: (sequence: string) => void
+}
+
+const regexHandlers: Map<RegExp, RegexHandler> = new Map()
+let isEventListenerRegistered = false
+let debounceTimer: NodeJS.Timeout | null = null
 
 export const useKeys = () => {
-  const { score, track, trackId, bar, voiceId, element, note, mode, Mode, resetCursor } = useCursor()
+  console.log('useKeys')
 
-  const { barHandler } = useBarKeys()
-  const { noteHandler } = useNoteKeys()
-  const { trackHandler } = useTrackKeys()
-  const { voiceHandler } = useVoiceKeys()
+  const ignore = (event: KeyboardEvent): boolean => {
+    const target = event.target as HTMLElement
+    const { tagName } = target
 
-  const toast = useToast()
-
-  const selectedTrack = computed(() => {
-    return score.value._tracks[trackId.value]
-  })
-
-  const handleKeys = (event: KeyboardEvent) => {
-    const pressedKey = event.key
-    const isCtrlPressed = event.ctrlKey || event.metaKey
-
-    if (isCtrlPressed && pressedKey == 'n') {
-      score.value = Score.new()
-      event.preventDefault()
+    if (
+      event.key == '' ||
+      event.key == 'Meta' ||
+      event.key == 'Alt' ||
+      event.key == 'Control' ||
+      event.key == 'Shift' ||
+      event.key == 'Tab'
+    ) {
+      return true
     }
-    if (!score.value || !track.value || !bar.value || !note.value || !element.value || voiceId.value == null) {
-      debugger
+    const isInput =
+      tagName === 'INPUT' &&
+      !['checkbox', 'radio', 'range', 'button', 'file', 'reset', 'submit', 'color'].includes(
+        (target as HTMLInputElement).type,
+      )
+
+    return (
+      target.isContentEditable ||
+      ((isInput || tagName === 'TEXTAREA' || tagName === 'SELECT') &&
+        !(target as HTMLInputElement | HTMLTextAreaElement).readOnly)
+    )
+  }
+
+  const handleKeys = (event: KeyboardEvent): void => {
+    let pressedKey = event.key
+
+    if (ignore(event)) {
       return
     }
 
-    switch (event.key) {
-      case 'o':
-        mode.value = Mode.ModeOpen
-        return
-      case 's':
-        mode.value = Mode.ModeScore
-        return
-      case 't':
-        mode.value = Mode.ModeTrack
-        return
-      case 'b':
-        mode.value = Mode.ModeBar
-        return
-      case 'v':
-        mode.value = Mode.ModeVoice
-        return
-      case 'e':
-        mode.value = Mode.ModeElement
-        return
-      case 'n':
-        mode.value = Mode.ModeNote
-        return
-      case 'p':
-        mode.value = Mode.ModePlay
-        return
-      case 'd':
-        mode.value = Mode.ModeDark
-        return
-      default:
-        switch (mode.value) {
-          case Mode.ModeOpen:
-            return
-          case Mode.ModeScore:
-            return
-          case Mode.ModeTrack:
-            trackHandler(event)
-            return
-
-          case Mode.ModeBar:
-            barHandler(event)
-            return
-          case Mode.ModeVoice:
-            voiceHandler(event)
-            return
-          case Mode.ModeElement:
-            return
-          case Mode.ModeNote:
-            noteHandler(event)
-            return
-          case Mode.ModePlay:
-            return
-          case Mode.ModeDark:
-            return
-        }
+    if (event.ctrlKey) {
+      pressedKey = 'ctrl+' + pressedKey
     }
+    if (event.shiftKey) {
+      pressedKey = 'shift+' + pressedKey
+    }
+    if (event.altKey) {
+      pressedKey = 'alt+' + pressedKey
+    }
+    if (event.metaKey) {
+      pressedKey = 'meta+' + pressedKey
+    }
+    sequence += pressedKey
+
+    // Debounce the `checkRegex` call
+    if (debounceTimer) {
+      clearTimeout(debounceTimer)
+    }
+    debounceTimer = setTimeout(() => checkRegex(event), 400)
   }
 
-  d3.select(window).on('keydown', handleKeys)
+  const checkRegex = (event): void => {
+    for (const [regex, { handler }] of regexHandlers) {
+      if (regex.test(sequence)) {
+        handler(sequence)
+        event.preventDefault()
+        sequence = ''
+        return
+      }
+    }
+    console.log('pressedKey', sequence)
+  }
 
-  return { handleKeys }
+  const bind = (regex: RegExp | string, handler: (sequence: string) => void): void => {
+    if (typeof regex === 'string') {
+      regex = new RegExp(regex)
+    }
+    regexHandlers.set(regex, { handler })
+  }
+
+  if (!isEventListenerRegistered) {
+    window.addEventListener('keyup', handleKeys)
+    isEventListenerRegistered = true
+  }
+
+  return { handleKeys, bind, checkRegex }
 }

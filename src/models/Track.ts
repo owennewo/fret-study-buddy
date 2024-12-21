@@ -1,12 +1,12 @@
 import { Instrument } from '@/models/Instruments'
 import { Bar } from './Bar'
 import type { Score } from './Score'
+import { toRaw } from 'vue'
 // import type { MoveDirection } from './NotePosition'
 
 class Track {
   _score: Score
   instrument: Instrument
-  voiceCount: number
   _bars: Bar[]
 
   constructor(
@@ -17,7 +17,6 @@ class Track {
   ) {
     this._score = score
     this.instrument = new Instrument(instrumentName, tuningName, toneName)
-    this.voiceCount = 1
     this._bars = []
   }
 
@@ -39,7 +38,7 @@ class Track {
     }
 
     if (newBar == null) {
-      for (let i = 0; i < this.voiceCount; i++) {
+      for (let i = 0; i < 4; i++) {
         bar!.addVoice()
       }
     }
@@ -48,7 +47,7 @@ class Track {
   }
 
   index(): number {
-    return this.score()._tracks.indexOf(this)
+    return this.score()._tracks.indexOf(toRaw(this))
   }
 
   stringCount = () => this.instrument.tuning.length
@@ -64,7 +63,6 @@ class Track {
       instrumentName: this.instrument.instrumentName,
       tuningName: this.instrument.tuningName,
       toneName: this.instrument.toneName,
-      voiceCount: this.voiceCount ?? 1,
       bars: this._bars.map(bar => bar.toJSON()),
     }
   }
@@ -87,9 +85,9 @@ class Track {
 
   verify(): void {
     this._bars.forEach(bar => {
-      if (bar._voices.length > this.voiceCount) {
+      if (bar._voices.length > 4) {
         console.log('Too many voices in bar, removing some')
-        bar._voices = bar._voices.slice(0, this.voiceCount)
+        bar._voices = bar._voices.slice(0, 4)
       }
     })
     if (this._bars.length == 0) {
@@ -109,7 +107,6 @@ class Track {
 
   static fromJSON(score: Score, data: any): Track {
     const track = new Track(score, data.instrumentName, data.tuningName, data.toneName)
-    track.voiceCount = data.voiceCount ?? 1
     track._bars = data.bars.map((barData: any) => Bar.fromJSON(track, barData))
     return track
   }

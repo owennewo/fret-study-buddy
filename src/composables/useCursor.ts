@@ -1,11 +1,5 @@
-import type { Bar } from '@/models/Bar'
-import type { NotePosition } from '@/models/NotePosition'
 import { Score } from '@/models/Score'
-import type { Track } from '@/models/Track'
-import type { Voice } from '@/models/Voice'
-import type { VoiceElement } from '@/models/VoiceElement'
-// import type { NotePosition } from '@/models/NotePosition'
-import { computed, ref, watch, type Ref } from 'vue'
+import { computed, ref, type Ref } from 'vue'
 
 enum Mode {
   ModeOpen = 0,
@@ -89,78 +83,9 @@ const note = computed(() => {
   return element.value._notes[noteId.value]
 })
 
-// const track: Ref<Track | null> = ref(null)
-// const bar: Ref<Bar | null> = ref(null)
-// const voice: Ref<Voice | null> = ref(null)
-
-// const element: Ref<VoiceElement | null> = ref(null)
-// const note: Ref<NotePosition | null> = ref(null)
 const mode: Ref<Mode> = ref(Mode.ModeNote)
 
 export const useCursor = () => {
-  const resetCursor = () => {
-    // debugger
-
-    // if (score.value) {
-    //   if (note.value == null) {
-    //     console.log('@@@@@ note is null')
-    //     const startTrack = score.value._tracks[trackId.value]
-    //     if (startTrack._bars.length == 0) {
-    //       startTrack.addBar()
-    //     }
-    //     const startBar = startTrack._bars[0]
-    //     if (startBar._voices.length == 0) {
-    //       startBar.addVoice()
-    //     }
-    //     const startVoice = startBar._voices[0]
-    //     if (startVoice._elements.length == 0) {
-    //       startVoice.addElement()
-    //     }
-    //     note.value = startVoice._elements[0]._notes[0]
-    //   }
-
-    //   track.value = note.value.track()
-    //   bar.value = note.value.bar()
-
-    //   const currentVoice = note.value.voice()
-
-    //   if (currentVoice.index() == voiceId.value) {
-    //     voice.value = currentVoice
-    //     element.value = note.value.element()
-    //   } else {
-    //     if (bar.value._voices.length > 1 && bar.value._voices[1] === bar.value._voices[0]) {
-    //       console.error('@@@@@ bar has multiple voices but they are the same')
-    //       debugger
-    //     }
-    //     console.log('@@@@@ Switching voice')
-    //     if (voiceId.value > bar.value._voices.length - 1) {
-    //       console.log('@@@@@ extending bar')
-    //       voice.value = bar.value.addVoice()
-    //     } else {
-    //       voice.value = bar.value._voices[voiceId.value]
-    //     }
-    //     if (voice.value._elements.length == 0) {
-    //       console.log('@@@@@ Extending voice')
-    //       voice.value.addElement()
-    //     }
-    //     element.value = voice.value._elements[Math.min(voice.value._elements.length - 1, note.value.element().index())]
-    //     note.value = element.value._notes[Math.min(element.value._notes.length - 1, note.value.index())]
-    //     note.value.debug()
-    //   }
-    console.log('reset')
-    // }
-  }
-
-  watch(voiceId, () => {
-    console.log('switching voiceId', voiceId.value, voice.value?.index())
-    resetCursor()
-  })
-
-  watch(score, () => {
-    score.value?.verify()
-    console.log('@@@@@ score changed')
-  })
-
   return {
     project,
     score,
@@ -176,6 +101,5 @@ export const useCursor = () => {
     noteId,
     mode,
     Mode,
-    resetCursor,
   }
 }

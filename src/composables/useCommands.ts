@@ -1,0 +1,71 @@
+import { useKeys } from '@/composables/keys/useKeys'
+import { useCanvas } from './useCanvas'
+import { useCursor } from './useCursor'
+
+const { drawScore } = useCanvas()
+const { track, bar, barId, voice, voiceId, element, elementId, note, noteId, redraw } = useCursor()
+
+let loaded = false
+
+export const useCommands = () => {
+  const { bind } = useKeys()
+  if (!loaded) {
+    bind('\\d+(.\\d+)?', sequence => {
+      // voiceId.value = Math.min(voice.value.index() + 1, 3)
+      console.log('number', sequence)
+      note.value.fretNumber = parseInt(sequence)
+      drawScore()
+    })
+
+    bind('ctrl\\+ArrowUp', () => {
+      voiceId.value = Math.min(voice.value.index() + 1, 3)
+      drawScore()
+    })
+
+    bind('ctrl\\+ArrowDown', () => {
+      voiceId.value = Math.max(voice.value.index() - 1, 0)
+      drawScore()
+    })
+
+    bind('ArrowUp', () => {
+      noteId.value = Math.max(note.value.index() - 1, 0)
+      drawScore()
+    })
+
+    bind('ArrowDown', () => {
+      noteId.value = Math.min(note.value.index() + 1, track.value!.stringCount() - 1)
+      drawScore()
+    })
+
+    bind('ArrowLeft', () => {
+      elementId.value = element.value.index() - 1
+      drawScore()
+    })
+
+    bind('ArrowRight', () => {
+      elementId.value = element.value.index() + 1
+      drawScore()
+    })
+
+    bind('ctrl\\+s', () => {
+      console.log('save')
+    })
+
+    bind('ctrl\\+c', () => {
+      console.log('copy')
+    })
+    bind('ctrl\\+v', () => {
+      console.log('paste')
+    })
+
+    bind('ctrl\\+z', () => {
+      console.log('undo')
+    })
+
+    bind('ctrl\\+shift\\+z', () => {
+      console.log('redo')
+    })
+
+    loaded = true
+  }
+}
