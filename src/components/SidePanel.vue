@@ -100,15 +100,6 @@ const removeTrack = index => {
   }
 }
 
-const voiceOptions = computed(() => {
-  const options = Array.from({ length: 4 }, (_, i) => ({
-    label: '' + (i + 1),
-    value: i,
-    class: `voice-${i}`,
-  }))
-  return options
-})
-
 onMounted(async () => {
   await loadProjects()
   await loadSettingsFromDB()
@@ -127,21 +118,9 @@ const techniqueList = () => {
 </script>
 <template>
   <aside class="middle-column">
-    <p-selectbutton
-      v-model="voiceId"
-      :options="voiceOptions"
-      optionLabel="label"
-      optionValue="value"
-      :allowEmpty="false"
-    >
-      <template #option="{ option }">
-        <span :class="option.class">{{ option.label }}</span>
-      </template>
-    </p-selectbutton>
-
     <p-accordion :value="activeTab">
-      <p-accordionpanel :value="0">
-        <p-accordionheader>Open</p-accordionheader>
+      <p-accordionpanel v-if="score" :value="0">
+        <p-accordionheader>Score</p-accordionheader>
         <p-accordioncontent class="vertically-spaced">
           <p-floatlabel variant="on">
             <p-select
@@ -207,11 +186,7 @@ const techniqueList = () => {
             </p-inputgroup>
             <label for="score">Score</label>
           </p-floatlabel>
-        </p-accordioncontent>
-      </p-accordionpanel>
-      <p-accordionpanel v-if="score" :value="1">
-        <p-accordionheader>Score</p-accordionheader>
-        <p-accordioncontent class="vertically-spaced">
+
           <p-floatlabel variant="on">
             <p-inputtext v-model="score.title" inputId="title" variant="filled" />
             <label for="title">Title</label>
@@ -259,11 +234,7 @@ const techniqueList = () => {
 
             <label>Time Signature</label>
           </p-floatlabel>
-        </p-accordioncontent>
-      </p-accordionpanel>
-      <p-accordionpanel v-if="track" :value="2">
-        <p-accordionheader>Track {{ track?.index() + 1 }} / {{ score._tracks.length }} </p-accordionheader>
-        <p-accordioncontent>
+
           <p-tabs :value="0">
             <p-tablist>
               <p-tab v-for="(track, index) in score._tracks" :key="index" :value="index">Track {{ index }}</p-tab>
@@ -301,26 +272,14 @@ const techniqueList = () => {
                   />
                   <label :for="'tone-' + index">Tone</label>
                 </p-floatlabel>
-                <!-- <p-floatlabel variant="on">
-                  <p-inputnumber
-                    v-model="track.voiceCount"
-                    id="voiceCount"
-                    :min="1"
-                    :max="4"
-                    showButtons
-                    :step="1"
-                    class="small"
-                  />
-                  <label for="voiceCount">Voice Count</label>
-                </p-floatlabel> -->
               </p-tabpanel>
               <p-tabpanel :value="score._tracks.length"> </p-tabpanel>
             </p-tabpanels>
           </p-tabs>
         </p-accordioncontent>
       </p-accordionpanel>
-      <p-accordionpanel v-if="bar" :value="3">
-        <p-accordionheader v-if="track">Bar {{ bar?.index() + 1 }} / {{ track._bars.length }}</p-accordionheader>
+      <p-accordionpanel v-if="note" :value="1">
+        <p-accordionheader>Note {{ note?.index() + 1 }} / {{ element!._notes.length }} </p-accordionheader>
         <p-accordioncontent>
           <div class="field">
             <label>Time Signature</label>
@@ -343,21 +302,18 @@ const techniqueList = () => {
               />
             </div>
           </div>
-        </p-accordioncontent>
-      </p-accordionpanel>
-      <p-accordionpanel v-if="voice" :value="4">
-        <p-accordionheader>Voice {{ voice?.index() + 1 }} / {{ bar!._voices.length }} </p-accordionheader>
-        <p-accordioncontent> </p-accordioncontent>
-      </p-accordionpanel>
-      <p-accordionpanel v-if="element" :value="5">
-        <p-accordionheader>Element {{ element?.index() + 1 }} / {{ voice!._elements.length }} </p-accordionheader>
-        <p-accordioncontent>
-          <p-inputnumber v-model="element.duration" placeholder="Duration" showButtons class="small" />
-        </p-accordioncontent>
-      </p-accordionpanel>
-      <p-accordionpanel v-if="note" :value="6">
-        <p-accordionheader>Note {{ note?.index() + 1 }} / {{ element!._notes.length }} </p-accordionheader>
-        <p-accordioncontent>
+
+          <p-floatlabel variant="on">
+            <p-inputnumber
+              v-model="element.duration"
+              inputId="duration"
+              placeholder="Duration"
+              showButtons
+              class="small"
+            />
+            <label for="duration">Duration</label>
+          </p-floatlabel>
+
           <p-inputnumber v-model="note.fretNumber" placeholder="Duration" showButtons class="small" />
           <p-inputnumber v-model="note.leftHandFinger" placeholder="leftHandFinger" showButtons class="small" />
           <p-inputnumber v-model="note.rightHandFinger" placeholder="rightHandFinger" showButtons class="small" />
@@ -401,9 +357,13 @@ div.vertically-spaced > * {
 
 .middle-column {
   display: block;
+  transition: width 0.3s ease;
+  overflow: hidden;
 }
 
-body.sidebar-open .middle-column {
-  display: none;
+body.sidebar-closed .middle-column {
+  /* display: none; */
+  width: 0px;
+  padding: 0px;
 }
 </style>

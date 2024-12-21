@@ -17,6 +17,11 @@ export const useCommands = () => {
       drawScore()
     })
 
+    bind('ctrl\\+Delete', () => {
+      track.value!.removeBarAt(bar.value!.index())
+      drawScore()
+    })
+
     bind('ctrl\\+ArrowUp', () => {
       voiceId.value = Math.min(voice.value.index() + 1, 3)
       drawScore()

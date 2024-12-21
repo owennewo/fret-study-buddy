@@ -3,7 +3,6 @@ import { useCursor } from '@/composables/useCursor'
 import { useSound } from '@/composables/useSound'
 import { computed, ref } from 'vue'
 
-const isDarkMode = ref(false)
 const errorPopover = ref()
 const { score, mode } = useCursor()
 
@@ -22,14 +21,14 @@ const menuItems = computed(() => [
     icon: isPlaying.value ? 'pi pi-pause' : 'pi pi-play',
     command: isPlaying.value ? pause : play,
   },
-  {
-    name: isDarkMode.value ? 'Light mode' : 'Dark mode',
-    icon: isDarkMode.value ? 'pi pi-sun' : 'pi pi-moon',
-    command: () => {
-      isDarkMode.value = !isDarkMode.value
-      document.documentElement.classList.toggle('dark-mode', isDarkMode.value)
-    },
-  },
+  // {
+  //   name: isDarkMode.value ? 'Light mode' : 'Dark mode',
+  //   icon: isDarkMode.value ? 'pi pi-sun' : 'pi pi-moon',
+  //   command: () => {
+  //     isDarkMode.value = !isDarkMode.value
+  //     document.documentElement.classList.toggle('dark-mode', isDarkMode.value)
+  //   },
+  // },
 
   { name: 'Show sidepanel', icon: 'pi pi-bars', command: toggleSideBar },
 ])
@@ -104,18 +103,6 @@ const menuClicked = (menuIndex, item) => {
       </li>
     </ul>
   </div>
-  <p-popover ref="errorPopover">
-    <p-datatable :value="score?.errors()" tableStyle="min-width: 50rem">
-      <p-column field="track" header="Track" class="w-1/6"></p-column>
-      <p-column field="bar" header="Bar" class="w-1/6"></p-column>
-      <p-column field="voice" header="Voice" class="w-1/6" bodyClass="whitespace-nowrap"></p-column>
-      <p-column field="error" header="Error" sortable class="w-1/6">
-        <template #body="slotProps">
-          Duration is {{ slotProps.data.duration }} beat (expecting {{ slotProps.data.expectedDuration }})
-        </template>
-      </p-column>
-    </p-datatable>
-  </p-popover>
 </template>
 <style>
 .left-column {

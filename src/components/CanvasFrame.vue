@@ -1,25 +1,56 @@
 <script setup lang="ts">
-import { ref, onMounted, watch, nextTick, type Ref } from 'vue'
+import { ref, onMounted, watch, nextTick, type Ref, computed } from 'vue'
 import { useCanvas } from '@/composables/useCanvas'
 import { useKeys } from '@/composables/keys/useKeys'
 import { useCommands } from '@/composables/useCommands'
 import { useCursor } from '@/composables/useCursor'
 import type { NotePosition } from '@/models/NotePosition'
+import { useSound } from '@/composables/useSound'
+const { play, pause, isPlaying } = useSound()
 
 const { score, voiceId } = useCursor()
-
 const { drawScore, canvasRef, canvasContainerRef } = useCanvas()
 
 useCommands()
-
 useKeys()
+
+const isDarkMode = ref(false)
+const errorPopover = ref()
+
+const voiceOptions = computed(() => {
+  const options = Array.from({ length: 4 }, (_, i) => ({
+    label: '' + (i + 1),
+    value: i,
+    class: `voice-${i}`,
+  }))
+  return options
+})
+
+const toggleSideBar = () => {
+  document.body.classList.toggle('sidebar-closed')
+}
+
+const toggleDarkMode = () => {
+  isDarkMode.value = !isDarkMode.value
+  document.documentElement.classList.toggle('dark-mode', isDarkMode.value)
+}
+
+const toggleErrorPopover = event => {
+  errorPopover.value.toggle(event)
+}
+
+const togglePlay = () => {
+  if (isPlaying.value) {
+    pause()
+  } else {
+    play()
+  }
+}
 
 watch(
   [score, voiceId],
   () => {
-    // nextTick(() => {
     drawScore()
-    // })
   },
   { deep: true },
 )
@@ -28,48 +59,89 @@ watch(
 <template>
   <!-- <div class="canvas-parent"> -->
   <div ref="canvasContainerRef" id="canvas-wrapper" class="right-column">
+    <div class="toolbar">
+      <p-toolbar>
+        <template #start>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 64 64"
+            width="16"
+            height="16"
+            class="icon-background"
+            style="background-color: var(--p-toolbar-background, white)"
+          >
+            <polygon
+              points="10,0 54,0 64,28 64,58 54,58 54,64 10,64 10,58 0,58 0,28"
+              rx="5"
+              class="icon-primary"
+            ></polygon>
+            <circle cx="22" cy="16" r="5" class="icon-secondary" />
+            <circle cx="14" cy="40" r="5" class="icon-secondary" />
+            <circle cx="42" cy="16" r="5" class="icon-secondary" />
+            <circle cx="50" cy="40" r="5" class="icon-secondary" />
+
+            <line x1="14" x2="20" y1="40" y2="54" class="icon-secondary" />
+            <line x1="20" x2="20" y1="54" y2="64" class="icon-secondary" />
+
+            <line x1="22" x2="28" y1="16" y2="54" class="icon-secondary" />
+            <line x1="28" x2="28" y1="54" y2="64" class="icon-secondary" />
+
+            <line x1="42" x2="36" y1="16" y2="54" class="icon-secondary" />
+            <line x1="36" x2="36" y1="54" y2="64" class="icon-secondary" />
+
+            <line x1="50" x2="44" y1="40" y2="54" class="icon-secondary" />
+            <line x1="44" x2="44" y1="54" y2="64" class="icon-secondary" />
+          </svg>
+          <i class="pi pi-bars" @click="toggleSideBar"></i>
+          <i :class="`pi ${isPlaying.value ? 'pi-pause' : 'pi-play'}`" @click="togglePlay"></i>
+          <i :class="`pi ${isDarkMode.value ? 'pi-sun' : 'pi pi-moon'}`" @click="toggleDarkMode"></i>
+
+          <p-badge
+            v-if="score?.errors().length > 0"
+            @click="toggleErrorPopover"
+            severity="danger"
+            size="medium"
+            :value="score?.errors().length"
+          ></p-badge>
+        </template>
+
+        <template #center>
+          <span>{{ score.title }}</span>
+        </template>
+
+        <template #end>
+          <p-selectbutton
+            v-model="voiceId"
+            :options="voiceOptions"
+            optionLabel="label"
+            optionValue="value"
+            :allowEmpty="false"
+          >
+            <template #option="{ option }">
+              <span :class="option.class">{{ option.label }}</span>
+            </template>
+          </p-selectbutton>
+        </template>
+      </p-toolbar>
+
+      <p-popover ref="errorPopover">
+        <p-datatable :value="score?.errors()" tableStyle="min-width: 50rem">
+          <p-column field="track" header="Track" class="w-1/6"></p-column>
+          <p-column field="bar" header="Bar" class="w-1/6"></p-column>
+          <p-column field="voice" header="Voice" class="w-1/6" bodyClass="whitespace-nowrap"></p-column>
+          <p-column field="error" header="Error" sortable class="w-1/6">
+            <template #body="slotProps">
+              Duration is {{ slotProps.data.duration }} beat (expecting {{ slotProps.data.expectedDuration }})
+            </template>
+          </p-column>
+        </p-datatable>
+      </p-popover>
+    </div>
+
     <canvas ref="canvasRef"></canvas>
   </div>
   <!-- </div> -->
 </template>
-
-<style scoped>
-/* .parent {
-  display: flex;
-  width: 100%;
-  height: 100vh;
-}
-
-article.score {
-  flex: 1;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  overflow-y: auto;
-  height: 100%;
-  border: 1px solid black;
-}
-
-.canvas-wrapper {
-  flex-grow: 1;
-  flex-shrink: 1;
-  flex-basis: 0;
-  overflow-y: auto;
-  overflow-x: auto;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  scroll-behavior: smooth;
-}
-
-svg.score {
-  width: 100%;
-  height: 100%;
-  border: 1px black solid;
-  margin: 0 auto;
-  background-color: var(--background-color);
-} */
-</style>
 
 <style>
 :root {
@@ -83,21 +155,10 @@ svg.score {
   --voice-1-color: #4a0072; /* Darker purple */
   --voice-2-color: #0000b2; /* Darker blue */
   --voice-3-color: #004d40; /* Darker teal */
-  /* --voice-0-color: #c62828;
-  --voice-1-color: #7b1fa2;
-  --voice-2-color: #00f;
-  --voice-3-color: #00796b; */
 }
 
 #canvas-wrapper {
-  /* flex-grow: 1;
-  flex-shrink: 1;
-  flex-basis: 0;
-  overflow-y: auto;
-  overflow-x: auto;
-  display: flex;
-  justify-content: center;
-  align-items: center; */
+  position: relative;
   scroll-behavior: smooth;
 }
 
@@ -225,4 +286,25 @@ path.vibrato {
   stroke: var(--foreground-color);
   stroke-width: 2;
 }
+
+.toolbar {
+  /* position: absolute; */
+  /* left: 20px;
+  height: 30px;
+  top: 10px; */
+  /* border: solid 1px black; */
+}
+
+/* .voice-selector {
+  position: absolute;
+  right: 20px;
+  height: 30px;
+  top: 10px;
+  border: solid 1px black;
+} */
+
+.p-toolbar-start {
+  gap: 10px;
+}
 </style>
+ga
