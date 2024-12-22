@@ -8,7 +8,7 @@ import VerticalMenu from './components/VerticalMenu.vue'
   <p-toast />
 
   <!-- <div class="wrapper"> -->
-  <VerticalMenu></VerticalMenu>
+  <!-- <VerticalMenu></VerticalMenu> -->
   <!-- <main> -->
   <SidePanel></SidePanel>
   <CanvasFrame></CanvasFrame>

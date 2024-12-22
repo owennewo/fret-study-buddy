@@ -57,8 +57,7 @@ watch(
 </script>
 
 <template>
-  <!-- <div class="canvas-parent"> -->
-  <div ref="canvasContainerRef" id="canvas-wrapper" class="right-column">
+  <div class="right-column">
     <div class="toolbar">
       <p-toolbar>
         <template #start>
@@ -137,10 +136,10 @@ watch(
         </p-datatable>
       </p-popover>
     </div>
-
-    <canvas ref="canvasRef"></canvas>
+    <div ref="canvasContainerRef" id="canvas-wrapper">
+      <canvas ref="canvasRef" class="theCanvas"></canvas>
+    </div>
   </div>
-  <!-- </div> -->
 </template>
 
 <style>
@@ -160,6 +159,10 @@ watch(
 #canvas-wrapper {
   position: relative;
   scroll-behavior: smooth;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background-color: pink;
+  flex: 1;
 }
 
 .dark-mode {
@@ -285,6 +288,11 @@ path.bend,
 path.vibrato {
   stroke: var(--foreground-color);
   stroke-width: 2;
+}
+
+.theCanvas {
+  display: block;
+  box-sizing: border-box;
 }
 
 .toolbar {

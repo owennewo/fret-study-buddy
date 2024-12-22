@@ -12,6 +12,7 @@ const canvasRef: Ref<HTMLCanvasElement | null> = ref(null)
 const canvasContainerRef: Ref<HTMLDivElement | null> = ref(null)
 
 let pixi: Application | null = null
+let renderCount = 0
 
 export const useCanvas = () => {
   const backgroundColour = 'lightgrey'
@@ -426,6 +427,7 @@ export const useCanvas = () => {
       const wrapper = document.getElementById('canvas-wrapper')!
 
       const resizeObserver = new ResizeObserver(entries => {
+        console.log('resized')
         for (const entry of entries) {
           const { width, height } = entry.contentRect
           console.log(`Wrapper resized: ${width}x${height} (${wrapper.clientWidth} ${wrapper.clientHeight})`)
@@ -477,21 +479,19 @@ export const useCanvas = () => {
 
     scoreContainer.y = verticalGap
     scoreContainer.x = horizontalGap
-    // scoreContainer.x = padding
 
-    // pageContainer.addChild(
-    //   new Graphics()
-    //     .rect(0, 0, wrapper.clientWidth - 4, scoreContainer.height - 40)
-    //     .stroke({ width: 1, color: 0x000000 }),
-    // )
-
-    // pageContainer.width = canvasWidth
     pageContainer.addChild(scoreContainer)
 
-    // console.log('rerender', pageContainer.width, scoreContainer.height)
-
     if (pixi && pixi.renderer) {
-      pixi!.renderer.resize(wrapper.clientWidth, Math.max(scoreContainer.height + verticalGap, wrapper.clientHeight))
+      // debugger
+      renderCount += 1
+      // if (renderCount < 5) {
+      //   debugger
+      pixi!.renderer.resize(
+        wrapper.clientWidth,
+        Math.floor(Math.max(scoreContainer.height + verticalGap, wrapper.clientHeight)) - 1,
+      )
+      // }
     } else {
       console.warn(' RESIZE FAILED')
     }

@@ -7,6 +7,8 @@ const { track, bar, barId, voice, voiceId, element, elementId, note, noteId, red
 
 let loaded = false
 
+let copyBar: Bar = undefined
+
 export const useCommands = () => {
   const { bind } = useKeys()
   if (!loaded) {
@@ -58,9 +60,14 @@ export const useCommands = () => {
 
     bind('ctrl\\+c', () => {
       console.log('copy')
+      copyBar = bar.value!.clone()
     })
     bind('ctrl\\+v', () => {
       console.log('paste')
+      if (copyBar == undefined) {
+        return
+      }
+      track.value!.addBar(bar.value!.index(), copyBar.clone())
     })
 
     bind('ctrl\\+z', () => {

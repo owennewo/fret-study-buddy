@@ -56,7 +56,7 @@ export const useSound = () => {
     return sampler
   }
 
-  const play = async event => {
+  const play = async () => {
     if (Tone.Transport.state == 'paused') {
       console.log('resuming')
       isPlaying.value = true

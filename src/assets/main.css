@@ -23,10 +23,11 @@ body {
 }
 
 .right-column {
+  display: flex;
+  flex-direction: column;
   flex: 1;
-  /* background-color: lightcoral; */
-  overflow-x: auto;
-  /* padding: 10px; */
+  overflow: hidden;
+  width: auto;
 }
 
 .right-column .content {
