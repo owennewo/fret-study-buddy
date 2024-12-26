@@ -71,7 +71,11 @@ export const useIndexedDBStore = defineStore('indexedDBStore', () => {
     })) as []
   }
 
-  const loadScore = async (scoreId: number) => {
+  const loadScore = async (project: string, scoreId: number) => {
+    if (!db || db.name !== project) {
+      await loadProject(project)
+    }
+
     if (!scoreId || !db) {
       return null
     }

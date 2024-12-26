@@ -1,5 +1,6 @@
 import { Score } from '@/models/Score'
-import { computed, ref, type Ref } from 'vue'
+import type { VoiceElement } from '@/models/VoiceElement'
+import { computed, ref, toRaw, type Ref } from 'vue'
 
 enum Mode {
   ModeOpen = 0,
@@ -15,11 +16,14 @@ enum Mode {
 
 const project: Ref<string> = ref('')
 const score: Ref<Score> = ref(Score.new())
+const scoreId: Ref<number> = ref(-1)
 const trackId: Ref<number> = ref(0)
 const barId: Ref<number> = ref(0)
 const voiceId: Ref<number> = ref(0)
 const elementId: Ref<number> = ref(0)
 const noteId: Ref<number> = ref(0)
+
+const selection: Ref<Array<VoiceElement>> = ref([])
 
 const track = computed(() => {
   if (trackId.value > score.value._tracks.length - 1) {
@@ -71,15 +75,15 @@ const element = computed(() => {
     debugger
     elementId.value = Math.min(elementId.value, voice.value._elements.length - 1)
   }
+  const currentElement = voice.value._elements[elementId.value]
 
-  return voice.value._elements[elementId.value]
+  return currentElement
 })
 
 const note = computed(() => {
   if (noteId.value > element.value._notes.length - 1) {
     debugger
   }
-
   return element.value._notes[noteId.value]
 })
 
@@ -89,16 +93,19 @@ export const useCursor = () => {
   return {
     project,
     score,
+    scoreId,
     track,
     trackId,
     bar,
     barId,
     voice,
     voiceId,
+
     element,
     elementId,
     note,
     noteId,
+    selection,
     mode,
     Mode,
   }

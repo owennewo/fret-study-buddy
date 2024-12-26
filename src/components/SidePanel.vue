@@ -8,14 +8,14 @@ import { computed, onMounted, ref, toRefs, watch } from 'vue'
 import { instruments } from '@/models/Instruments'
 
 const { projects, scores } = toRefs(useIndexedDBStore())
-const { project, score, track, bar, voice, voiceId, element, note, mode } = useCursor()
+const { project, score, scoreId, track, bar, voice, voiceId, element, note, mode } = useCursor()
 
 const { createProject, loadProjects, loadProject, loadScore, saveScore, deleteScore } = useIndexedDBStore()
 const { saveSettingsToDB, loadSettingsFromDB } = useSettingsStore()
 
 const showAddProject = ref(false)
 const newProjectName = ref('')
-const currentScoreId = ref(-1)
+// const currentScoreId = ref(-1)
 
 const activeTab = ref(0)
 
@@ -23,10 +23,10 @@ watch(mode, () => {
   activeTab.value = mode.value
 })
 
-watch(score, () => {
-  console.log('#######', score.value, score.value?.id, score.value?.title)
-  currentScoreId.value = score.value?.id ?? -1
-})
+// watch(score, () => {
+//   console.log('#######', score.value, score.value?.id, score.value?.title)
+//   // currentScoreId.value = score.value?.id ?? -1
+// })
 
 watch(project, async () => {
   if (project.value) {
@@ -36,10 +36,13 @@ watch(project, async () => {
   }
 })
 
-watch(currentScoreId, async newCurrentScoreId => {
+watch(scoreId, async newCurrentScoreId => {
+  if (project.value == null || newCurrentScoreId == undefined || newCurrentScoreId <= 0) {
+    return
+  }
   console.log('Current Score:', newCurrentScoreId)
   if (newCurrentScoreId != null) {
-    const loadedScore = await loadScore(newCurrentScoreId)
+    const loadedScore = await loadScore(project.value, newCurrentScoreId)
     console.log('Loaded Score:', score.value)
     score.value = loadedScore as Score
     saveSettingsToDB()
@@ -63,7 +66,7 @@ const deleteScoreClicked = async () => {
   }
   await deleteScore(score.value?.id)
   score.value = Score.new()
-  currentScoreId.value = -1
+  scoreId.value = -1
 }
 
 const saveScoreClicked = async () => {
@@ -74,7 +77,7 @@ const newScore = async () => {
   console.log('New Score')
   score.value = Score.new()
   const id = await saveScore(score.value)
-  currentScoreId.value = id as number
+  scoreId.value = id as number
   saveSettingsToDB()
 }
 
@@ -155,7 +158,7 @@ const techniqueList = () => {
           <p-floatlabel variant="on">
             <p-inputgroup inputId="score">
               <p-select
-                v-model="currentScoreId"
+                v-model="scoreId"
                 :options="scores"
                 optionLabel="title"
                 optionValue="id"
@@ -326,6 +329,20 @@ const techniqueList = () => {
       </p-accordionpanel>
     </p-accordion>
   </aside>
+
+  <p-dialog v-model:visible="showAddProject" modal header="Add Project" :style="{ width: '25rem' }">
+    <span class="text-surface-500 dark:text-surface-400 block mb-8">
+      You will be able to add new tabs to this project.
+    </span>
+    <div class="flex items-center gap-4 mb-4">
+      <label for="newProjectName" class="font-semibold w-24">Project Name</label>
+      <p-inputtext id="newProjectName" v-model="newProjectName" class="flex-auto" autocomplete="off" />
+    </div>
+    <div class="flex justify-end gap-2">
+      <p-button type="button" label="Cancel" severity="secondary" @click="showAddProject = false" />
+      <p-button type="button" label="Save" @click="addProjectClicked" />
+    </div>
+  </p-dialog>
 </template>
 <style global>
 .small input {

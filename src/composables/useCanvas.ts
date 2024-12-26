@@ -27,120 +27,15 @@ export const useCanvas = () => {
     })
   }
 
-  const { score, note: currentNote, bar: currentBar, voiceId } = useCursor()
-
-  // const drawVoice = (
-  //   gVoice: any,
-  //   v: any,
-  //   barIndex: number,
-  //   voiceIndex: number,
-  //   barWidth: number,
-  //   barPadding: number,
-  //   stringCount: number,
-  // ) => {
-  //   gVoice
-  //     .selectAll('g.element')
-  //     .data(v._elements, (_, elementIndex) => 'bar-' + barIndex + '-voice-' + voiceIndex + '-element-' + elementIndex)
-  //     .join('g')
-  //     .attr('class', e => `element ${element.value == e ? 'current' : ''}`)
-  //     .attr('transform', e => {
-  //       return `translate(${calcElementX(e, barWidth)}, 0)`
-  //     })
-  //     .each((v: VoiceElement, index: number, nodes: SVGElement[]) => {
-  //       const gElement = d3.select(nodes[index])
-  //       const barIndex = v.bar().index()
-  //       const voiceIndex = v.voice().index()
-  //       const elementIndex = v.index()
-  //       gElement
-  //         .selectAll('text.left-hand')
-  //         .data(
-  //           v._notes.filter(note => !isNaN(note.leftHandFinger)).reverse(),
-  //           (_, nodeIndex) =>
-  //             'bar-' + barIndex + '-voice-' + voiceIndex + '-element-' + elementIndex + '-note-lh' + nodeIndex,
-  //         )
-  //         .join('text')
-  //         .attr('class', 'left-hand')
-  //         .attr('font-size', score.value.fontSize)
-  //         .attr('x', score.value.fontSize)
-  //         .attr('y', (_, index) => (9 + index) * score.value.fontSize)
-  //         .text(n => n.leftHand())
-
-  //       gElement
-  //         .selectAll('text.right-hand')
-  //         .data(
-  //           v._notes.filter(n => !isNaN(n.rightHandFinger)).reverse(),
-  //           (_, nodeIndex) =>
-  //             'bar-' + barIndex + '-voice-' + voiceIndex + '-element-' + elementIndex + '-note-lh' + nodeIndex,
-  //         )
-  //         .join('text')
-  //         .attr('class', 'left-hand')
-  //         .attr('font-size', score.value.fontSize)
-  //         .attr('x', 0) //calcElementX(element))
-  //         .attr('y', (_, index) => (9 + index) * score.value.fontSize)
-  //         .text(n => n.rightHand())
-
-  //       const gNote = gElement
-  //         .selectAll('g.note')
-  //         .data(v._notes, (_, nodeIndex) => 'bar-' + barIndex + '-voice-' + voiceIndex + '-note-' + nodeIndex)
-  //         .join('g')
-  //         .attr('class', d => {
-  //           return `note ${d === note.value ? 'current' : ''} ${isNaN(d.fretNumber) ? 'rest' : ''}`
-  //         })
-  //         .attr('transform', n => {
-  //           const noteY = barPadding + (n.index() - 0.5) * score.value.fontSize
-  //           return `translate(0, ${noteY})`
-  //         })
-  //         .on('click', (_, n) => {
-  //           n.debug('click')
-  //           noteId.value = n.index()
-  //           elementId.value = n.element().index()
-  //           voiceId.value = n.voice().index()
-  //           barId.value = n.bar().index()
-  //           trackId.value = n.track().index()
-
-  //           drawScore()
-  //         })
-
-  //       // Draw Note Vertical lines
-  //       gElement
-  //         .selectAll('line.note.vertical')
-  //         .data(
-  //           v => [v],
-  //           (_, nodeIndex) => 'bar-' + barIndex + '-voice-' + voiceIndex + '-note-line-vertical-' + nodeIndex,
-  //         )
-  //         .join('line')
-  //         .attr('x1', score.value.fontSize * 0.5)
-  //         .attr('x2', score.value.fontSize * 0.5)
-  //         .attr('y1', score.value.fontSize * (stringCount + 1))
-  //         .attr('y2', e => score.value.fontSize * (stringCount + 2))
-  //         .attr('class', 'note vertical')
-
-  //       gElement
-  //         .selectAll('line.note.horizontal')
-  //         .data(
-  //           (e: VoiceElement) =>
-  //             e.tailType() == TailType.Beam || e.tailType() == TailType.Flag ? Array(e.tailCount()).fill(e) : [],
-  //           (_, nodeIndex: number) => 'bar-' + barIndex + '-voice-' + voiceIndex + '-note-line-horizontal-' + nodeIndex,
-  //         )
-  //         .join('line')
-  //         .attr('x1', score.value.fontSize * 0.5)
-  //         .attr(
-  //           'x2',
-  //           e =>
-  //             score.value.fontSize * 0.5 +
-  //             barWidth *
-  //               ((0.8 * (e.duration / (e.tailType() == TailType.Flag ? 2 : 1))) / e.bar().timeSignature.beatsPerBar),
-  //         )
-  //         .attr('y1', (_, beamIndex) => {
-  //           // Position each additional beam slightly above the previous one
-  //           const baseY = score.value.fontSize * (stringCount + 2)
-  //           return baseY - beamIndex * (score.value.fontSize * 0.3) // Adjust the multiplier to control spacing between beams
-  //         })
-  //         .attr('y2', (e, beamIndex) => {
-  //           const baseY = score.value.fontSize * (stringCount + 2)
-  //           return baseY - (beamIndex + (e.tailType() == TailType.Flag ? 1 : 0)) * (score.value.fontSize * 0.3) // Adjust the multiplier to control spacing between beams
-  //         })
-  //         .attr('class', 'note horizontal')
+  const {
+    score,
+    note: currentNote,
+    element: currentElement,
+    bar: currentBar,
+    track: currentTrack,
+    selection,
+    voiceId,
+  } = useCursor()
 
   const drawBar = (bar: Bar, barWidth: number, barHeight: number, trackHeight: number): Container => {
     const x = barWidth * (bar.index() % score.value.barsPerLine)
@@ -258,6 +153,43 @@ export const useCanvas = () => {
     const c = new Container({ label: `voice${voice.index()}` })
     c.x = padding
 
+    if (voice.index() == voiceId.value) {
+      const g = new Graphics()
+      const selectionDimension = voice._elements.reduce(
+        (acc, element) => {
+          if (selection.value.includes(toRaw(element))) {
+            return [
+              Math.min(isNaN(acc[0]) ? element.location() : acc[0], element.location()),
+              Math.max(
+                isNaN(acc[1]) ? element.location() + element.duration : acc[1],
+                element.location() + element.duration,
+              ),
+              Math.min(isNaN(acc[2]) ? 0 : acc[2], 0),
+              Math.max(
+                isNaN(acc[3]) ? currentTrack.value.stringCount() - 1 : acc[3],
+                currentTrack.value.stringCount() - 1,
+              ),
+            ]
+          }
+          return acc
+        },
+        [NaN, NaN, NaN, NaN],
+      )
+
+      console.log(voice.index(), voice.bar().index(), 'dimension', selectionDimension)
+
+      if (!isNaN(selectionDimension[0])) {
+        g.rect(
+          (selectionDimension[0] / voice.bar().timeSignature.beatsPerBar) * usableWidth - voice.score().fontSize / 2,
+          0,
+          ((selectionDimension[1] - selectionDimension[0]) / voice.bar().timeSignature.beatsPerBar) * usableWidth,
+          barHeight,
+        ).fill({ color: 0x0000ff, alpha: 0.25 })
+        console.log('draw selection')
+      }
+      c.addChild(g)
+    }
+
     voice._elements.forEach(element => {
       c.addChild(drawElement(element, usableWidth, barHeight))
     })
@@ -267,7 +199,8 @@ export const useCanvas = () => {
   const drawElement = (element: VoiceElement, usableWidth: number, barHeight: number) => {
     const c = new Container({ label: `element${element.index()}` })
 
-    c.x = (usableWidth * element.location()) / element.voice().duration()
+    c.x =
+      (usableWidth * element.location()) / Math.max(element.voice().duration(), element.bar().timeSignature.beatsPerBar)
     c.y = -element.score().fontSize / 2
 
     if (element.voice().index() == voiceId.value) {
@@ -308,46 +241,6 @@ export const useCanvas = () => {
       c.addChild(g)
     }
 
-    // gElement
-    //   .selectAll('line.note.vertical')
-    //   .data(
-    //     v => [v],
-    //     (_, nodeIndex) => 'bar-' + barIndex + '-voice-' + voiceIndex + '-note-line-vertical-' + nodeIndex,
-    //   )
-    //   .join('line')
-    //   .attr('x1', score.value.fontSize * 0.5)
-    //   .attr('x2', score.value.fontSize * 0.5)
-    //   .attr('y1', score.value.fontSize * (stringCount + 1))
-    //   .attr('y2', e => score.value.fontSize * (stringCount + 2))
-    //   .attr('class', 'note vertical')
-
-    // gElement
-    //   .selectAll('line.note.horizontal')
-    //   .data(
-    //     (e: VoiceElement) =>
-    //       e.tailType() == TailType.Beam || e.tailType() == TailType.Flag ? Array(e.tailCount()).fill(e) : [],
-    //     (_, nodeIndex: number) => 'bar-' + barIndex + '-voice-' + voiceIndex + '-note-line-horizontal-' + nodeIndex,
-    //   )
-    //   .join('line')
-    //   .attr('x1', score.value.fontSize * 0.5)
-    //   .attr(
-    //     'x2',
-    //     e =>
-    //       score.value.fontSize * 0.5 +
-    //       barWidth *
-    //         ((0.8 * (e.duration / (e.tailType() == TailType.Flag ? 2 : 1))) / e.bar().timeSignature.beatsPerBar),
-    //   )
-    //   .attr('y1', (_, beamIndex) => {
-    //     // Position each additional beam slightly above the previous one
-    //     const baseY = score.value.fontSize * (stringCount + 2)
-    //     return baseY - beamIndex * (score.value.fontSize * 0.3) // Adjust the multiplier to control spacing between beams
-    //   })
-    //   .attr('y2', (e, beamIndex) => {
-    //     const baseY = score.value.fontSize * (stringCount + 2)
-    //     return baseY - (beamIndex + (e.tailType() == TailType.Flag ? 1 : 0)) * (score.value.fontSize * 0.3) // Adjust the multiplier to control spacing between beams
-    //   })
-    //   .attr('class', 'note horizontal')
-
     element._notes.forEach(note => {
       // if (!isNaN(note.fretNumber)) {
       // console.log('note', note.element().index(), note.index(), note.element().duration)
@@ -380,12 +273,6 @@ export const useCanvas = () => {
 
         // Ensure we have a valid parent element
         if (scrollableElement) {
-          // Get the visible region of the scrollable parent
-          // const parentBounds = scrollableElement.getBoundingClientRect()
-          console.log('selected bar', bar.index(), barContainer.getGlobalPosition().y, barContainer.getBounds().height)
-          console.log('parent bounds', scrollableElement.scrollTop, scrollableElement.getBoundingClientRect().height)
-          // Get the bar's global bounds
-          // const barBounds = barContainer.getBounds()
           const barTopDiff = barContainer.getGlobalPosition().y - scrollableElement.scrollTop
           const barBottomDiff =
             barContainer.getGlobalPosition().y +
@@ -401,12 +288,8 @@ export const useCanvas = () => {
             console.log('bottom needs move of ', barBottomDiff)
             scrollableElement.scrollTop += barTopDiff
           } else {
-            console.log('move not needed')
+            // console.log('move not needed')
           }
-          // Check if the bar is visible within the canvas
-          // const isBarVisible = y1Visible && y2Visible
-
-          // console.log('Is bar visible?', isBarVisible, `(${y1Visible} ${y2Visible})`)
         }
       }
     })
@@ -419,8 +302,12 @@ export const useCanvas = () => {
       console.log('No score found')
       return
     }
+    if (selection.value.length == 0) {
+      console.log('Updates')
+      selection.value = [toRaw(currentElement.value)]
+    }
+    console.log('DRAW SCORE')
 
-    // debugger
     if (pixi == null) {
       pixi = new Application()
 

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import CanvasFrame from './components/CanvasFrame.vue'
 import SidePanel from './components/SidePanel.vue'
-import VerticalMenu from './components/VerticalMenu.vue'
 </script>
 
 <template>

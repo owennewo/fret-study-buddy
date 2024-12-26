@@ -2,10 +2,10 @@ import { defineStore } from 'pinia'
 import { openDB } from 'idb'
 import { useCursor } from '@/composables/useCursor'
 import { useIndexedDBStore } from '@/stores/useIndexedDBStore'
-import type { Score } from '@/models/Score'
+// import type { Score } from '@/models/Score'
 
 export const useSettingsStore = defineStore('settingsStore', () => {
-  const { project, score } = useCursor()
+  const { project, scoreId, score } = useCursor()
 
   const { loadProject, loadScore } = useIndexedDBStore()
 
@@ -23,11 +23,13 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   async function loadSettingsFromDB() {
     const db = await getDB()
     const settings = await db.get('settings', 'appSettings')
-
-    if (settings) {
-      project.value = (await loadProject(settings.currentProjectName || '')) as string
-      score.value = (await loadScore(settings.currentScoreId || 0)) as Score
-    }
+    scoreId.value = settings?.currentScoreId || 0
+    project.value = settings?.currentProjectName || ''
+    // if (settings) {
+    //   project.value = (await loadProject(settings.currentProjectName || '')) as string
+    //   score.value = (await loadScore(settings.currentScoreId || 0)) as Score
+    //   debugger
+    // }
   }
 
   async function saveSettingsToDB() {
