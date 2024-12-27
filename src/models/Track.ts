@@ -2,7 +2,7 @@ import { Instrument } from '@/models/Instruments'
 import { Bar } from './Bar'
 import type { Score } from './Score'
 import { toRaw } from 'vue'
-// import type { MoveDirection } from './NotePosition'
+// import type { MoveDirection } from './Note'
 
 class Track {
   _score: Score

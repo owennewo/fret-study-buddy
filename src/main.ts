@@ -26,6 +26,7 @@ import {
   InputNumber,
   InputText,
   Menubar,
+  MultiSelect,
   Popover,
   Select,
   SelectButton,
@@ -81,5 +82,6 @@ app.component('p-accordioncontent', AccordionContent)
 app.component('p-checkbox', Checkbox)
 app.component('p-floatlabel', FloatLabel)
 app.component('p-menubar', Menubar)
+app.component('p-multiselect', MultiSelect)
 
 app.mount('#app')

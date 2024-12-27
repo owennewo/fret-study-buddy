@@ -1,3 +1,3 @@
 import * as d3 from 'd3'
-import type { NotePosition } from '@/models/NotePosition'
+import type { Note } from '@/models/Note'
 import type { VoiceElement } from '@/models/VoiceElement'

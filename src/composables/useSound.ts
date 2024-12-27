@@ -113,7 +113,7 @@ export const useSound = () => {
     )
 
     part = new Tone.Part((time, element: VoiceElement) => {
-      const duration = element.duration
+      const duration = element.beatDuration()
       element._notes
         .filter(note => !isNaN(note.fretNumber))
         .forEach(note => {

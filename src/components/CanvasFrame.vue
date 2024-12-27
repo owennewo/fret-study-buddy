@@ -4,7 +4,7 @@ import { useCanvas } from '@/composables/useCanvas'
 import { useKeys } from '@/composables/keys/useKeys'
 import { useCommands } from '@/composables/useCommands'
 import { useCursor } from '@/composables/useCursor'
-import type { NotePosition } from '@/models/NotePosition'
+import type { Note } from '@/models/Note'
 import { useSound } from '@/composables/useSound'
 const { play, pause, isPlaying } = useSound()
 
@@ -130,7 +130,7 @@ watch(
           <p-column field="voice" header="Voice" class="w-1/6" bodyClass="whitespace-nowrap"></p-column>
           <p-column field="error" header="Error" sortable class="w-1/6">
             <template #body="slotProps">
-              Duration is {{ slotProps.data.duration }} beat (expecting {{ slotProps.data.expectedDuration }})
+              Duration is {{ slotProps.data.duration() }} beat (expecting {{ slotProps.data.expectedDuration }})
             </template>
           </p-column>
         </p-datatable>

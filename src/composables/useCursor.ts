@@ -41,10 +41,13 @@ const bar = computed(() => {
 })
 
 const voice = computed(() => {
+  if (track.value._bars.length == 0) {
+    track.value.addBar()
+    barId.value = 0
+  }
   if (voiceId.value > bar.value._voices.length - 1) {
     bar.value.addVoice()
   }
-
   return bar.value._voices[voiceId.value]
 })
 

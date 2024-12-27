@@ -1,9 +1,10 @@
 import { toRaw } from 'vue'
 import type { Bar } from './Bar'
-import { NotePosition, type MoveDirection } from './NotePosition'
+import { Note, type MoveDirection } from './Note'
 import type { Score } from './Score'
 import type { Track } from './Track'
 import type { Voice } from './Voice'
+import { Duration } from './Duration'
 
 enum TailType {
   None,
@@ -13,9 +14,9 @@ enum TailType {
 
 class VoiceElement {
   _voice: Voice
-  duration: number // measured in beats could be a fraction (e.g., 0.5 for eighth note)
-  _notes: NotePosition[] // 0 length = rest, 1 = note, 2+ = chord
-  constructor(voice: Voice, duration: number, addRest = false) {
+  duration: Duration // measured in beats could be a fraction (e.g., 0.5 for eighth note)
+  _notes: Note[] // 0 length = rest, 1 = note, 2+ = chord
+  constructor(voice: Voice, duration: Duration, addRest = false) {
     this.duration = duration
     this._notes = [] // Rest by default if `notes` is undefined
     this._voice = voice
@@ -53,34 +54,23 @@ class VoiceElement {
     return this._notes.length == 1
   }
 
+  beatDuration(): number {
+    return this.duration.getBeatDuration()
+  }
+
   location(): number {
     const index = this._voice._elements.indexOf(this)
 
     return this._voice._elements
       .filter((element, i) => i < index)
       .reduce((acc, element) => {
-        return acc + element.duration
+        return acc + element.beatDuration()
       }, 0)
   }
 
   isChord(): boolean {
     return this._notes.length > 1
   }
-
-  // prev(): VoiceElement | null {
-  //   if (this.index() == 0) {
-  //     if (this.bar().index() == 0) {
-  //       return null
-  //     } else {
-  //       const
-  //     }
-  //     // look in previous bar
-  //     const voiceId = this._voice.index()
-  //     const prev
-
-  //   }
-  //   return this.voice()_voice._elements[index - 1]
-  // }
 
   move(direction: MoveDirection): VoiceElement | null {
     const elementIndex = this.index()
@@ -123,7 +113,7 @@ class VoiceElement {
       return TailType.Flag
     }
 
-    if (Math.floor(nextElement?.location()) + 1 != Math.ceil(nextElement?.location() + nextElement?.duration)) {
+    if (Math.floor(nextElement?.location()) + 1 != Math.ceil(nextElement?.location() + nextElement?.beatDuration())) {
       return TailType.Flag
     } else {
       return TailType.Beam
@@ -136,15 +126,15 @@ class VoiceElement {
   }
 
   tailCount(): number {
-    const endLocation = this.location() + this.duration
+    const endLocation = this.location() + this.beatDuration()
     if (endLocation - Math.floor(endLocation) === 0) {
       return 0
     } else {
-      if (this.duration <= 0.125) {
+      if (this.beatDuration() <= 0.125) {
         return 3
-      } else if (this.duration <= 0.25) {
+      } else if (this.beatDuration() <= 0.25) {
         return 2
-      } else if (this.duration <= 0.5) {
+      } else if (this.beatDuration() <= 0.5) {
         return 1
       } else {
         return 0
@@ -158,15 +148,13 @@ class VoiceElement {
       if (this._notes.find(note => note.index() === i)) {
         continue
       }
-      this._notes.push(new NotePosition(this, NaN))
+      this._notes.push(new Note(this, NaN))
     }
   }
 
   static fromJSON(voice: Voice, data: any): VoiceElement {
-    const element = new VoiceElement(voice, data.duration)
-    const notes: NotePosition[] = data.notes
-      ? data.notes.map((noteData: any) => NotePosition.fromJSON(element, noteData))
-      : []
+    const element = new VoiceElement(voice, Duration.fromJSON(data.duration))
+    const notes: Note[] = data.notes ? data.notes.map((noteData: any) => Note.fromJSON(element, noteData)) : []
     element._notes = notes
     element.addRestNotes()
     return element
@@ -174,7 +162,7 @@ class VoiceElement {
 
   toJSON(): object {
     return {
-      duration: this.duration,
+      duration: this.duration.toJSON(),
       // notes: this._notes.filter(note => note.fretNumber !== null && !isNaN(note.fretNumber)).map(note => note.toJSON()),
       notes: this._notes.map(note => note.toJSON()),
     }

@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { useCursor } from '@/composables/useCursor'
-import { Technique } from '@/models/NotePosition'
+import { Technique } from '@/models/Note'
 import { Score } from '@/models/Score'
 import { useSettingsStore } from '@/stores/settingsStore'
 import { useIndexedDBStore } from '@/stores/useIndexedDBStore'
 import { computed, onMounted, ref, toRefs, watch } from 'vue'
 import { instruments } from '@/models/Instruments'
+import { BaseNoteValue } from '@/models/Duration'
 
 const { projects, scores } = toRefs(useIndexedDBStore())
 const { project, score, scoreId, track, bar, voice, voiceId, element, note, mode } = useCursor()
@@ -82,6 +83,15 @@ const newScore = async () => {
 }
 
 const instrumentOptions = computed(() => Object.keys(instruments))
+
+const baseDurationOptions = computed(() => {
+  return Object.keys(BaseNoteValue)
+    .filter(key => isNaN(Number(key))) // Exclude numeric reverse mapping if TypeScript emits it
+    .map(key => ({
+      label: key,
+      value: BaseNoteValue[key as keyof typeof BaseNoteValue],
+    }))
+})
 
 const tuningOptions = instrumentName => {
   if (!instrumentName) return []
@@ -307,24 +317,57 @@ const techniqueList = () => {
           </div>
 
           <p-floatlabel variant="on">
-            <p-inputnumber
-              v-model="element.duration"
-              inputId="duration"
-              placeholder="Duration"
-              showButtons
-              class="small"
-            />
+            <p-select
+              v-model="element.duration.baseDuration"
+              :options="baseDurationOptions"
+              optionLabel="label"
+              optionValue="value"
+              inputId="baseUnit"
+              placeholder="Base Unit"
+              class="w-full"
+            >
+            </p-select>
+
             <label for="duration">Duration</label>
+          </p-floatlabel>
+          <p-floatlabel variant="on">
+            <p-inputnumber
+              v-model="element.duration.dotCount"
+              inputId="dotCount"
+              variant="filled"
+              :min="0"
+              :max="2"
+              :step="1"
+              showButtons
+            />
+            <label for="dotCount">dotCount</label>
+          </p-floatlabel>
+          <p-floatlabel variant="on">
+            <p-checkbox v-model="element.duration.isTriplet" binary inputId="isTriplet" />
+            <label for="isTriplet">isTriplet</label>
           </p-floatlabel>
 
           <p-inputnumber v-model="note.fretNumber" placeholder="Duration" showButtons class="small" />
           <p-inputnumber v-model="note.leftHandFinger" placeholder="leftHandFinger" showButtons class="small" />
           <p-inputnumber v-model="note.rightHandFinger" placeholder="rightHandFinger" showButtons class="small" />
 
-          <div v-for="technique of techniqueList()" :key="technique.key" class="flex items-center gap-2">
-            <p-checkbox v-model="note.techniques" :inputId="technique.key" name="category" :value="technique.key" />
-            <label :for="technique.key">{{ technique.name }}</label>
-          </div>
+          <p-multiselect
+            v-model="note.techniques"
+            :options="techniqueList()"
+            optionLabel="name"
+            optionValue="key"
+            inputId="techniqueSelect"
+            placeholder="Select Techniques"
+            display="chip"
+            :showToggleAll="false"
+            class="w-full"
+          >
+          </p-multiselect>
+
+          <!-- <div v-for="technique of techniqueList()" :key="technique.key" class="flex items-center gap-2">
+              <p-checkbox v-model="note.techniques" :inputId="technique.key" name="category" :value="technique.key" />
+              <label :for="technique.key">{{ technique.name }}</label>
+            </div> -->
         </p-accordioncontent>
       </p-accordionpanel>
     </p-accordion>

@@ -5,9 +5,10 @@ import { useCursor } from '@/composables/useCursor'
 import type { Bar } from '@/models/Bar'
 import type { Track } from '@/models/Track'
 import type { Voice } from '@/models/Voice'
-import type { NotePosition } from '@/models/NotePosition'
+import type { Note } from '@/models/Note'
 import { Application, Container, Graphics, Text, TextStyle, type TextOptions } from 'pixi.js'
 import { initDevtools } from '@pixi/devtools'
+import { Duration } from '@/models/Duration'
 const canvasRef: Ref<HTMLCanvasElement | null> = ref(null)
 const canvasContainerRef: Ref<HTMLDivElement | null> = ref(null)
 
@@ -105,7 +106,7 @@ export const useCanvas = () => {
     }
   }
 
-  const drawNote = (note: NotePosition, barHeight: number) => {
+  const drawNote = (note: Note, barHeight: number) => {
     const stringSpacing = barHeight / (note.track().stringCount() - 1)
     const isCurrent = toRaw(currentNote.value) === toRaw(note)
     const rectColor = isCurrent ? voiceColor(note.voice()) : backgroundColour
@@ -133,11 +134,6 @@ export const useCanvas = () => {
 
     g.chamferRect(-3, 0, t.width + 6, t.height - 2, 2).fill({ color: rectColor, alpha: 0.9 })
 
-    // if (isCurrent) {
-    //   // g.stroke({ color: foregroundColour })
-    //   g.fill({ alpha: 0.8 })
-    // }
-
     if (!isNaN(note.fretNumber) || isCurrent) {
       c.addChild(g)
     }
@@ -147,8 +143,61 @@ export const useCanvas = () => {
     return c
   }
 
+  const drawElement = (element: VoiceElement, usableWidth: number, barHeight: number) => {
+    const c = new Container({ label: `element${element.index()}` })
+
+    c.x =
+      (usableWidth * element.location()) /
+        Math.max(element.voice().duration(), element.bar().timeSignature.beatsPerBar) +
+      element.score().fontSize / 2
+    c.y = -element.score().fontSize / 2
+
+    if (element.voice().index() == voiceId.value) {
+      const stringCount = element.track().stringCount()
+      const g = new Graphics()
+
+      if (
+        element.beatDuration() > 10 ||
+        element.beatDuration() < -10 ||
+        element.beatDuration() == null ||
+        element.beatDuration() == undefined
+      ) {
+        console.log('##### Invalid duration', element)
+        debugger
+        element.duration = new Duration(1)
+      }
+
+      g.moveTo(score.value.fontSize * 0.5 - element.beatDuration(), score.value.fontSize * (stringCount + 0.25))
+        .lineTo(score.value.fontSize * 0.5 - element.beatDuration(), score.value.fontSize * (stringCount + 1))
+        .stroke({ width: 2 * element.beatDuration(), color: voiceColor(element.voice()) })
+
+      const flagCount =
+        element.tailType() == TailType.Beam || element.tailType() == TailType.Flag ? element.tailCount() : 0
+
+      if (element.tailCount() > 0) {
+        // debugger
+      }
+      // horizontal
+      for (let i = 0; i < flagCount; i++) {
+        g.moveTo(score.value.fontSize * 0.5 - element.beatDuration(), score.value.fontSize * (stringCount + 1))
+          .lineTo(
+            score.value.fontSize * 0.5,
+            score.value.fontSize * 0.5 +
+              usableWidth * (0.8 * (element.beatDuration() / (element.tailType() == TailType.Flag ? 2 : 1))),
+          )
+          .stroke({ width: 2 * element.beatDuration(), color: 'orange' })
+      }
+      c.addChild(g)
+    }
+
+    element._notes.forEach(note => {
+      c.addChild(drawNote(note, barHeight))
+    })
+    return c
+  }
+
   const drawVoice = (voice: Voice, barWidth: number, barHeight: number) => {
-    const padding = voice.score().fontSize * 2
+    const padding = voice.score().fontSize
     const usableWidth = barWidth - padding * 2
     const c = new Container({ label: `voice${voice.index()}` })
     c.x = padding
@@ -161,8 +210,8 @@ export const useCanvas = () => {
             return [
               Math.min(isNaN(acc[0]) ? element.location() : acc[0], element.location()),
               Math.max(
-                isNaN(acc[1]) ? element.location() + element.duration : acc[1],
-                element.location() + element.duration,
+                isNaN(acc[1]) ? element.location() + element.beatDuration() : acc[1],
+                element.location() + element.beatDuration(),
               ),
               Math.min(isNaN(acc[2]) ? 0 : acc[2], 0),
               Math.max(
@@ -176,13 +225,13 @@ export const useCanvas = () => {
         [NaN, NaN, NaN, NaN],
       )
 
-      console.log(voice.index(), voice.bar().index(), 'dimension', selectionDimension)
-
+      // console.log(voice.index(), voice.bar().index(), 'dimension', selectionDimension)
+      const voiceDuration = Math.max(voice.bar().timeSignature.beatsPerBar, voice.duration())
       if (!isNaN(selectionDimension[0])) {
         g.rect(
-          (selectionDimension[0] / voice.bar().timeSignature.beatsPerBar) * usableWidth - voice.score().fontSize / 2,
+          (selectionDimension[0] / voiceDuration) * usableWidth, // - voice.score().fontSize / 2,
           0,
-          ((selectionDimension[1] - selectionDimension[0]) / voice.bar().timeSignature.beatsPerBar) * usableWidth,
+          ((selectionDimension[1] - selectionDimension[0]) / voiceDuration) * usableWidth,
           barHeight,
         ).fill({ color: 0x0000ff, alpha: 0.25 })
         console.log('draw selection')
@@ -192,60 +241,6 @@ export const useCanvas = () => {
 
     voice._elements.forEach(element => {
       c.addChild(drawElement(element, usableWidth, barHeight))
-    })
-    return c
-  }
-
-  const drawElement = (element: VoiceElement, usableWidth: number, barHeight: number) => {
-    const c = new Container({ label: `element${element.index()}` })
-
-    c.x =
-      (usableWidth * element.location()) / Math.max(element.voice().duration(), element.bar().timeSignature.beatsPerBar)
-    c.y = -element.score().fontSize / 2
-
-    if (element.voice().index() == voiceId.value) {
-      const stringCount = element.track().stringCount()
-      const g = new Graphics()
-
-      if (
-        element.duration > 10 ||
-        element.duration < -10 ||
-        element.duration == null ||
-        element.duration == undefined
-      ) {
-        console.log('##### Invalid duration', element)
-        debugger
-        element.duration = 1
-      }
-
-      g.moveTo(score.value.fontSize * 0.5 - element.duration, score.value.fontSize * (stringCount + 0.25))
-        .lineTo(score.value.fontSize * 0.5 - element.duration, score.value.fontSize * (stringCount + 1))
-        .stroke({ width: 2 * element.duration, color: voiceColor(element.voice()) })
-
-      const flagCount =
-        element.tailType() == TailType.Beam || element.tailType() == TailType.Flag ? element.tailCount() : 0
-
-      if (element.tailCount() > 0) {
-        debugger
-      }
-      // horizontal
-      for (let i = 0; i < flagCount; i++) {
-        g.moveTo(score.value.fontSize * 0.5 - element.duration, score.value.fontSize * (stringCount + 1))
-          .lineTo(
-            score.value.fontSize * 0.5,
-            score.value.fontSize * 0.5 +
-              usableWidth * (0.8 * (element.duration / (element.tailType() == TailType.Flag ? 2 : 1))),
-          )
-          .stroke({ width: 2 * element.duration, color: 'orange' })
-      }
-      c.addChild(g)
-    }
-
-    element._notes.forEach(note => {
-      // if (!isNaN(note.fretNumber)) {
-      // console.log('note', note.element().index(), note.index(), note.element().duration)
-      c.addChild(drawNote(note, barHeight))
-      // }
     })
     return c
   }
@@ -335,7 +330,7 @@ export const useCanvas = () => {
       initDevtools(pixi)
     }
 
-    const verticalGap = 80
+    const verticalGap = 50
     const horizontalGap = 20
 
     pageContainer.removeChildren()
@@ -351,18 +346,18 @@ export const useCanvas = () => {
       scoreContainer.addChild(drawTrack(track, usableWidth))
     })
 
-    pageContainer.addChild(
-      new Text({
-        text: score.value!.title,
-        anchor: 0.5,
-        x: canvasWidth / 2,
-        y: 20,
-        style: {
-          fill: 0x000000,
-          fontSize: 24,
-        },
-      }),
-    )
+    // pageContainer.addChild(
+    //   new Text({
+    //     text: score.value!.title,
+    //     anchor: 0.5,
+    //     x: canvasWidth / 2,
+    //     y: 20,
+    //     style: {
+    //       fill: 0x000000,
+    //       fontSize: 24,
+    //     },
+    //   }),
+    // )
 
     scoreContainer.y = verticalGap
     scoreContainer.x = horizontalGap

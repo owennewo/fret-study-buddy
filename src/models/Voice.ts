@@ -1,9 +1,10 @@
 import { toRaw } from 'vue'
 import type { Bar } from './Bar'
-import type { MoveDirection } from './NotePosition'
+import type { MoveDirection } from './Note'
 import type { Score } from './Score'
 import type { Track } from './Track'
 import { VoiceElement } from './VoiceElement'
+import { Duration } from './Duration'
 
 class Voice {
   _bar: Bar
@@ -34,7 +35,7 @@ class Voice {
     return this.bar()._voices[this.bar()._voices.length - 1]
   }
 
-  duration = () => this._elements.reduce((acc, element) => acc + element.duration, 0)
+  duration = () => this._elements.reduce((acc, element) => acc + element.beatDuration(), 0)
 
   isError = () => this.duration() != this._bar.timeSignature.beatsPerBar
 
@@ -44,7 +45,7 @@ class Voice {
     const duration =
       this._elements.length > 0
         ? this._elements[this._elements.length - 1].duration // Last element in this._elements
-        : (this.bar().prev()._voices[this.index()]?._elements.at(-1)?.duration ?? 1)
+        : (this.bar().prev()._voices[this.index()]?._elements.at(-1)?.duration ?? new Duration(1))
 
     const element = new VoiceElement(this, duration, true)
     if (isNaN(position)) {

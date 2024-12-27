@@ -4,6 +4,7 @@ import type { Score } from './Score'
 import type { Track } from './Track'
 import type { Voice } from './Voice'
 import type { VoiceElement } from './VoiceElement'
+import type { Duration } from './Duration'
 
 const KEYS = [
   {
@@ -73,7 +74,7 @@ type MoveDirection = 'ArrowUp' | 'ArrowDown' | 'ArrowRight' | 'ArrowLeft'
 // 0 = thumb, 1 = index, 2 = middle, 3 = ring, 4 = pinky
 type Finger = typeof NaN | 0 | 1 | 2 | 3 | 4
 
-class NotePosition {
+class Note {
   _element: VoiceElement
   fretNumber: number // e.g., 0 (open string), 1, 2, etc.
   techniques: Technique[] // Optional technique
@@ -101,19 +102,19 @@ class NotePosition {
   voice = (): Voice => this.element().voice()
   element = (): VoiceElement => this._element
 
-  next = (): NotePosition => {
+  next = (): Note => {
     return this.element()._notes[Math.min(this.index() + 1, this.element()._notes.length - 1)]
   }
 
-  prev = (): NotePosition => {
+  prev = (): Note => {
     return this.element()._notes[Math.max(this.index() - 1, 0)]
   }
 
-  first = (): NotePosition => {
+  first = (): Note => {
     return this.element()._notes[0]
   }
 
-  last = (): NotePosition => {
+  last = (): Note => {
     return this.element()._notes[this.element()._notes.length - 1]
   }
 
@@ -168,8 +169,8 @@ class NotePosition {
   pitch = (): string => {
     const instrument = this.track().instrument
     const base = instrument.tuning[this.index()]
-    const keyIndex = NotePosition.toNoteIndex(base) + this.fretNumber
-    return NotePosition.toNoteName(keyIndex)
+    const keyIndex = Note.toNoteIndex(base) + this.fretNumber
+    return Note.toNoteName(keyIndex)
   }
 
   debug = (prefix: string = 'note'): void => {
@@ -180,7 +181,7 @@ class NotePosition {
         tailCount: this._element.tailCount(),
         tailTypeName: this._element.tailTypeName(),
         location: this._element.location(),
-        duration: this._element.duration,
+        duration: this._element.beatDuration(),
       },
       element: this._element.index() + '/' + this.voice()._elements.length,
       voice: this.voice().index() + '/' + this.bar()._voices.length,
@@ -193,7 +194,7 @@ class NotePosition {
     return this._element._notes.indexOf(toRaw(this))
   }
 
-  move = (direction: MoveDirection): NotePosition => {
+  move = (direction: MoveDirection): Note => {
     let noteIndex = this.index()
     let elementIndex = this._element.index()
     const voiceIndex = Math.max(this.voice().index(), 0)
@@ -217,13 +218,13 @@ class NotePosition {
               // return nextElement._notes[noteIndex]
             } else {
               const newElement = this.track()._bars[barIndex + 1]._voices[voiceIndex]._elements[0]
-              newElement.duration = this._element.duration
+              newElement.duration = { ...this._element.duration } as Duration
               return newElement._notes[noteIndex]
             }
           } else {
             // there is room in this bar for a new element
             const newElement = this.voice().addElement() as VoiceElement
-            newElement.duration = this._element.duration
+            newElement.duration = { ...this._element.duration } as Duration
             return newElement._notes[noteIndex]
           }
         } else {
@@ -289,9 +290,9 @@ class NotePosition {
     )
   }
 
-  static fromJSON(element: VoiceElement, data: any): NotePosition {
-    return new NotePosition(element, data.fretNumber ?? NaN, data.techniques, data.leftHandFinger, data.rightHandFinger)
+  static fromJSON(element: VoiceElement, data: any): Note {
+    return new Note(element, data.fretNumber ?? NaN, data.techniques, data.leftHandFinger, data.rightHandFinger)
   }
 }
 
-export { NotePosition, Technique, type MoveDirection }
+export { Note, Technique, type MoveDirection }

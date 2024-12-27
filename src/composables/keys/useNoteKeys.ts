@@ -1,4 +1,4 @@
-import { Technique } from '@/models/NotePosition'
+import { Technique } from '@/models/Note'
 import { useCursor } from '../useCursor'
 import { useCanvas } from '../useCanvas'
 import { nextTick } from 'vue'

@@ -79,7 +79,7 @@ class Bar {
     this._voices.forEach(voice => {
       let barBeats = 0
       voice._elements.forEach(element => {
-        barBeats += element.duration
+        barBeats += element.beatDuration()
       })
       // if (barBeats != this.timeSignature.beatsPerBar) {
       //   console.error('Bar does not add up to time signature', barBeats, this.timeSignature.beatsPerBar)

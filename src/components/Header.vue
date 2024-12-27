@@ -92,7 +92,7 @@ const toggleErrorPopover = event => {
         <p-column field="voice" header="Voice" class="w-1/6" bodyClass="whitespace-nowrap"></p-column>
         <p-column field="error" header="Error" sortable class="w-1/6">
           <template #body="slotProps">
-            Duration is {{ slotProps.data.duration }} beat (expecting {{ slotProps.data.expectedDuration }})
+            Duration is {{ slotProps.data.duration() }} beat (expecting {{ slotProps.data.expectedDuration }})
           </template>
         </p-column>
       </p-datatable>
