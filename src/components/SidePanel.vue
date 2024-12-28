@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useCanvas } from '@/composables/useCanvas'
+
 import { useCursor } from '@/composables/useCursor'
 import { Technique } from '@/models/Note'
 import { Score } from '@/models/Score'
@@ -13,10 +15,10 @@ const { project, score, scoreId, track, bar, voice, voiceId, element, note, mode
 
 const { createProject, loadProjects, loadProject, loadScore, saveScore, deleteScore } = useIndexedDBStore()
 const { saveSettingsToDB, loadSettingsFromDB } = useSettingsStore()
+const { voiceColours } = useCanvas()
 
 const showAddProject = ref(false)
 const newProjectName = ref('')
-// const currentScoreId = ref(-1)
 
 const activeTab = ref(0)
 
@@ -387,17 +389,18 @@ const techniqueList = () => {
     </div>
   </p-dialog>
 </template>
-<style global>
+<style scoped>
 .small input {
   width: 8ch;
 }
 
-.voice-0 {
-  color: var(--voice-0-color);
-}
-
 .voice-1 {
   color: var(--voice-1-color);
+}
+
+button.p-togglebutton-checked .voice-1 {
+  background-color: var(--voice-1-color);
+  color: white;
 }
 
 .voice-2 {

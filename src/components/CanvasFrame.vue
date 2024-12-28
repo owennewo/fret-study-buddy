@@ -1,15 +1,18 @@
 <script setup lang="ts">
-import { ref, onMounted, watch, nextTick, type Ref, computed } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { useCanvas } from '@/composables/useCanvas'
 import { useKeys } from '@/composables/keys/useKeys'
 import { useCommands } from '@/composables/useCommands'
 import { useCursor } from '@/composables/useCursor'
-import type { Note } from '@/models/Note'
 import { useSound } from '@/composables/useSound'
 const { play, pause, isPlaying } = useSound()
 
+const theme = ref({
+  color: 'red',
+}) // const currentScoreId = ref(-1)
+
 const { score, voiceId } = useCursor()
-const { drawScore, canvasRef, canvasContainerRef } = useCanvas()
+const { drawScore, canvasRef, canvasContainerRef, voiceColours } = useCanvas()
 
 useCommands()
 useKeys()
@@ -117,7 +120,7 @@ watch(
             :allowEmpty="false"
           >
             <template #option="{ option }">
-              <span :class="option.class">{{ option.label }}</span>
+              <div :class="`voice-option ${option.class}`" :title="`voice ${option.label}`">{{ option.label }}</div>
             </template>
           </p-selectbutton>
         </template>
@@ -142,6 +145,43 @@ watch(
   </div>
 </template>
 
+<style scoped>
+button .voice-0 {
+  /* background-color: yellow; */
+  color: v-bind('voiceColours[0]');
+}
+
+button.p-togglebutton-checked .voice-0 {
+  background-color: v-bind('voiceColours[0]');
+  color: pink;
+}
+
+button .voice-1 {
+  color: v-bind('voiceColours[1]');
+}
+
+button.p-togglebutton-checked .voice-1 {
+  background-color: v-bind('voiceColours[1]');
+  color: white;
+}
+button .voice-2 {
+  color: v-bind('voiceColours[2]');
+}
+
+button.p-togglebutton-checked .voice-2 {
+  background-color: v-bind('voiceColours[2]');
+  color: white;
+}
+button .voice-3 {
+  color: v-bind('voiceColours[3]');
+}
+
+button.p-togglebutton-checked .voice-3 {
+  background-color: v-bind('voiceColours[3]');
+  color: white;
+}
+</style>
+
 <style>
 :root {
   /* Normal mode colors */
@@ -150,10 +190,10 @@ watch(
   --foreground-color: #333;
   --foreground-hover-color: #666;
   --error-color: red;
-  --voice-0-color: #8e0000; /* Darker red */
-  --voice-1-color: #4a0072; /* Darker purple */
-  --voice-2-color: #0000b2; /* Darker blue */
-  --voice-3-color: #004d40; /* Darker teal */
+  --voice-0-color: voiceColours[0];
+  --voice-1-color: voiceColours[1];
+  --voice-2-color: voiceColours[2];
+  --voice-3-color: voiceColours[3];
 }
 
 #canvas-wrapper {
@@ -295,24 +335,14 @@ path.vibrato {
   box-sizing: border-box;
 }
 
-.toolbar {
-  /* position: absolute; */
-  /* left: 20px;
-  height: 30px;
-  top: 10px; */
-  /* border: solid 1px black; */
-}
-
-/* .voice-selector {
-  position: absolute;
-  right: 20px;
-  height: 30px;
-  top: 10px;
-  border: solid 1px black;
-} */
-
 .p-toolbar-start {
   gap: 10px;
 }
+
+button.p-togglebutton {
+  padding: 0px;
+}
+.voice-option {
+  padding: 8px;
+}
 </style>
-ga

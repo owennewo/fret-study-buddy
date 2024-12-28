@@ -1,4 +1,4 @@
-import { computed, ref, toRaw, type Ref } from 'vue'
+import { ref, toRaw, type Ref } from 'vue'
 import { TailType, VoiceElement } from '@/models/VoiceElement'
 
 import { useCursor } from '@/composables/useCursor'
@@ -18,6 +18,9 @@ let renderCount = 0
 export const useCanvas = () => {
   const backgroundColour = 'lightgrey'
   const foregroundColour = '#17202a'
+
+  const voiceColours = ['#8e0000', '#4a0072', '#0000b2', '#004d40']
+
   // const foregroundColour2 = '#d0d3d4'
   const pageContainer = new Container({ label: 'page' })
 
@@ -92,18 +95,7 @@ export const useCanvas = () => {
   }
 
   const voiceColor = (voice: Voice) => {
-    switch (voice.index()) {
-      case 0:
-        return '#8e0000'
-      case 1:
-        return '#4a0072'
-      case 2:
-        return '#0000b2'
-      case 3:
-        return '#004d40'
-      default:
-        return 'black'
-    }
+    return voiceColours[voice.index()]
   }
 
   const drawNote = (note: Note, barHeight: number) => {
@@ -128,7 +120,6 @@ export const useCanvas = () => {
       style: {
         fontSize: note.score().fontSize,
         fill: textColor,
-        // stroke: textColor,
       },
     } as TextOptions)
 
@@ -233,7 +224,7 @@ export const useCanvas = () => {
           0,
           ((selectionDimension[1] - selectionDimension[0]) / voiceDuration) * usableWidth,
           barHeight,
-        ).fill({ color: 0x0000ff, alpha: 0.25 })
+        ).fill({ color: voiceColours[voice.index()], alpha: 0.25 })
         console.log('draw selection')
       }
       c.addChild(g)
@@ -380,5 +371,5 @@ export const useCanvas = () => {
     pixi.stage.addChild(pageContainer)
   }
 
-  return { drawScore, canvasRef, canvasContainerRef }
+  return { drawScore, canvasRef, canvasContainerRef, voiceColours }
 }
