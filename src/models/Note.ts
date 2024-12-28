@@ -218,13 +218,15 @@ class Note {
               // return nextElement._notes[noteIndex]
             } else {
               const newElement = this.track()._bars[barIndex + 1]._voices[voiceIndex]._elements[0]
-              newElement.duration = { ...this._element.duration } as Duration
+              debugger
+              newElement.duration = this._element.duration.clone()
               return newElement._notes[noteIndex]
             }
           } else {
             // there is room in this bar for a new element
             const newElement = this.voice().addElement() as VoiceElement
-            newElement.duration = { ...this._element.duration } as Duration
+            debugger
+            newElement.duration = this._element.duration.clone()
             return newElement._notes[noteIndex]
           }
         } else {

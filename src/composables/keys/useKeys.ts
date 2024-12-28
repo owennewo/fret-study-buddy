@@ -45,9 +45,6 @@ export const useKeys = () => {
       return
     }
 
-    if (event.ctrlKey) {
-      pressedKey = 'ctrl+' + pressedKey
-    }
     if (event.shiftKey) {
       pressedKey = 'shift+' + pressedKey
     }
@@ -56,6 +53,9 @@ export const useKeys = () => {
     }
     if (event.metaKey) {
       pressedKey = 'meta+' + pressedKey
+    }
+    if (event.ctrlKey) {
+      pressedKey = 'ctrl+' + pressedKey
     }
     sequence += pressedKey
 

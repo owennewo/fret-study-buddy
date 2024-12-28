@@ -44,8 +44,8 @@ class Voice {
   addElement(position: number = NaN): VoiceElement | null {
     const duration =
       this._elements.length > 0
-        ? this._elements[this._elements.length - 1].duration // Last element in this._elements
-        : (this.bar().prev()._voices[this.index()]?._elements.at(-1)?.duration ?? new Duration(1))
+        ? this._elements[this._elements.length - 1].duration.clone() // Last element in this._elements
+        : (this.bar().prev()._voices[this.index()]?._elements.at(-1)?.duration.clone() ?? new Duration(1))
 
     const element = new VoiceElement(this, duration, true)
     if (isNaN(position)) {

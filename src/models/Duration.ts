@@ -60,6 +60,10 @@ export class Duration {
     return this.baseDuration
   }
 
+  clone(): Duration {
+    return Duration.fromJSON(this.toJSON())
+  }
+
   // Convert to JSON
   toJSON(): object {
     return {

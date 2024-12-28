@@ -8,7 +8,7 @@ import type { Voice } from '@/models/Voice'
 import type { Note } from '@/models/Note'
 import { Application, Container, Graphics, Text, TextStyle, type TextOptions } from 'pixi.js'
 import { initDevtools } from '@pixi/devtools'
-import { Duration } from '@/models/Duration'
+import { BaseNoteValue, Duration } from '@/models/Duration'
 const canvasRef: Ref<HTMLCanvasElement | null> = ref(null)
 const canvasContainerRef: Ref<HTMLDivElement | null> = ref(null)
 
@@ -40,59 +40,6 @@ export const useCanvas = () => {
     selection,
     voiceId,
   } = useCursor()
-
-  const drawBar = (bar: Bar, barWidth: number, barHeight: number, trackHeight: number): Container => {
-    const x = barWidth * (bar.index() % score.value.barsPerLine)
-    const y = trackHeight * Math.floor(bar.index() / score.value.barsPerLine)
-
-    const c = new Container({
-      label: `bar${bar.index()}`,
-      x: x,
-      y: y,
-    }).on('pointerdown', c => {
-      console.log('Bar clicked', bar.index())
-      // bar._track.removeBarAt(bar.index())
-      // drawScore()
-    })
-    c.interactive = true
-
-    const stringSpacing = barHeight / (bar.track().stringCount() - 1)
-
-    const g = new Graphics()
-
-    for (let i = 0; i < bar.track().stringCount(); i++) {
-      const lineY = i * stringSpacing
-      g.moveTo(0, lineY).lineTo(barWidth, lineY)
-    }
-
-    // Draw vertical start and end bars
-    g.moveTo(0, 0)
-      .lineTo(0, barHeight)
-      .moveTo(barWidth, 0)
-      .lineTo(barWidth, barHeight) // End bar
-      .stroke({ width: 2, color: 'black' })
-
-    const textStyle = new TextStyle({
-      fontSize: bar.score().fontSize,
-      fill: 0x555555, // Text color
-    })
-
-    // Create the text
-    const t = new Text({
-      text: bar.index(),
-      style: textStyle,
-      x: 0,
-      y: -1.5 * bar.score().fontSize,
-    } as TextOptions)
-
-    c.addChild(g)
-    c.addChild(t)
-
-    bar._voices.forEach(voice => {
-      c.addChild(drawVoice(voice, barWidth, barHeight))
-    })
-    return c
-  }
 
   const voiceColor = (voice: Voice) => {
     return voiceColours[voice.index()]
@@ -155,7 +102,7 @@ export const useCanvas = () => {
       ) {
         console.log('##### Invalid duration', element)
         debugger
-        element.duration = new Duration(1)
+        element.duration = new Duration(BaseNoteValue.Quarter)
       }
 
       g.moveTo(score.value.fontSize * 0.5 - element.beatDuration(), score.value.fontSize * (stringCount + 0.25))
@@ -216,7 +163,6 @@ export const useCanvas = () => {
         [NaN, NaN, NaN, NaN],
       )
 
-      // console.log(voice.index(), voice.bar().index(), 'dimension', selectionDimension)
       const voiceDuration = Math.max(voice.bar().timeSignature.beatsPerBar, voice.duration())
       if (!isNaN(selectionDimension[0])) {
         g.rect(
@@ -232,6 +178,67 @@ export const useCanvas = () => {
 
     voice._elements.forEach(element => {
       c.addChild(drawElement(element, usableWidth, barHeight))
+    })
+    return c
+  }
+
+  const drawBar = (bar: Bar, barWidth: number, barHeight: number, trackHeight: number): Container => {
+    const x = barWidth * (bar.index() % score.value.barsPerLine)
+    const y = trackHeight * Math.floor(bar.index() / score.value.barsPerLine)
+
+    const c = new Container({
+      label: `bar${bar.index()}`,
+      x: x,
+      y: y,
+    }).on('pointerdown', c => {
+      console.log('Bar clicked', bar.index())
+    })
+    c.interactive = true
+
+    const stringSpacing = barHeight / (bar.track().stringCount() - 1)
+
+    const g = new Graphics()
+
+    for (let i = 0; i < bar.track().stringCount(); i++) {
+      const lineY = i * stringSpacing
+      g.moveTo(0, lineY).lineTo(barWidth, lineY)
+    }
+
+    // Draw vertical start and end bars
+    g.moveTo(0, 0)
+      .lineTo(0, barHeight)
+      .moveTo(barWidth, 0)
+      .lineTo(barWidth, barHeight) // End bar
+      .stroke({ width: 2, color: 'black' })
+
+    if (selection.value.includes(bar)) {
+      console.log('BAR selected', bar.index())
+      g.rect(
+        0, // - voice.score().fontSize / 2,
+        0,
+        barWidth,
+        barHeight,
+      ).fill({ color: 'red', alpha: 0.25 })
+    }
+
+    const textStyle = new TextStyle({
+      fontSize: bar.score().fontSize,
+      fill: 0x555555, // Text color
+    })
+
+    // Create the text
+    const t = new Text({
+      text: bar.index() + 1,
+      style: textStyle,
+      x: 0,
+      y: -1.5 * bar.score().fontSize,
+    } as TextOptions)
+
+    c.addChild(g)
+    c.addChild(t)
+
+    bar._voices.forEach(voice => {
+      c.addChild(drawVoice(voice, barWidth, barHeight))
     })
     return c
   }

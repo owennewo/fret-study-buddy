@@ -1,6 +1,7 @@
+import type { Bar } from '@/models/Bar'
 import { Score } from '@/models/Score'
 import type { VoiceElement } from '@/models/VoiceElement'
-import { computed, ref, toRaw, type Ref } from 'vue'
+import { computed, ref, toRaw, watch, type Ref } from 'vue'
 
 enum Mode {
   ModeOpen = 0,
@@ -23,7 +24,7 @@ const voiceId: Ref<number> = ref(0)
 const elementId: Ref<number> = ref(0)
 const noteId: Ref<number> = ref(0)
 
-const selection: Ref<Array<VoiceElement>> = ref([])
+const selection: Ref<Array<VoiceElement | Bar>> = ref([])
 
 const track = computed(() => {
   if (trackId.value > score.value._tracks.length - 1) {
@@ -35,6 +36,9 @@ const track = computed(() => {
 const bar = computed(() => {
   while (barId.value > track.value._bars.length - 1) {
     track.value.addBar()
+  }
+  if (barId.value < 0) {
+    barId.value = 0
   }
 
   return track.value._bars[barId.value]
@@ -66,7 +70,7 @@ const element = computed(() => {
       // no space, move to next bar?
       barId.value += 1
       elementId.value = 0
-      if (barId.value > track.value._bars.length) {
+      if (barId.value > track.value._bars.length - 1) {
         track.value.addBar()
       }
     } else {
@@ -88,6 +92,10 @@ const note = computed(() => {
     debugger
   }
   return element.value._notes[noteId.value]
+})
+
+watch(voiceId, () => {
+  selection.value = []
 })
 
 const mode: Ref<Mode> = ref(Mode.ModeNote)
