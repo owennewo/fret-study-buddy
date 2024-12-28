@@ -214,7 +214,6 @@ export const useCommands = () => {
     })
 
     bind('^t$', e => {
-      debugger
       console.log('triplet')
       element.value.duration.isTriplet = !element.value.duration.isTriplet
       drawScore()
@@ -236,7 +235,6 @@ export const useCommands = () => {
 
     bind('ctrl\\+v', () => {
       console.log('paste')
-      debugger
       if (copySelection.length == 0) {
         return
       }
