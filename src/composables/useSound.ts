@@ -1,7 +1,7 @@
 import * as Tone from 'tone'
 // import { useIndexedDBStore } from '@/stores/useIndexedDBStore'
 import { ref } from 'vue'
-import { timeMillisecond } from 'd3'
+// import { timeMillisecond } from 'd3'
 import type { VoiceElement } from '@/models/VoiceElement'
 import type { Voice } from '@/models/Voice'
 import type { Track } from '@/models/Track'
@@ -90,7 +90,6 @@ export const useSound = () => {
   }
 
   const startPlayback = (track: Track) => {
-    const start = timeMillisecond()
     let playedCount = 0
 
     const noteTuples = track._bars.reduce(
