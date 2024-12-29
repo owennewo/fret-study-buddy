@@ -26,7 +26,7 @@ export const useCanvas = () => {
 
   if (import.meta.hot) {
     import.meta.hot.accept(() => {
-      console.log('HOT RELOAD!')
+      console.log(' HOT RELOAD!')
       drawScore()
     })
   }
@@ -262,7 +262,7 @@ export const useCanvas = () => {
         const canvasElement = canvasRef.value
 
         // Get the scrollable parent element (the parent div of the canvas)
-        const scrollableElement = canvasElement.parentElement
+        const scrollableElement = canvasElement!.parentElement
 
         // Ensure we have a valid parent element
         if (scrollableElement) {

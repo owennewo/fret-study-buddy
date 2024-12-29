@@ -3,7 +3,7 @@ import { useCursor } from '../useCursor'
 import { useCanvas } from '../useCanvas'
 import { nextTick } from 'vue'
 
-const { track, bar, barId, voice, voiceId, element, elementId, note, noteId, redraw } = useCursor()
+const { track, bar, barId, voice, element, elementId, note, noteId } = useCursor()
 const { drawScore } = useCanvas()
 
 export const useNoteKeys = () => {
@@ -55,10 +55,10 @@ export const useNoteKeys = () => {
         drawScore()
         return
       case ']':
-        element.value!.duration /= 2
+        element.value!.duration.decreaseBaseDuration()
         return
       case '[':
-        element.value!.duration *= 2
+        element.value!.duration.increaseBaseDuration()
         return
       // case 'Insert':
       //   track.value!.addBar(bar.value!.index())

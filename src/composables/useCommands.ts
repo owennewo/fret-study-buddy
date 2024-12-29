@@ -4,15 +4,19 @@ import { useCursor } from './useCursor'
 import { Bar } from '@/models/Bar'
 import { toRaw } from 'vue'
 import { VoiceElement } from '@/models/VoiceElement'
+import NoteDialog from '@/components/NoteDialog.vue'
+import { useDialog } from 'primevue'
 
 const { drawScore } = useCanvas()
-const { track, bar, barId, voice, voiceId, element, elementId, note, noteId, selection, redraw } = useCursor()
+const { track, bar, barId, voice, voiceId, element, elementId, note, noteId, selection } = useCursor()
 
 let loaded = false
 
 let copySelection: Array<VoiceElement | Bar> = []
 
 export const useCommands = () => {
+  const dialog = useDialog()
+
   const { bind } = useKeys()
   if (!loaded) {
     bind('\\d+(.\\d+)?', sequence => {
@@ -68,7 +72,7 @@ export const useCommands = () => {
       drawScore()
     })
 
-    bind('ctrl\\+ArrowRight', e => {
+    bind('ctrl\\+ArrowRight', () => {
       barId.value += 1
       elementId.value = 0
       console.log('ctrl right')
@@ -96,8 +100,7 @@ export const useCommands = () => {
       drawScore()
     })
 
-    bind('shift\\+ArrowRight', e => {
-      debugger
+    bind('shift\\+ArrowRight', () => {
       elementId.value = element.value.index() + 1
       if (!selection.value.includes(toRaw(element.value))) {
         selection.value.push(toRaw(element.value))
@@ -147,50 +150,51 @@ export const useCommands = () => {
         }
         selection.value = []
         barId.value -= deleteBarCount
-      } else {
-        const deleteElements = [...selection.value].reverse()
-        const barIndexes = deleteElements.reduce((barIndexes, elem) => {
-          if (!barIndexes.includes(elem.bar().index())) {
-            barIndexes.push(elem.bar().index())
-          }
-          return barIndexes
-        }, [] as Array<number>)
-
-        while (deleteElements.length > 0) {
-          const deleteElement = toRaw(deleteElements.shift())
-          deleteElement?.voice().removeElementAt(deleteElement.index())
-        }
-
-        let deleteBarCount = 0
-        while (barIndexes.length > 0) {
-          const barIndex = barIndexes.shift()
-          if (track.value._bars[barIndex!]._voices[voiceId.value]._elements.length == 0) {
-            console.log('can delete')
-            track.value.removeBarAt(barIndex!)
-            deleteBarCount += 1
-            // noteId.value = 0
-          } else {
-            console.log("can't delete", track.value._bars[barIndex!]._voices.flatMap(voice => voice._elements).length)
-          }
-        }
-
-        if (deleteBarCount > 0) {
-          barId.value -= deleteBarCount
-          elementId.value = 0
-        }
-
-        elementId.value -= 1
-        elementId.value += 1
-        // elementId.value = elementId.value
-        selection.value = [toRaw(element.value)]
-        console.log('resetting selection', selection.value)
-        // }
       }
+      // else {
+      //   debugger
+      //   const deleteElements = [...selection.value].reverse()
+      //   const barIndexes = deleteElements.reduce((barIndexes, elem) => {
+      //     if (!barIndexes.includes(elem.bar().index())) {
+      //       barIndexes.push(elem.bar().index())
+      //     }
+      //     return barIndexes
+      //   }, [] as Array<number>)
+
+      //   while (deleteElements.length > 0) {
+      //     const deleteElement = toRaw(deleteElements.shift())
+      //     deleteElement?.voice().removeElementAt(deleteElement.index())
+      //   }
+
+      //   let deleteBarCount = 0
+      //   while (barIndexes.length > 0) {
+      //     const barIndex = barIndexes.shift()
+      //     if (track.value._bars[barIndex!]._voices[voiceId.value]._elements.length == 0) {
+      //       console.log('can delete')
+      //       track.value.removeBarAt(barIndex!)
+      //       deleteBarCount += 1
+      //       // noteId.value = 0
+      //     } else {
+      //       console.log("can't delete", track.value._bars[barIndex!]._voices.flatMap(voice => voice._elements).length)
+      //     }
+      //   }
+
+      //   if (deleteBarCount > 0) {
+      //     barId.value -= deleteBarCount
+      //     elementId.value = 0
+      //   }
+
+      //   elementId.value -= 1
+      //   elementId.value += 1
+      //   // elementId.value = elementId.value
+      //   selection.value = [toRaw(element.value)]
+      //   console.log('resetting selection', selection.value)
+      //   // }
+      // }
       drawScore()
     })
 
     bind('Insert', () => {
-      // const newElement = new VoiceElement(element.value.voice(), element.value.duration)
       const newElement = element.value.voice().addElement(element.value.index())
       elementId.value -= 1
       elementId.value += 1
@@ -199,7 +203,7 @@ export const useCommands = () => {
     })
 
     bind('\\[', () => {
-      element.value.duration.increaseBaseDuration() //  duration *= 2
+      element.value.duration.increaseBaseDuration()
       drawScore()
     })
 
@@ -217,6 +221,17 @@ export const useCommands = () => {
       console.log('triplet')
       element.value.duration.isTriplet = !element.value.duration.isTriplet
       drawScore()
+    })
+
+    bind('^i$', e => {
+      console.log('info')
+      dialog.open(NoteDialog, {
+        props: {
+          header: 'Open Score',
+          modal: true,
+          dismissableMask: true,
+        },
+      })
     })
 
     bind('\\]', () => {

@@ -8,6 +8,8 @@ import App from './App.vue'
 import PrimeVue from 'primevue/config'
 import Aura from '@primevue/themes/aura'
 import Tooltip from 'primevue/tooltip'
+import DialogService from 'primevue/dialogservice'
+
 import {
   Accordion,
   AccordionContent,
@@ -20,7 +22,6 @@ import {
   DataTable,
   Dialog,
   FloatLabel,
-  IftaLabel,
   InputGroup,
   InputGroupAddon,
   InputNumber,
@@ -52,6 +53,7 @@ app.use(PrimeVue, {
   },
 })
 app.use(ToastService)
+app.use(DialogService)
 
 app.directive('tooltip', Tooltip)
 

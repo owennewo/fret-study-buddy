@@ -2,7 +2,7 @@ import type { Bar } from '@/models/Bar'
 import { useCursor } from '../useCursor'
 import { useCanvas } from '../useCanvas'
 
-const { score, track, bar, barId, voice, voiceId, element, elementId, note, resetCursor } = useCursor()
+const { score, track, bar, barId, elementId } = useCursor()
 const { drawScore } = useCanvas()
 
 export const useBarKeys = () => {
