@@ -3,23 +3,34 @@ import { useCursor } from '@/composables/useCursor'
 import { Score } from '@/models/Score'
 import { useSettingsStore } from '@/stores/settingsStore'
 import { useIndexedDBStore } from '@/stores/useIndexedDBStore'
-import { ref, toRefs } from 'vue'
+import { ref, toRefs, type Ref } from 'vue'
 
 const { projects, scores } = toRefs(useIndexedDBStore())
 
-const { createProject, saveScore, deleteScore } = useIndexedDBStore()
+const { createProject, saveScore, deleteScore, downloadExportedProject, importProject } = useIndexedDBStore()
 
 const { saveSettingsToDB } = useSettingsStore()
 const { project, score, scoreId } = useCursor()
 
 const showAddProject = ref(false)
 const newProjectName = ref('')
+const fileInput: Ref<HTMLInputElement | null> = ref(null)
 
 const addProjectClicked = () => {
   console.log('Adding New Project:', newProjectName.value)
   showAddProject.value = false
   createProject(newProjectName.value)
   newProjectName.value = ''
+}
+
+const importProjectClicked = () => {
+  console.log('import project')
+  fileInput!.value!.click()
+}
+
+const exportProjectClicked = () => {
+  downloadExportedProject(project.value)
+  console.log('export project')
 }
 
 const showAddProjectDialog = () => {
@@ -42,37 +53,66 @@ const newScore = async () => {
   scoreId.value = id as number
   saveSettingsToDB()
 }
+
+const handleFileImport = async event => {
+  const file = event.target.files[0]
+  if (file) {
+    await importProject(file)
+    console.log('Project imported successfully.')
+  } else {
+    console.warn('No file selected.')
+  }
+}
 </script>
 
 <template>
   <p-floatlabel variant="on">
-    <p-select
-      v-model="project"
-      :options="projects"
-      inputId="project"
-      placeholder="Select a Project"
-      class="w-full md:w-56"
-    >
-      <template #dropdownicon>
-        <i class="pi pi-book" />
-      </template>
-      <template #header>
-        <div class="font-medium p-3">Available Projects</div>
-      </template>
-      <template #footer>
-        <div class="p-3">
-          <p-button
-            label="Add New"
-            @click="showAddProjectDialog"
-            fluid
-            severity="secondary"
-            text
-            size="small"
-            icon="pi pi-plus"
-          />
-        </div>
-      </template>
-    </p-select>
+    <p-inputgroup>
+      <p-select
+        v-model="project"
+        :options="projects"
+        inputId="project"
+        placeholder="Select a Project"
+        class="w-full md:w-56"
+      >
+        <template #dropdownicon>
+          <i class="pi pi-book" />
+        </template>
+        <template #header>
+          <div class="font-medium p-3">Available Projects</div>
+        </template>
+        <template #footer>
+          <div class="p-3">
+            <p-button
+              label="Add New"
+              @click="showAddProjectDialog"
+              fluid
+              severity="secondary"
+              text
+              size="small"
+              icon="pi pi-plus"
+            />
+          </div>
+        </template>
+      </p-select>
+      <p-inputgroupaddon>
+        <p-button
+          icon="pi pi-file-import"
+          severity="secondary"
+          @click="importProjectClicked"
+          title="Import Project"
+        ></p-button>
+      </p-inputgroupaddon>
+      <p-inputgroupaddon>
+        <p-button
+          icon="pi pi-file-export"
+          severity="secondary"
+          @click="exportProjectClicked"
+          title="Export Project"
+        ></p-button>
+      </p-inputgroupaddon>
+    </p-inputgroup>
+
     <label for="project">Project</label>
   </p-floatlabel>
   <p-floatlabel variant="on">
@@ -104,7 +144,6 @@ const newScore = async () => {
       </p-select>
       <p-inputgroupaddon>
         <p-button icon="pi pi-trash" severity="secondary" @click="deleteScoreClicked"></p-button>
-        <!-- <p-button icon="pi pi-save" severity="secondary" @click="saveScoreClicked"></p-button> -->
       </p-inputgroupaddon>
     </p-inputgroup>
     <label for="score">Score</label>
@@ -123,4 +162,5 @@ const newScore = async () => {
       <p-button type="button" label="Save" @click="addProjectClicked" />
     </div>
   </p-dialog>
+  <input type="file" ref="fileInput" accept=".zip" style="display: none" @change="handleFileImport" />
 </template>

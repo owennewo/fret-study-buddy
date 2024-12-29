@@ -2,6 +2,7 @@ import { Score } from '@/models/Score'
 import { defineStore } from 'pinia'
 import { ref, type Ref } from 'vue'
 import { openDB, type IDBPDatabase } from 'idb'
+import JSZip from 'jszip'
 
 export const useIndexedDBStore = defineStore('indexedDBStore', () => {
   const projects: Ref<Array<string>> = ref([])
@@ -132,7 +133,7 @@ export const useIndexedDBStore = defineStore('indexedDBStore', () => {
     return await zip.generateAsync({ type: 'blob' })
   }
 
-  const saveExportedProject = async (projectName: string) => {
+  const downloadExportedProject = async (projectName: string) => {
     const blob = await exportProject(projectName)
     if (!blob) {
       console.warn('Export failed for project:', projectName)
@@ -162,7 +163,7 @@ export const useIndexedDBStore = defineStore('indexedDBStore', () => {
       return
     }
 
-    const jsonData = await unzipped.file(jsonFileName).async('string')
+    const jsonData = await unzipped!.file(jsonFileName)!.async('string')
     const importData = JSON.parse(jsonData)
 
     const projectName = jsonFileName.replace('.json', '')
@@ -208,7 +209,7 @@ export const useIndexedDBStore = defineStore('indexedDBStore', () => {
     saveScore,
     deleteScore,
     exportProject,
-    saveExportedProject,
+    downloadExportedProject,
     importProject,
     importProjectFromUrl,
   }
