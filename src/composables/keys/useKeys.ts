@@ -6,7 +6,7 @@ interface RegexHandler {
 
 const regexHandlers: Map<RegExp, RegexHandler> = new Map()
 let isEventListenerRegistered = false
-let debounceTimer: number | null = null
+let debounceTimer: NodeJS.Timeout | null = null
 
 export const useKeys = () => {
   console.log('useKeys')
