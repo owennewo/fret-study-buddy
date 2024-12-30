@@ -79,7 +79,8 @@ export const useKeys = () => {
         return
       }
     }
-    console.log('pressedKey', sequence)
+    console.log(`unknown '${sequence}'`)
+    sequence = ''
   }
 
   const bind = (regex: RegExp | string, handler: (sequence: string) => void): void => {

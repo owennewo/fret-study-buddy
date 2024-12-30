@@ -6,10 +6,11 @@ import { toRaw } from 'vue'
 import { VoiceElement } from '@/models/VoiceElement'
 import NoteDialog from '@/components/NoteDialog.vue'
 import { useDialog } from 'primevue'
+import { useSound } from './useSound'
 
 const { drawScore } = useCanvas()
 const { track, bar, barId, voice, voiceId, element, elementId, note, noteId, selection } = useCursor()
-
+const { togglePlay } = useSound()
 let loaded = false
 
 let copySelection: Array<VoiceElement | Bar> = []
@@ -186,6 +187,10 @@ export const useCommands = () => {
       console.log('triplet')
       element.value.duration.isTriplet = !element.value.duration.isTriplet
       drawScore()
+    })
+
+    bind('^\\ $', () => {
+      togglePlay()
     })
 
     bind('^i$', e => {

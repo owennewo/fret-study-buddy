@@ -12,6 +12,8 @@ export const useSound = () => {
   const { drawScore } = useCanvas()
   const isPlaying = ref(false)
 
+  let cacheSelection: Array<Bar | VoiceElement> = []
+
   let part: Tone.Part
   let instrument: Tone.Sampler
 
@@ -54,6 +56,14 @@ export const useSound = () => {
     return sampler
   }
 
+  const togglePlay = async () => {
+    if (isPlaying.value) {
+      pause()
+    } else {
+      play()
+    }
+  }
+
   const play = async () => {
     if (Tone.Transport.state == 'paused') {
       console.log('resuming')
@@ -83,6 +93,7 @@ export const useSound = () => {
 
     Tone.loaded().then(() => {
       console.log('Samples loaded')
+      cacheSelection = [...selection.value]
       startPlayback(selectedTrack)
     })
   }
@@ -102,7 +113,7 @@ export const useSound = () => {
         .flatMap((voice: Voice) => voice._elements)
         .forEach((element: VoiceElement) => {
           if (
-            selection.value.length > 0 &&
+            selection.value.length > 1 &&
             selection.value[0] instanceof VoiceElement &&
             !selection.value.includes(toRaw(element))
           ) {
@@ -140,6 +151,8 @@ export const useSound = () => {
               playedCount += 1
               if (playedCount === noteTuples.length) {
                 console.log('ENDED')
+                selection.value = cacheSelection
+                drawScore()
                 isPlaying.value = false
               }
             },
@@ -164,6 +177,7 @@ export const useSound = () => {
   return {
     play,
     pause,
+    togglePlay,
     isPlaying,
   }
 }
