@@ -1,17 +1,15 @@
 import * as Tone from 'tone'
-// import { useIndexedDBStore } from '@/stores/useIndexedDBStore'
-import { ref } from 'vue'
-// import { timeMillisecond } from 'd3'
-import type { VoiceElement } from '@/models/VoiceElement'
+import { ref, toRaw } from 'vue'
+import { VoiceElement } from '@/models/VoiceElement'
 import type { Voice } from '@/models/Voice'
 import type { Track } from '@/models/Track'
-import type { Bar } from '@/models/Bar'
+import { Bar } from '@/models/Bar'
 import { useCursor } from './useCursor'
-// import { Sampler } from 'tone'
+import { useCanvas } from './useCanvas'
 
 export const useSound = () => {
-  const { score, trackId } = useCursor()
-  // const { score } = toRefs(useIndexedDBStore())
+  const { score, trackId, selection } = useCursor()
+  const { drawScore } = useCanvas()
   const isPlaying = ref(false)
 
   let part: Tone.Part
@@ -92,48 +90,63 @@ export const useSound = () => {
   const startPlayback = (track: Track) => {
     let playedCount = 0
 
-    const noteTuples = track._bars.reduce(
-      (tuples: Array<[number, any]>, bar: Bar, bar_index) => {
-        bar._voices
-          .flatMap((voice: Voice) => voice._elements)
-          .flat()
-          .map((element: VoiceElement, element_index) => {
-            if (!element.isRest()) {
-              const time =
-                (element.location() + bar_index * bar.timeSignature.beatsPerBar) *
-                Tone.Time(`${bar.timeSignature.beatsPerBar}n`).toSeconds()
-              tuples.push([time, element])
-            }
-          })
-        // tuples.push([0, 'end'])
-        return tuples
-      },
-      [] as Array<[number, any]>,
-    )
+    const noteTuples = [] as Array<[number, VoiceElement]>
+
+    const nextVoiceTimes = [0, 0, 0, 0]
+
+    track._bars.forEach(bar => {
+      if (selection.value.length > 0 && selection.value[0] instanceof Bar && !selection.value.includes(toRaw(bar))) {
+        return // skips bars not in seletion
+      }
+      bar._voices
+        .flatMap((voice: Voice) => voice._elements)
+        .forEach((element: VoiceElement) => {
+          if (
+            selection.value.length > 0 &&
+            selection.value[0] instanceof VoiceElement &&
+            !selection.value.includes(toRaw(element))
+          ) {
+            return
+          }
+          if (!element.isRest()) {
+            const time = nextVoiceTimes[element.voice().index()]
+            noteTuples.push([time, element])
+          }
+          nextVoiceTimes[element.voice().index()] +=
+            element.beatDuration() * Tone.Time(`${bar.timeSignature.beatsPerBar}n`).toSeconds()
+        })
+    })
 
     part = new Tone.Part((time, element: VoiceElement) => {
       const duration = element.beatDuration()
-      element._notes
-        .filter(note => !isNaN(note.fretNumber))
-        .forEach(note => {
-          // const keyIndex = toNoteIndex(base) + note.fretNumber
-          const pitch = note.pitch()
-          instrument.triggerAttackRelease(pitch, duration, time)
-          Tone.Draw.schedule(() => {
-            note.active = true
-            setTimeout(
-              () => {
-                note.active = false
-                playedCount += 1
-                if (playedCount == noteTuples.length) {
-                  console.log('ENDED')
-                  isPlaying.value = false
-                }
-              },
-              duration * Tone.Time('4n').toMilliseconds(),
-            )
-          }, time)
-        })
+
+      // Collect all pitches for the chord
+      const pitches = element._notes
+        .filter(note => !isNaN(note.fretNumber)) // Ensure valid notes
+        .map(note => note.pitch()) // Map to their pitches
+
+      if (pitches.length > 0) {
+        // Trigger the chord with all pitches
+        instrument.triggerAttackRelease(pitches, duration, time)
+
+        selection.value = [toRaw(element)]
+        drawScore()
+
+        console.log(selection.value)
+        // Schedule visual updates for the chord
+        Tone.Draw.schedule(() => {
+          setTimeout(
+            () => {
+              playedCount += 1
+              if (playedCount === noteTuples.length) {
+                console.log('ENDED')
+                isPlaying.value = false
+              }
+            },
+            duration * Tone.Time('4n').toMilliseconds(),
+          )
+        }, time)
+      }
     }, noteTuples)
 
     part.start(0)

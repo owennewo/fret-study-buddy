@@ -109,29 +109,29 @@ export const useCommands = () => {
       drawScore()
     })
 
-    bind('ArrowUp', () => {
+    bind('^ArrowUp$', () => {
       noteId.value = Math.max(note.value.index() - 1, 0)
       drawScore()
     })
 
-    bind('ArrowDown', () => {
+    bind('^ArrowDown$', () => {
       noteId.value = Math.min(note.value.index() + 1, track.value!.stringCount() - 1)
       drawScore()
     })
 
-    bind('ArrowLeft', () => {
+    bind('^ArrowLeft$', () => {
       elementId.value = element.value.index() - 1
       selection.value = [toRaw(element.value)]
       drawScore()
     })
 
-    bind('ArrowRight', () => {
+    bind('^ArrowRight$', () => {
       elementId.value = element.value.index() + 1
       selection.value = [toRaw(element.value)]
       drawScore()
     })
 
-    bind('Delete', () => {
+    bind('^Delete$', () => {
       if (
         !isNaN(note.value.fretNumber) &&
         (selection.value.length == 0 || (selection.value.length == 1 && selection.value[0] == element.value))
@@ -151,50 +151,10 @@ export const useCommands = () => {
         selection.value = []
         barId.value -= deleteBarCount
       }
-      // else {
-      //   debugger
-      //   const deleteElements = [...selection.value].reverse()
-      //   const barIndexes = deleteElements.reduce((barIndexes, elem) => {
-      //     if (!barIndexes.includes(elem.bar().index())) {
-      //       barIndexes.push(elem.bar().index())
-      //     }
-      //     return barIndexes
-      //   }, [] as Array<number>)
-
-      //   while (deleteElements.length > 0) {
-      //     const deleteElement = toRaw(deleteElements.shift())
-      //     deleteElement?.voice().removeElementAt(deleteElement.index())
-      //   }
-
-      //   let deleteBarCount = 0
-      //   while (barIndexes.length > 0) {
-      //     const barIndex = barIndexes.shift()
-      //     if (track.value._bars[barIndex!]._voices[voiceId.value]._elements.length == 0) {
-      //       console.log('can delete')
-      //       track.value.removeBarAt(barIndex!)
-      //       deleteBarCount += 1
-      //       // noteId.value = 0
-      //     } else {
-      //       console.log("can't delete", track.value._bars[barIndex!]._voices.flatMap(voice => voice._elements).length)
-      //     }
-      //   }
-
-      //   if (deleteBarCount > 0) {
-      //     barId.value -= deleteBarCount
-      //     elementId.value = 0
-      //   }
-
-      //   elementId.value -= 1
-      //   elementId.value += 1
-      //   // elementId.value = elementId.value
-      //   selection.value = [toRaw(element.value)]
-      //   console.log('resetting selection', selection.value)
-      //   // }
-      // }
       drawScore()
     })
 
-    bind('Insert', () => {
+    bind('^Insert$', () => {
       const newElement = element.value.voice().addElement(element.value.index())
       elementId.value -= 1
       elementId.value += 1
@@ -202,12 +162,17 @@ export const useCommands = () => {
       drawScore()
     })
 
-    bind('\\[', () => {
+    bind('^\\[$', () => {
       element.value.duration.increaseBaseDuration()
       drawScore()
     })
 
-    bind('\\.', () => {
+    bind('^\\]$', () => {
+      element.value.duration.decreaseBaseDuration() // /= 2
+      drawScore()
+    })
+
+    bind('^\\.$', () => {
       console.log('dotted')
       let dotCount = element.value.duration.dotCount + 1
       if (dotCount == 3) {
@@ -234,21 +199,16 @@ export const useCommands = () => {
       })
     })
 
-    bind('\\]', () => {
-      element.value.duration.decreaseBaseDuration() // /= 2
-      drawScore()
-    })
-
-    bind('ctrl\\+s', () => {
+    bind('^ctrl\\+s$', () => {
       console.log('save')
     })
 
-    bind('ctrl\\+c', () => {
+    bind('^ctrl\\+c$', () => {
       console.log('copy')
       copySelection = [...selection.value]
     })
 
-    bind('ctrl\\+v', () => {
+    bind('^ctrl\\+v$', () => {
       console.log('paste')
       if (copySelection.length == 0) {
         return
@@ -273,14 +233,13 @@ export const useCommands = () => {
       }
     })
 
-    bind('ctrl\\+z', () => {
+    bind('^ctrl\\+z$', () => {
       console.log('undo')
     })
 
-    bind('ctrl\\+shift\\+z', () => {
+    bind('^ctrl\\+shift\\+z$', () => {
       console.log('redo')
     })
-
     loaded = true
   }
 }

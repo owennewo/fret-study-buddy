@@ -21,7 +21,8 @@ export const useKeys = () => {
       event.key == 'Alt' ||
       event.key == 'Control' ||
       event.key == 'Shift' ||
-      event.key == 'Tab'
+      event.key == 'Tab' ||
+      event.key == 'Escape'
     ) {
       return true
     }
@@ -69,7 +70,11 @@ export const useKeys = () => {
         if (debounceTimer) {
           clearTimeout(debounceTimer)
         }
-        debounceTimer = setTimeout(() => (sequence = ''), 400)
+        if (!regex.source.endsWith('$')) {
+          debounceTimer = setTimeout(() => (sequence = ''), 400)
+        } else {
+          sequence = ''
+        }
         event.preventDefault()
         return
       }
@@ -85,7 +90,7 @@ export const useKeys = () => {
   }
 
   if (!isEventListenerRegistered) {
-    window.addEventListener('keyup', handleKeys)
+    window.addEventListener('keydown', handleKeys)
     isEventListenerRegistered = true
   }
 

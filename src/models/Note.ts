@@ -78,7 +78,6 @@ class Note {
   _element: VoiceElement
   fretNumber: number // e.g., 0 (open string), 1, 2, etc.
   techniques: Technique[] // Optional technique
-  active: boolean = false // used for UI feedback
   rightHandFinger: Finger = NaN
   leftHandFinger: Finger = NaN
 

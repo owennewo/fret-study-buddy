@@ -31,7 +31,7 @@ class Score {
     this.id = null
     this.title = title
     this.barsPerLine = 4
-    this.fontSize = 12
+    this.fontSize = 16
     this.tempo = tempo
     this.url = ''
     this.timeSignature = timeSignature
@@ -110,7 +110,7 @@ class Score {
     const score = new Score(data.title, data.tempo, data.timeSignature)
     score.barsPerLine = data.barsPerLine
     score.id = data.id
-    score.fontSize = data.fontSize ?? 12
+    score.fontSize = data.fontSize ?? 16
     score.url = data.url ?? ''
     score._tracks = data.tracks.map((trackData: any) => Track.fromJSON(score, trackData))
     score.update()

@@ -91,7 +91,6 @@ export const useCanvas = () => {
     c.y = -element.score().fontSize / 2
 
     if (element.voice().index() == voiceId.value) {
-      const stringCount = element.track().stringCount()
       const g = new Graphics()
 
       if (
@@ -116,7 +115,7 @@ export const useCanvas = () => {
           text: element.name,
           style: textStyle,
           x: 0,
-          y: -1.5 * element.score().fontSize,
+          y: -1 * element.score().fontSize,
         } as TextOptions)
 
         c.addChild(t)
@@ -186,7 +185,6 @@ export const useCanvas = () => {
           ((selectionDimension[1] - selectionDimension[0]) / voiceDuration) * usableWidth,
           barHeight,
         ).fill({ color: voiceColours[voice.index()], alpha: 0.25 })
-        console.log('draw selection')
       }
       c.addChild(g)
     }
@@ -358,24 +356,20 @@ export const useCanvas = () => {
         }
       })
 
-      // Start observing the div
       resizeObserver.observe(wrapper)
-      // debugger
 
       await pixi.init({
         canvas: canvasRef.value!,
-        // resizeTo: wrapper,
         backgroundColor: backgroundColour,
       })
       initDevtools(pixi)
     }
 
-    const verticalGap = 50
+    const verticalGap = 30 + score.value.fontSize * 2
     const horizontalGap = 20
 
     pageContainer.removeChildren()
     pixi.stage.removeChildren()
-    // scoreContainer.removeChildren()
 
     const scoreContainer = new Container({ label: 'score' })
     const wrapper = document.getElementById('canvas-wrapper')!
@@ -386,34 +380,17 @@ export const useCanvas = () => {
       scoreContainer.addChild(drawTrack(track, usableWidth))
     })
 
-    // pageContainer.addChild(
-    //   new Text({
-    //     text: score.value!.title,
-    //     anchor: 0.5,
-    //     x: canvasWidth / 2,
-    //     y: 20,
-    //     style: {
-    //       fill: 0x000000,
-    //       fontSize: 24,
-    //     },
-    //   }),
-    // )
-
     scoreContainer.y = verticalGap
     scoreContainer.x = horizontalGap
 
     pageContainer.addChild(scoreContainer)
 
     if (pixi && pixi.renderer) {
-      // debugger
       renderCount += 1
-      // if (renderCount < 5) {
-      //   debugger
       pixi!.renderer.resize(
         wrapper.clientWidth,
         Math.floor(Math.max(scoreContainer.height + verticalGap, wrapper.clientHeight)) - 1,
       )
-      // }
     } else {
       console.warn(' RESIZE FAILED')
     }
