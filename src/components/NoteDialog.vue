@@ -22,13 +22,13 @@ const techniqueList = () => {
       name,
     }
   })
-  // debugger
   return t
 }
 </script>
 
 <template>
   <div class="field">
+    <h2>Bar</h2>
     <label>Time Signature</label>
 
     <div v-if="bar" class="field-group">
@@ -49,6 +49,11 @@ const techniqueList = () => {
       />
     </div>
   </div>
+  <h2>Element</h2>
+  <p-floatlabel variant="on">
+    <p-inputtext v-model="element.name" inputId="elementName" variant="filled" />
+    <label for="elementName">elementName</label>
+  </p-floatlabel>
 
   <p-floatlabel variant="on">
     <p-select
@@ -81,6 +86,7 @@ const techniqueList = () => {
     <label for="isTriplet">isTriplet</label>
   </p-floatlabel>
 
+  <h2>Note</h2>
   <p-inputnumber v-model="note.fretNumber" placeholder="Duration" showButtons class="small" />
   <p-inputnumber v-model="note.leftHandFinger" placeholder="leftHandFinger" showButtons class="small" />
   <p-inputnumber v-model="note.rightHandFinger" placeholder="rightHandFinger" showButtons class="small" />

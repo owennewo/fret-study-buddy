@@ -105,27 +105,44 @@ export const useCanvas = () => {
         element.duration = new Duration(BaseNoteValue.Quarter)
       }
 
-      g.moveTo(score.value.fontSize * 0.5 - element.beatDuration(), score.value.fontSize * (stringCount + 0.25))
-        .lineTo(score.value.fontSize * 0.5 - element.beatDuration(), score.value.fontSize * (stringCount + 1))
-        .stroke({ width: 2 * element.beatDuration(), color: voiceColor(element.voice()) })
+      if (element.name) {
+        const textStyle = new TextStyle({
+          fontSize: element.score().fontSize,
+          fill: 0x555555, // Text color
+        })
 
-      const flagCount =
-        element.tailType() == TailType.Beam || element.tailType() == TailType.Flag ? element.tailCount() : 0
+        // Create the text
+        const t = new Text({
+          text: element.name,
+          style: textStyle,
+          x: 0,
+          y: -1.5 * element.score().fontSize,
+        } as TextOptions)
 
-      if (element.tailCount() > 0) {
-        // debugger
+        c.addChild(t)
       }
-      // horizontal
-      for (let i = 0; i < flagCount; i++) {
-        g.moveTo(score.value.fontSize * 0.5 - element.beatDuration(), score.value.fontSize * (stringCount + 1))
-          .lineTo(
-            score.value.fontSize * 0.5,
-            score.value.fontSize * 0.5 +
-              usableWidth * (0.8 * (element.beatDuration() / (element.tailType() == TailType.Flag ? 2 : 1))),
-          )
-          .stroke({ width: 2 * element.beatDuration(), color: 'orange' })
-      }
-      c.addChild(g)
+
+      // g.moveTo(score.value.fontSize * 0.5 - element.beatDuration(), score.value.fontSize * (stringCount + 0.25))
+      //   .lineTo(score.value.fontSize * 0.5 - element.beatDuration(), score.value.fontSize * (stringCount + 1))
+      //   .stroke({ width: 2 * element.beatDuration(), color: voiceColor(element.voice()) })
+
+      // const flagCount =
+      //   element.tailType() == TailType.Beam || element.tailType() == TailType.Flag ? element.tailCount() : 0
+
+      // if (element.tailCount() > 0) {
+      //   // debugger
+      // }
+      // // horizontal
+      // for (let i = 0; i < flagCount; i++) {
+      //   g.moveTo(score.value.fontSize * 0.5 - element.beatDuration(), score.value.fontSize * (stringCount + 1))
+      //     .lineTo(
+      //       score.value.fontSize * 0.5,
+      //       score.value.fontSize * 0.5 +
+      //         usableWidth * (0.8 * (element.beatDuration() / (element.tailType() == TailType.Flag ? 2 : 1))),
+      //     )
+      //     .stroke({ width: 2 * element.beatDuration(), color: 'orange' })
+      // }
+      // c.addChild(g)
     }
 
     element._notes.forEach(note => {
@@ -134,11 +151,9 @@ export const useCanvas = () => {
     return c
   }
 
-  const drawVoice = (voice: Voice, barWidth: number, barHeight: number) => {
-    const padding = voice.score().fontSize
-    const usableWidth = barWidth - padding * 2
+  const drawVoice = (voice: Voice, usableWidth: number, barHeight: number) => {
     const c = new Container({ label: `voice${voice.index()}` })
-    c.x = padding
+    // c.x = padding
 
     if (voice.index() == voiceId.value) {
       const g = new Graphics()
@@ -186,6 +201,9 @@ export const useCanvas = () => {
     const x = barWidth * (bar.index() % score.value.barsPerLine)
     const y = trackHeight * Math.floor(bar.index() / score.value.barsPerLine)
 
+    const padding = bar.score().fontSize
+    const usableWidth = barWidth - padding * 2
+
     const c = new Container({
       label: `bar${bar.index()}`,
       x: x,
@@ -195,9 +213,18 @@ export const useCanvas = () => {
     })
     c.interactive = true
 
+    const c2 = new Container({
+      label: `inner${bar.index()}`,
+      x: padding,
+      y: 0,
+    }).on('pointerdown', c => {
+      console.log('Bar clicked', bar.index())
+    })
+
     const stringSpacing = barHeight / (bar.track().stringCount() - 1)
 
     const g = new Graphics()
+    const g2 = new Graphics()
 
     for (let i = 0; i < bar.track().stringCount(); i++) {
       const lineY = i * stringSpacing
@@ -234,11 +261,26 @@ export const useCanvas = () => {
       y: -1.5 * bar.score().fontSize,
     } as TextOptions)
 
+    for (let i = 0; i < bar.timeSignature.beatsPerBar; i++) {
+      const x = (usableWidth * i) / bar.timeSignature.beatsPerBar
+      g2.moveTo(x, barHeight).lineTo(x, barHeight + 1.5 * score.value.fontSize)
+      g2.stroke({ width: 3, color: 'black', alpha: 0.25 })
+    }
+    bar._voices[voiceId.value]._elements.forEach(element => {
+      if (element.location() - Math.floor(element.location()) > 0.1) {
+        const x = (usableWidth * element.location()) / bar.timeSignature.beatsPerBar
+        g2.moveTo(x, barHeight).lineTo(x, barHeight + 1.5 * element.beatDuration() * score.value.fontSize)
+        g2.stroke({ width: 2, color: 'black', alpha: 0.25 })
+      }
+    })
+
     c.addChild(g)
     c.addChild(t)
+    c.addChild(c2)
+    c2.addChild(g2)
 
     bar._voices.forEach(voice => {
-      c.addChild(drawVoice(voice, barWidth, barHeight))
+      c2.addChild(drawVoice(voice, usableWidth, barHeight))
     })
     return c
   }

@@ -15,11 +15,13 @@ enum TailType {
 class VoiceElement {
   _voice: Voice
   duration: Duration // measured in beats could be a fraction (e.g., 0.5 for eighth note)
+  name: string | null
   _notes: Note[] // 0 length = rest, 1 = note, 2+ = chord
   constructor(voice: Voice, duration: Duration, addRest = false) {
     this.duration = duration
     this._notes = [] // Rest by default if `notes` is undefined
     this._voice = voice
+    this.name = null
     if (addRest) {
       this.addRestNotes()
     }
@@ -156,6 +158,7 @@ class VoiceElement {
     const element = new VoiceElement(voice, Duration.fromJSON(data.duration))
     const notes: Note[] = data.notes ? data.notes.map((noteData: any) => Note.fromJSON(element, noteData)) : []
     element._notes = notes
+    element.name = data.name
     element.addRestNotes()
     return element
   }
@@ -163,7 +166,7 @@ class VoiceElement {
   toJSON(): object {
     return {
       duration: this.duration.toJSON(),
-      // notes: this._notes.filter(note => note.fretNumber !== null && !isNaN(note.fretNumber)).map(note => note.toJSON()),
+      name: this.name,
       notes: this._notes.map(note => note.toJSON()),
     }
   }
