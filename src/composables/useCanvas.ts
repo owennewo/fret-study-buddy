@@ -1,5 +1,5 @@
-import { ref, toRaw, type Ref } from 'vue'
-import { TailType, VoiceElement } from '@/models/VoiceElement'
+import { computed, ref, toRaw, type Ref } from 'vue'
+import { VoiceElement } from '@/models/VoiceElement'
 
 import { useCursor } from '@/composables/useCursor'
 import type { Bar } from '@/models/Bar'
@@ -7,6 +7,7 @@ import type { Track } from '@/models/Track'
 import type { Voice } from '@/models/Voice'
 import type { Note } from '@/models/Note'
 import { Application, Container, Graphics, Text, TextStyle, type TextOptions } from 'pixi.js'
+
 import { initDevtools } from '@pixi/devtools'
 import { BaseNoteValue, Duration } from '@/models/Duration'
 const canvasRef: Ref<HTMLCanvasElement | null> = ref(null)
@@ -20,6 +21,18 @@ export const useCanvas = () => {
   const foregroundColour = '#17202a'
 
   const voiceColours = ['#8e0000', '#4a0072', '#0000b2', '#004d40']
+
+  const colours = computed(() => {
+    return isDarkMode.value
+      ? {
+          primary: 'black',
+          secondary: 'white',
+        }
+      : {
+          primary: 'white',
+          secondary: 'black',
+        }
+  })
 
   // const foregroundColour2 = '#d0d3d4'
   const pageContainer = new Container({ label: 'page' })
@@ -39,6 +52,7 @@ export const useCanvas = () => {
     track: currentTrack,
     selection,
     voiceId,
+    isDarkMode,
   } = useCursor()
 
   const voiceColor = (voice: Voice) => {
@@ -48,11 +62,11 @@ export const useCanvas = () => {
   const drawNote = (note: Note, barHeight: number) => {
     const stringSpacing = barHeight / (note.track().stringCount() - 1)
     const isCurrent = toRaw(currentNote.value) === toRaw(note)
-    const rectColor = isCurrent ? voiceColor(note.voice()) : backgroundColour
+    const rectColor = isCurrent ? voiceColor(note.voice()) : colours.value.secondary
     if (note.fretNumber == 4) {
       // debugger
     }
-    const textColor = isCurrent ? backgroundColour : voiceColor(note.voice())
+    const textColor = isCurrent ? colours.value.secondary : voiceColor(note.voice())
 
     const c = new Container({
       label: `note${note.index()}`,
@@ -91,8 +105,6 @@ export const useCanvas = () => {
     c.y = -element.score().fontSize / 2
 
     if (element.voice().index() == voiceId.value) {
-      const g = new Graphics()
-
       if (
         element.beatDuration() > 10 ||
         element.beatDuration() < -10 ||
@@ -107,7 +119,7 @@ export const useCanvas = () => {
       if (element.name) {
         const textStyle = new TextStyle({
           fontSize: element.score().fontSize,
-          fill: 0x555555, // Text color
+          fill: colours.value.primary, // Text color
         })
 
         // Create the text
@@ -120,28 +132,6 @@ export const useCanvas = () => {
 
         c.addChild(t)
       }
-
-      // g.moveTo(score.value.fontSize * 0.5 - element.beatDuration(), score.value.fontSize * (stringCount + 0.25))
-      //   .lineTo(score.value.fontSize * 0.5 - element.beatDuration(), score.value.fontSize * (stringCount + 1))
-      //   .stroke({ width: 2 * element.beatDuration(), color: voiceColor(element.voice()) })
-
-      // const flagCount =
-      //   element.tailType() == TailType.Beam || element.tailType() == TailType.Flag ? element.tailCount() : 0
-
-      // if (element.tailCount() > 0) {
-      //   // debugger
-      // }
-      // // horizontal
-      // for (let i = 0; i < flagCount; i++) {
-      //   g.moveTo(score.value.fontSize * 0.5 - element.beatDuration(), score.value.fontSize * (stringCount + 1))
-      //     .lineTo(
-      //       score.value.fontSize * 0.5,
-      //       score.value.fontSize * 0.5 +
-      //         usableWidth * (0.8 * (element.beatDuration() / (element.tailType() == TailType.Flag ? 2 : 1))),
-      //     )
-      //     .stroke({ width: 2 * element.beatDuration(), color: 'orange' })
-      // }
-      // c.addChild(g)
     }
 
     element._notes.forEach(note => {
@@ -152,7 +142,6 @@ export const useCanvas = () => {
 
   const drawVoice = (voice: Voice, usableWidth: number, barHeight: number) => {
     const c = new Container({ label: `voice${voice.index()}` })
-    // c.x = padding
 
     if (voice.index() == voiceId.value) {
       const g = new Graphics()
@@ -184,7 +173,7 @@ export const useCanvas = () => {
           0,
           ((selectionDimension[1] - selectionDimension[0]) / voiceDuration) * usableWidth,
           barHeight,
-        ).fill({ color: voiceColours[voice.index()], alpha: 0.25 })
+        ).fill({ color: voiceColours[voice.index()], alpha: 0.5 })
       }
       c.addChild(g)
     }
@@ -226,15 +215,16 @@ export const useCanvas = () => {
 
     for (let i = 0; i < bar.track().stringCount(); i++) {
       const lineY = i * stringSpacing
-      g.moveTo(0, lineY).lineTo(barWidth, lineY)
+      g.moveTo(0, lineY).lineTo(barWidth, lineY).stroke({ width: 1, color: colours.value.primary })
     }
 
     // Draw vertical start and end bars
     g.moveTo(0, 0)
-      .lineTo(0, barHeight)
+      .lineTo(0, barHeight + 1)
       .moveTo(barWidth, 0)
-      .lineTo(barWidth, barHeight) // End bar
-      .stroke({ width: 2, color: 'black' })
+      .stroke({ width: bar.index() == 0 ? 4 : 1, color: colours.value.primary })
+      .lineTo(barWidth, barHeight + 1) // End bar
+      .stroke({ width: bar.index() == bar.track()._bars.length - 1 ? 4 : 1, color: colours.value.primary })
 
     if (selection.value.includes(bar)) {
       console.log('BAR selected', bar.index())
@@ -248,7 +238,7 @@ export const useCanvas = () => {
 
     const textStyle = new TextStyle({
       fontSize: bar.score().fontSize,
-      fill: 0x555555, // Text color
+      fill: colours.value.primary, // Text color
     })
 
     // Create the text
@@ -262,13 +252,13 @@ export const useCanvas = () => {
     for (let i = 0; i < bar.timeSignature.beatsPerBar; i++) {
       const x = (usableWidth * i) / bar.timeSignature.beatsPerBar
       g2.moveTo(x, barHeight).lineTo(x, barHeight + 1.5 * score.value.fontSize)
-      g2.stroke({ width: 3, color: 'black', alpha: 0.25 })
+      g2.stroke({ width: 3, alpha: 0.25 })
     }
     bar._voices[voiceId.value]._elements.forEach(element => {
       if (element.location() - Math.floor(element.location()) > 0.1) {
         const x = (usableWidth * element.location()) / bar.timeSignature.beatsPerBar
         g2.moveTo(x, barHeight).lineTo(x, barHeight + 1.5 * element.beatDuration() * score.value.fontSize)
-        g2.stroke({ width: 2, color: 'black', alpha: 0.25 })
+        g2.stroke({ width: 2, alpha: 0.25 })
       }
     })
 
@@ -387,6 +377,7 @@ export const useCanvas = () => {
 
     if (pixi && pixi.renderer) {
       renderCount += 1
+      pixi!.renderer.background.color = colours.value.secondary
       pixi!.renderer.resize(
         wrapper.clientWidth,
         Math.floor(Math.max(scoreContainer.height + verticalGap, wrapper.clientHeight)) - 1,

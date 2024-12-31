@@ -12,9 +12,7 @@ const { saveScore } = useIndexedDBStore()
 const dialog = useDialog()
 
 const { play, pause, isPlaying } = useSound()
-const { score, voiceId } = useCursor()
-
-const isDarkMode = ref(false)
+const { score, voiceId, tempoPercent, isDarkMode } = useCursor()
 
 const voiceOptions = computed(() => {
   const options = Array.from({ length: 4 }, (_, i) => ({
@@ -24,6 +22,10 @@ const voiceOptions = computed(() => {
   }))
   return options
 })
+
+const toggleLoop = () => {
+  console.log('loop')
+}
 
 const toggleDarkMode = () => {
   isDarkMode.value = !isDarkMode.value
@@ -63,6 +65,13 @@ const openScore = () => {
     },
   })
 }
+const nextScore = () => {
+  console.log('next score')
+}
+
+const prevScore = () => {
+  console.log('prev score')
+}
 </script>
 
 <template>
@@ -100,8 +109,32 @@ const openScore = () => {
           <line x1="44" x2="44" y1="54" y2="64" class="icon-secondary" />
         </svg>
         <i class="pi pi-bars" @click="toggleSideBar"></i> -->
-        <i :class="`pi ${isPlaying ? 'pi-pause' : 'pi-play'}`" @click="togglePlay"></i>
-        <i :class="`pi ${isDarkMode ? 'pi-sun' : 'pi pi-moon'}`" @click="toggleDarkMode"></i>
+        <p-inputgroup>
+          <!-- <p-inputgroupaddon> -->
+          <p-inputgroupaddon>
+            <button class="p-button p-button-text" @click="toggleLoop" title="Toggle Loop">
+              <i class="pi pi-replay"></i>
+            </button>
+          </p-inputgroupaddon>
+          <p-inputnumber
+            v-model="tempoPercent"
+            inputId="tempoPercent"
+            variant="filled"
+            :min="10"
+            :max="200"
+            :step="10"
+            suffix="%"
+            showButtons
+            readOnly
+            style="width: 6rem"
+          />
+          <!-- </p-inputgroupaddon> -->
+          <p-inputgroupaddon>
+            <button class="p-button p-button-text" @click="togglePlay" title="Toggle Play">
+              <i :class="`pi ${isPlaying ? 'pi-pause' : 'pi-play'}`"></i>
+            </button>
+          </p-inputgroupaddon>
+        </p-inputgroup>
       </template>
 
       <template #center>
@@ -111,6 +144,18 @@ const openScore = () => {
               <i class="pi pi-folder-open"></i>
             </button>
           </p-inputgroupaddon>
+          <p-inputgroupaddon>
+            <button class="p-button p-button-text" @click="prevScore" title="Previous score">
+              <i class="pi pi-angle-left"></i>
+            </button>
+          </p-inputgroupaddon>
+
+          <p-inputgroupaddon>
+            <button class="p-button p-button-text" @click="nextScore" title="Next score">
+              <i class="pi pi-angle-right"></i>
+            </button>
+          </p-inputgroupaddon>
+
           <p-inputtext readonly v-model="score.title" placeholder="score" />
           <p-inputgroupaddon>
             <p-button class="p-button p-button-text" @click="editScore" title="Edit score">
@@ -137,6 +182,8 @@ const openScore = () => {
             <div :class="`voice-option ${option.class}`" :title="`voice ${option.label}`">{{ option.label }}</div>
           </template>
         </p-selectbutton>
+
+        <i :class="`pi ${isDarkMode ? 'pi-sun' : 'pi pi-moon'}`" @click="toggleDarkMode"></i>
       </template>
     </p-toolbar>
   </div>

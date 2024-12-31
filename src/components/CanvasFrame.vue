@@ -6,7 +6,7 @@ import { useCommands } from '@/composables/useCommands'
 import { useCursor } from '@/composables/useCursor'
 import ToolBar from './ToolBar.vue'
 
-const { score, voiceId } = useCursor()
+const { score, voiceId, isDarkMode } = useCursor()
 const { drawScore, canvasRef, canvasContainerRef, voiceColours } = useCanvas()
 
 const errorPopover = ref()
@@ -19,7 +19,7 @@ useCommands()
 useKeys()
 
 watch(
-  [score, voiceId],
+  [score, voiceId, isDarkMode],
   () => {
     drawScore()
   },

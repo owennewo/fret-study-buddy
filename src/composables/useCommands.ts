@@ -73,21 +73,21 @@ export const useCommands = () => {
       drawScore()
     })
 
-    bind('ctrl\\+ArrowRight', () => {
+    bind('^ctrl\\+ArrowRight$', () => {
       barId.value += 1
       elementId.value = 0
-      console.log('ctrl right')
+      selection.value = [toRaw(element.value)]
       drawScore()
     })
 
-    bind('ctrl\\+ArrowLeft', () => {
+    bind('^ctrl\\+ArrowLeft$', () => {
       barId.value -= 1
       elementId.value = 0
+      selection.value = [toRaw(element.value)]
       drawScore()
-      console.log('ctrl left')
     })
 
-    bind('shift\\+ArrowLeft', () => {
+    bind('^shift\\+ArrowLeft$', () => {
       const index = selection.value.indexOf(element.value)
       if (index > -1) {
         selection.value.splice(index, 1)
@@ -101,7 +101,21 @@ export const useCommands = () => {
       drawScore()
     })
 
-    bind('shift\\+ArrowRight', () => {
+    bind('^Home$', () => {
+      barId.value = 0
+      elementId.value = 0
+      selection.value = [toRaw(element.value)]
+      drawScore()
+    })
+
+    bind('^End$', () => {
+      barId.value = bar.value.track()._bars.length - 1
+      elementId.value = bar.value._voices[voiceId.value]._elements.length - 1
+      selection.value = [toRaw(element.value)]
+      drawScore()
+    })
+
+    bind('^shift\\+ArrowRight$', () => {
       elementId.value = element.value.index() + 1
       if (!selection.value.includes(toRaw(element.value))) {
         selection.value.push(toRaw(element.value))
@@ -183,7 +197,7 @@ export const useCommands = () => {
       drawScore()
     })
 
-    bind('^t$', e => {
+    bind('^t$', () => {
       console.log('triplet')
       element.value.duration.isTriplet = !element.value.duration.isTriplet
       drawScore()
@@ -193,11 +207,11 @@ export const useCommands = () => {
       togglePlay()
     })
 
-    bind('^i$', e => {
+    bind('^i$', () => {
       console.log('info')
       dialog.open(NoteDialog, {
         props: {
-          header: 'Open Score',
+          header: 'Edit Score',
           modal: true,
           dismissableMask: true,
         },

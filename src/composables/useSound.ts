@@ -8,7 +8,7 @@ import { useCursor } from './useCursor'
 import { useCanvas } from './useCanvas'
 
 export const useSound = () => {
-  const { score, trackId, selection } = useCursor()
+  const { score, trackId, selection, tempoPercent } = useCursor()
   const { drawScore } = useCanvas()
   const isPlaying = ref(false)
 
@@ -86,7 +86,7 @@ export const useSound = () => {
     }
 
     Tone.Transport.timeSignature = [score.value.timeSignature.beatsPerBar, score.value.timeSignature.beatValue]
-    Tone.Transport.bpm.value = score.value.tempo
+    Tone.Transport.bpm.value = (score.value.tempo * tempoPercent.value) / 100
     isPlaying.value = true
     await Tone.start()
     console.log('audio is ready')
