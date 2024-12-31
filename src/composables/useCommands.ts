@@ -20,18 +20,18 @@ export const useCommands = () => {
 
   const { bind } = useKeys()
   if (!loaded) {
-    bind('\\d+(.\\d+)?', sequence => {
+    bind('^\\d+(.\\d+)?', sequence => {
       console.log('number', sequence)
       note.value.fretNumber = parseInt(sequence)
       drawScore()
     })
 
-    bind('ctrl\\+Delete', () => {
+    bind('^ctrl\\+Delete$', () => {
       track.value!.removeBarAt(bar.value!.index())
       drawScore()
     })
 
-    bind('ctrl\\+shift\\+ArrowRight', () => {
+    bind('^ctrl\\+shift\\+ArrowRight$', () => {
       if (selection.value.length == 0) {
         selection.value = [bar.value]
       }
@@ -45,7 +45,7 @@ export const useCommands = () => {
       drawScore()
     })
 
-    bind('ctrl\\+shift\\+ArrowLeft', () => {
+    bind('^ctrl\\+shift\\+ArrowLeft$', () => {
       if (selection.value.filter(item => item instanceof Bar).length == 0) {
         selection.value = [toRaw(bar.value)]
       } else {
@@ -63,12 +63,12 @@ export const useCommands = () => {
       drawScore()
     })
 
-    bind('ctrl\\+ArrowUp', () => {
+    bind('^ctrl\\+ArrowUp$', () => {
       voiceId.value = Math.min(voice.value.index() + 1, 3)
       drawScore()
     })
 
-    bind('ctrl\\+ArrowDown', () => {
+    bind('^ctrl\\+ArrowDown$', () => {
       voiceId.value = Math.max(voice.value.index() - 1, 0)
       drawScore()
     })
@@ -81,8 +81,12 @@ export const useCommands = () => {
     })
 
     bind('^ctrl\\+ArrowLeft$', () => {
-      barId.value -= 1
-      elementId.value = 0
+      if (elementId.value > 0) {
+        elementId.value = 0
+      } else {
+        barId.value -= 1
+        elementId.value = 0
+      }
       selection.value = [toRaw(element.value)]
       drawScore()
     })

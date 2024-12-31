@@ -1,18 +1,19 @@
 <script setup lang="ts">
 import { useCursor } from '@/composables/useCursor'
 import { useSound } from '@/composables/useSound'
-import { computed, ref } from 'vue'
+import { computed, toRefs } from 'vue'
 
 import { useDialog } from 'primevue/usedialog'
 import EditScoreDialog from './EditScoreDialog.vue'
 import { useIndexedDBStore } from '@/stores/useIndexedDBStore'
 import OpenScoreDialog from './OpenScoreDialog.vue'
 const { saveScore } = useIndexedDBStore()
+const { scores } = toRefs(useIndexedDBStore())
 
 const dialog = useDialog()
 
 const { play, pause, isPlaying } = useSound()
-const { score, voiceId, tempoPercent, isDarkMode } = useCursor()
+const { score, scoreId, voiceId, tempoPercent, isDarkMode, isPlaybackLooping } = useCursor()
 
 const voiceOptions = computed(() => {
   const options = Array.from({ length: 4 }, (_, i) => ({
@@ -23,8 +24,24 @@ const voiceOptions = computed(() => {
   return options
 })
 
+const hasPreviousScore = computed(() => {
+  if (!scores.value) {
+    return false
+  }
+  const scoreIndex = scores.value.findIndex(scoreLite => scoreLite.title == score.value.title)
+  return scoreIndex > 0
+})
+
+const hasNextScore = computed(() => {
+  if (!scores.value) {
+    return false
+  }
+  const scoreIndex = scores.value.findIndex(scoreLite => scoreLite.title == score.value.title)
+  return scoreIndex < scores.value.length - 1
+})
+
 const toggleLoop = () => {
-  console.log('loop')
+  isPlaybackLooping.value = !isPlaybackLooping.value
 }
 
 const toggleDarkMode = () => {
@@ -67,10 +84,18 @@ const openScore = () => {
 }
 const nextScore = () => {
   console.log('next score')
+  const scoreIndex = scores.value.findIndex(scoreLite => scoreLite.title == score.value.title)
+  const newScore = scores.value[scoreIndex + 1]
+  // loadScore(project.value, newScore.id)
+  scoreId.value = newScore.id
 }
 
 const prevScore = () => {
   console.log('prev score')
+  const scoreIndex = scores.value.findIndex(scoreLite => scoreLite.title == score.value.title)
+  const newScore = scores.value[scoreIndex - 1]
+  // loadScore(project.value, newScore.id)
+  scoreId.value = newScore.id
 }
 </script>
 
@@ -112,9 +137,9 @@ const prevScore = () => {
         <p-inputgroup>
           <!-- <p-inputgroupaddon> -->
           <p-inputgroupaddon>
-            <button class="p-button p-button-text" @click="toggleLoop" title="Toggle Loop">
+            <p-button :class="isPlaybackLooping ? '' : 'p-button-text'" @click="toggleLoop" title="Toggle Loop">
               <i class="pi pi-replay"></i>
-            </button>
+            </p-button>
           </p-inputgroupaddon>
           <p-inputnumber
             v-model="tempoPercent"
@@ -128,11 +153,10 @@ const prevScore = () => {
             readOnly
             style="width: 6rem"
           />
-          <!-- </p-inputgroupaddon> -->
           <p-inputgroupaddon>
-            <button class="p-button p-button-text" @click="togglePlay" title="Toggle Play">
+            <p-button :class="isPlaying ? '' : 'p-button-text'" @click="togglePlay" title="Toggle Play">
               <i :class="`pi ${isPlaying ? 'pi-pause' : 'pi-play'}`"></i>
-            </button>
+            </p-button>
           </p-inputgroupaddon>
         </p-inputgroup>
       </template>
@@ -145,15 +169,27 @@ const prevScore = () => {
             </button>
           </p-inputgroupaddon>
           <p-inputgroupaddon>
-            <button class="p-button p-button-text" @click="prevScore" title="Previous score">
+            <p-button
+              :disabled="!hasPreviousScore"
+              class="p-button p-button-text"
+              :severity="hasPreviousScore ? 'primary' : 'secondary'"
+              @click="prevScore"
+              title="Previous score"
+            >
               <i class="pi pi-angle-left"></i>
-            </button>
+            </p-button>
           </p-inputgroupaddon>
 
           <p-inputgroupaddon>
-            <button class="p-button p-button-text" @click="nextScore" title="Next score">
+            <p-button
+              :disabled="!hasNextScore"
+              :severity="hasNextScore ? 'primary' : 'secondary'"
+              class="p-button p-button-text"
+              @click="nextScore"
+              title="Next score"
+            >
               <i class="pi pi-angle-right"></i>
-            </button>
+            </p-button>
           </p-inputgroupaddon>
 
           <p-inputtext readonly v-model="score.title" placeholder="score" />

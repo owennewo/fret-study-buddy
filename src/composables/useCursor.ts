@@ -25,6 +25,7 @@ const elementId: Ref<number> = ref(0)
 const noteId: Ref<number> = ref(0)
 const tempoPercent: Ref<number> = ref(100)
 const isDarkMode = ref(false)
+const isPlaybackLooping = ref(false)
 
 const selection: Ref<Array<VoiceElement | Bar>> = ref([])
 
@@ -122,5 +123,6 @@ export const useCursor = () => {
     Mode,
     tempoPercent,
     isDarkMode,
+    isPlaybackLooping,
   }
 }

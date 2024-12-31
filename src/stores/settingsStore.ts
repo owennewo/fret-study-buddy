@@ -5,7 +5,7 @@ import { useIndexedDBStore } from '@/stores/useIndexedDBStore'
 // import type { Score } from '@/models/Score'
 
 export const useSettingsStore = defineStore('settingsStore', () => {
-  const { project, scoreId, score, tempoPercent, isDarkMode } = useCursor()
+  const { project, scoreId, score, tempoPercent, isDarkMode, isPlaybackLooping } = useCursor()
 
   const { loadProject, loadScore } = useIndexedDBStore()
 
@@ -28,6 +28,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     project.value = settings?.currentProjectName || ''
     tempoPercent.value = settings?.tempoPercent || 100
     isDarkMode.value = settings?.isDarkMode || false
+    isPlaybackLooping.value = settings?.isPlaybackLooping || false
     // if (settings) {
     //   project.value = (await loadProject(settings.currentProjectName || '')) as string
     //   score.value = (await loadScore(settings.currentScoreId || 0)) as Score
@@ -43,6 +44,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
       currentScoreId: score.value?.id,
       tempoPercent: tempoPercent.value,
       isDarkMode: isDarkMode.value,
+      isPlaybackLooping: isPlaybackLooping.value,
     }
     console.log('saving settings', settings)
 

@@ -8,7 +8,7 @@ import { useCursor } from './useCursor'
 import { useCanvas } from './useCanvas'
 
 export const useSound = () => {
-  const { score, trackId, selection, tempoPercent } = useCursor()
+  const { score, trackId, barId, elementId, selection, tempoPercent } = useCursor()
   const { drawScore } = useCanvas()
   const isPlaying = ref(false)
 
@@ -112,13 +112,23 @@ export const useSound = () => {
       bar._voices
         .flatMap((voice: Voice) => voice._elements)
         .forEach((element: VoiceElement) => {
+          // debugger
           if (
             selection.value.length > 1 &&
             selection.value[0] instanceof VoiceElement &&
             !selection.value.includes(toRaw(element))
           ) {
             return
+          } else if (
+            selection.value.length == 1 &&
+            selection.value[0] instanceof VoiceElement &&
+            (element.bar().index() < selection.value[0].bar().index() ||
+              (element.bar().index() == selection.value[0].bar().index() &&
+                element.index() < selection.value[0].index()))
+          ) {
+            return
           }
+
           if (!element.isRest()) {
             const time = nextVoiceTimes[element.voice().index()]
             noteTuples.push([time, element])
@@ -171,7 +181,11 @@ export const useSound = () => {
 
   const pause = () => {
     isPlaying.value = false
-    Tone.getTransport().pause()
+    Tone.getTransport().stop()
+    if (selection.value[0] instanceof VoiceElement) {
+      barId.value = selection.value[0].bar().index()
+      elementId.value = selection.value[0].index()
+    }
   }
 
   return {
