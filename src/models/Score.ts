@@ -16,6 +16,8 @@ interface Error {
 class Score {
   id: number | null
   title: string
+  createdDateTime: Date
+  modifiedDateTime: Date
   url: string
   tempo: number
   barsPerLine: number
@@ -30,6 +32,8 @@ class Score {
   ) {
     this.id = null
     this.title = title
+    this.createdDateTime = new Date()
+    this.modifiedDateTime = this.createdDateTime
     this.barsPerLine = 4
     this.fontSize = 16
     this.tempo = tempo
@@ -52,6 +56,8 @@ class Score {
   toJSON(): object {
     return {
       title: this.title,
+      createdDateTime: this.createdDateTime ?? new Date(),
+      modifiedDateTime: this.modifiedDateTime,
       url: this.url,
       tempo: this.tempo,
       timeSignature: this.timeSignature,
@@ -110,6 +116,8 @@ class Score {
     const score = new Score(data.title, data.tempo, data.timeSignature)
     score.barsPerLine = data.barsPerLine
     score.id = data.id
+    score.createdDateTime = data.createdDateTime ?? new Date()
+    score.modifiedDateTime = data.modifiedDateTime ?? new Date()
     score.fontSize = data.fontSize ?? 16
     score.url = data.url ?? ''
     score._tracks = data.tracks.map((trackData: any) => Track.fromJSON(score, trackData))

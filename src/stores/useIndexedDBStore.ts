@@ -92,6 +92,7 @@ export const useIndexedDBStore = defineStore('indexedDBStore', () => {
   }
 
   const saveScore = async (score: Score) => {
+    score.modifiedDateTime = new Date()
     const clonedScore = score.clone(true)
     console.log('saving score:', clonedScore)
 

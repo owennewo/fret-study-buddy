@@ -18,6 +18,7 @@ import {
   Badge,
   Button,
   Checkbox,
+  Chip,
   Column,
   DataTable,
   Dialog,
@@ -39,6 +40,7 @@ import {
   Toast,
   ToggleButton,
   Toolbar,
+  TreeTable,
 } from 'primevue'
 
 const app = createApp(App)
@@ -58,6 +60,7 @@ app.use(DialogService)
 app.directive('tooltip', Tooltip)
 
 app.component('p-button', Button)
+app.component('p-chip', Chip)
 app.component('p-toolbar', Toolbar)
 app.component('p-select', Select)
 app.component('p-inputtext', InputText)
@@ -85,5 +88,6 @@ app.component('p-checkbox', Checkbox)
 app.component('p-floatlabel', FloatLabel)
 app.component('p-menubar', Menubar)
 app.component('p-multiselect', MultiSelect)
+app.component('p-treetable', TreeTable)
 
 app.mount('#app')

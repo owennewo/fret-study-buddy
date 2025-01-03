@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useCursor } from '@/composables/useCursor'
+import { useGDrive } from '@/composables/useGDrive'
 import { Score } from '@/models/Score'
 import { useSettingsStore } from '@/stores/settingsStore'
 import { useIndexedDBStore } from '@/stores/useIndexedDBStore'
@@ -8,6 +9,7 @@ import { ref, toRefs, type Ref } from 'vue'
 const { projects, scores } = toRefs(useIndexedDBStore())
 
 const { createProject, saveScore, deleteScore, downloadExportedProject, importProject } = useIndexedDBStore()
+const { uploadFile } = useGDrive()
 
 const { saveSettingsToDB } = useSettingsStore()
 const { project, score, scoreId } = useCursor()
@@ -30,6 +32,11 @@ const importProjectClicked = () => {
 
 const exportProjectClicked = () => {
   downloadExportedProject(project.value)
+  console.log('export project')
+}
+
+const syncProjectClicked = () => {
+  uploadFile(project.value)
   console.log('export project')
 }
 
@@ -109,6 +116,14 @@ const handleFileImport = async event => {
           severity="secondary"
           @click="exportProjectClicked"
           title="Export Project"
+        ></p-button>
+      </p-inputgroupaddon>
+      <p-inputgroupaddon>
+        <p-button
+          icon="pi pi-google"
+          severity="secondary"
+          @click="syncProjectClicked"
+          title="Sync Project"
         ></p-button>
       </p-inputgroupaddon>
     </p-inputgroup>

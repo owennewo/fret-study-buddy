@@ -7,11 +7,15 @@ import { useDialog } from 'primevue/usedialog'
 import EditScoreDialog from './EditScoreDialog.vue'
 import { useIndexedDBStore } from '@/stores/useIndexedDBStore'
 import OpenScoreDialog from './OpenScoreDialog.vue'
-const { saveScore } = useIndexedDBStore()
+import { useGDrive } from '@/composables/useGDrive'
+import SyncDialog from './SyncDialog.vue'
+import ScoreSelectorDialog from './ScoreSelectorDialog.vue'
+const { saveScore, importProject } = useIndexedDBStore()
 const { scores } = toRefs(useIndexedDBStore())
 
 const dialog = useDialog()
 
+const { listFiles, downloadFile} = useGDrive()
 const { play, pause, isPlaying } = useSound()
 const { score, scoreId, voiceId, tempoPercent, isDarkMode, isPlaybackLooping } = useCursor()
 
@@ -96,6 +100,36 @@ const prevScore = () => {
   const newScore = scores.value[scoreIndex - 1]
   // loadScore(project.value, newScore.id)
   scoreId.value = newScore.id
+}
+
+
+const syncGDrive = async () => {
+
+  dialog.open(ScoreSelectorDialog, {
+  // dialog.open(SyncDialog, {
+    props: {
+      header: 'Project Sync',
+      modal: true,
+      dismissableMask: true,
+    },
+  })
+
+  
+  // const files = await listFiles()
+  // debugger
+  // if (files.length > 0) {
+  //   console.log('files', files)
+
+  //   const projectFile = await downloadFile(files[0].id);
+
+  //   await importProject(projectFile);
+    
+  //   console.log('Project downloaded and imported successfully!');
+
+  // } else {
+  //   console.log('No files found')
+  // }
+
 }
 </script>
 
@@ -220,6 +254,10 @@ const prevScore = () => {
         </p-selectbutton>
 
         <i :class="`pi ${isDarkMode ? 'pi-sun' : 'pi pi-moon'}`" @click="toggleDarkMode"></i>
+
+        <!-- <p-button icon="pi pi-google" @click="syncGDrive"></p-button> -->
+        <p-button icon="pi pi-google" @click="syncGDrive"></p-button>
+
       </template>
     </p-toolbar>
   </div>
