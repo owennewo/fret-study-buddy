@@ -9,8 +9,6 @@ let isEventListenerRegistered = false
 let debounceTimer: NodeJS.Timeout | null = null
 
 export const useKeys = () => {
-  console.log('useKeys')
-
   const ignore = (event: KeyboardEvent): boolean => {
     const target = event.target as HTMLElement
     const { tagName } = target

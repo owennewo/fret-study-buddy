@@ -1,5 +1,5 @@
 import * as Tone from 'tone'
-import { ref, toRaw } from 'vue'
+import { nextTick, ref, toRaw } from 'vue'
 import { VoiceElement } from '@/models/VoiceElement'
 import type { Voice } from '@/models/Voice'
 import type { Track } from '@/models/Track'
@@ -8,7 +8,7 @@ import { useCursor } from './useCursor'
 import { useCanvas } from './useCanvas'
 
 export const useSound = () => {
-  const { score, trackId, barId, elementId, selection, tempoPercent } = useCursor()
+  const { score, trackId, barId, elementId, selection, tempoPercent, isPlaybackLooping } = useCursor()
   const { drawScore } = useCanvas()
   const isPlaying = ref(false)
 
@@ -153,7 +153,6 @@ export const useSound = () => {
         selection.value = [toRaw(element)]
         drawScore()
 
-        console.log(selection.value)
         // Schedule visual updates for the chord
         Tone.Draw.schedule(() => {
           setTimeout(
@@ -161,9 +160,15 @@ export const useSound = () => {
               playedCount += 1
               if (playedCount === noteTuples.length) {
                 console.log('ENDED')
-                selection.value = cacheSelection
+                selection.value = cacheSelection.map(item => toRaw(item))
                 drawScore()
                 isPlaying.value = false
+
+                if (isPlaybackLooping.value) {
+                  nextTick(() => {
+                    play()
+                  })
+                }
               }
             },
             duration * Tone.Time('4n').toMilliseconds(),
@@ -181,7 +186,7 @@ export const useSound = () => {
 
   const pause = () => {
     isPlaying.value = false
-    Tone.getTransport().stop()
+    Tone.getTransport().pause()
     if (selection.value[0] instanceof VoiceElement) {
       barId.value = selection.value[0].bar().index()
       elementId.value = selection.value[0].index()

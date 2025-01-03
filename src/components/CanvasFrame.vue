@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useCanvas } from '@/composables/useCanvas'
-import { useKeys } from '@/composables/keys/useKeys'
 import { useCommands } from '@/composables/useCommands'
 import { useCursor } from '@/composables/useCursor'
 import ToolBar from './ToolBar.vue'
@@ -16,7 +15,6 @@ const toggleErrorPopover = event => {
 }
 
 useCommands()
-useKeys()
 
 watch(
   [score, voiceId, isDarkMode],

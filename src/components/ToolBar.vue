@@ -224,3 +224,8 @@ const prevScore = () => {
     </p-toolbar>
   </div>
 </template>
+<style>
+.p-toolbar-end {
+  gap: 10px;
+}
+</style>

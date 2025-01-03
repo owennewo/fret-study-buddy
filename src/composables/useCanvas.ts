@@ -25,12 +25,12 @@ export const useCanvas = () => {
   const colours = computed(() => {
     return isDarkMode.value
       ? {
-          primary: 'black',
-          secondary: 'white',
-        }
-      : {
           primary: 'white',
           secondary: 'black',
+        }
+      : {
+          primary: 'black',
+          secondary: 'white',
         }
   })
 
@@ -335,9 +335,7 @@ export const useCanvas = () => {
       pixi = new Application()
 
       const wrapper = document.getElementById('canvas-wrapper')!
-
       const resizeObserver = new ResizeObserver(entries => {
-        console.log('resized')
         for (const entry of entries) {
           const { width, height } = entry.contentRect
           console.log(`Wrapper resized: ${width}x${height} (${wrapper.clientWidth} ${wrapper.clientHeight})`)
