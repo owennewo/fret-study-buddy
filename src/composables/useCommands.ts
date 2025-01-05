@@ -7,6 +7,7 @@ import { VoiceElement } from '@/models/VoiceElement'
 import NoteDialog from '@/components/NoteDialog.vue'
 import { useDialog } from 'primevue'
 import { useSound } from './useSound'
+import ScoreSelectorDialog from '@/components/ScoreSelectorDialog.vue'
 
 const { drawScore } = useCanvas()
 const { track, bar, barId, voice, voiceId, element, elementId, note, noteId, selection } = useCursor()
@@ -216,6 +217,17 @@ export const useCommands = () => {
       dialog.open(NoteDialog, {
         props: {
           header: 'Edit Score',
+          modal: true,
+          dismissableMask: true,
+        },
+      })
+    })
+
+    bind('^ctrl\\+o$', () => {
+      console.log('open')
+      dialog.open(ScoreSelectorDialog, {
+        props: {
+          header: 'Open Score',
           modal: true,
           dismissableMask: true,
         },

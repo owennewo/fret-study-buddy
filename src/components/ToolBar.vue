@@ -1,23 +1,22 @@
 <script setup lang="ts">
 import { useCursor } from '@/composables/useCursor'
 import { useSound } from '@/composables/useSound'
-import { computed, toRefs } from 'vue'
+import { computed } from 'vue'
 
 import { useDialog } from 'primevue/usedialog'
 import EditScoreDialog from './EditScoreDialog.vue'
-import { useIndexedDBStore } from '@/stores/useIndexedDBStore'
-import OpenScoreDialog from './OpenScoreDialog.vue'
-import { useGDrive } from '@/composables/useGDrive'
-import SyncDialog from './SyncDialog.vue'
 import ScoreSelectorDialog from './ScoreSelectorDialog.vue'
-const { saveScore, importProject } = useIndexedDBStore()
-const { scores } = toRefs(useIndexedDBStore())
+import { useDataStore } from '@/composables/datastores/useDataStore'
+
+
+import {useSettingsStore} from '@/stores/settingsStore'
+
+const { saveSettingsToDB } = useSettingsStore()
 
 const dialog = useDialog()
-
-const { listFiles, downloadFile} = useGDrive()
+const datastore = useDataStore();
 const { play, pause, isPlaying } = useSound()
-const { score, scoreId, voiceId, tempoPercent, isDarkMode, isPlaybackLooping } = useCursor()
+const { score, scoreId, voiceId, tempoPercent, isDarkMode, isPlaybackLooping, projectId, project } = useCursor()
 
 const voiceOptions = computed(() => {
   const options = Array.from({ length: 4 }, (_, i) => ({
@@ -29,26 +28,26 @@ const voiceOptions = computed(() => {
 })
 
 const hasPreviousScore = computed(() => {
-  if (!scores.value) {
+  if (!project?.value?.scores) {
     return false
   }
-  const scoreIndex = scores.value.findIndex(scoreLite => scoreLite.title == score.value.title)
+  const scoreIndex = project.value.scores.findIndex(scoreLite => scoreLite.title == score.value.title)
   return scoreIndex > 0
 })
 
 const hasNextScore = computed(() => {
-  if (!scores.value) {
+  if (!project?.value?.scores) {
     return false
   }
-  const scoreIndex = scores.value.findIndex(scoreLite => scoreLite.title == score.value.title)
-  return scoreIndex < scores.value.length - 1
+  const scoreIndex = project?.value?.scores.findIndex(scoreLite => scoreLite.title == score.value.title)
+  return scoreIndex < project?.value?.scores.length - 1
 })
 
 const toggleLoop = () => {
   isPlaybackLooping.value = !isPlaybackLooping.value
 }
 
-const toggleDarkMode = () => {
+const toggleDarkMode = async() => {
   isDarkMode.value = !isDarkMode.value
   document.documentElement.classList.toggle('dark-mode', isDarkMode.value)
 }
@@ -62,7 +61,8 @@ const togglePlay = () => {
 }
 
 const saveScoreClicked = async () => {
-  await saveScore(score.value)
+  datastore.saveScore(projectId.value, score.value)
+  saveSettingsToDB()
 }
 
 const editScore = () => {
@@ -78,7 +78,7 @@ const editScore = () => {
 
 const openScore = () => {
   console.log('open score')
-  dialog.open(OpenScoreDialog, {
+  dialog.open(ScoreSelectorDialog, {
     props: {
       header: 'Open Score',
       modal: true,
@@ -88,16 +88,16 @@ const openScore = () => {
 }
 const nextScore = () => {
   console.log('next score')
-  const scoreIndex = scores.value.findIndex(scoreLite => scoreLite.title == score.value.title)
-  const newScore = scores.value[scoreIndex + 1]
+  const scoreIndex = project?.value?.scores.findIndex(scoreLite => scoreLite.title == score.value.title)
+  const newScore = project?.value?.scores[scoreIndex + 1]
   // loadScore(project.value, newScore.id)
   scoreId.value = newScore.id
 }
 
 const prevScore = () => {
   console.log('prev score')
-  const scoreIndex = scores.value.findIndex(scoreLite => scoreLite.title == score.value.title)
-  const newScore = scores.value[scoreIndex - 1]
+  const scoreIndex = project?.value?.scores.findIndex(scoreLite => scoreLite.title == score.value.title)
+  const newScore = project?.value?.scores[scoreIndex - 1]
   // loadScore(project.value, newScore.id)
   scoreId.value = newScore.id
 }
@@ -114,7 +114,7 @@ const syncGDrive = async () => {
     },
   })
 
-  
+
   // const files = await listFiles()
   // debugger
   // if (files.length > 0) {
@@ -123,7 +123,7 @@ const syncGDrive = async () => {
   //   const projectFile = await downloadFile(files[0].id);
 
   //   await importProject(projectFile);
-    
+
   //   console.log('Project downloaded and imported successfully!');
 
   // } else {
@@ -226,7 +226,7 @@ const syncGDrive = async () => {
             </p-button>
           </p-inputgroupaddon>
 
-          <p-inputtext readonly v-model="score.title" placeholder="score" />
+          <p-inputtext readonly :value="score?.title" placeholder="score" />
           <p-inputgroupaddon>
             <p-button class="p-button p-button-text" @click="editScore" title="Edit score">
               <i class="pi pi-pencil"></i>

@@ -1,6 +1,6 @@
 import type { DataStore, Project, ScoreSummary } from '@/interfaces/DataStore'
 import { Score } from '@/models/Score'
-import { openDB, type IDBPDatabase } from 'idb'
+import { openDB } from 'idb'
 
 export function useLocalDataStore(): DataStore {
   const SCORES_STORE = 'Scores'
@@ -22,7 +22,7 @@ export function useLocalDataStore(): DataStore {
     }
     return db;
   };
-         
+
 
   return {
     listProjects: async () => {
@@ -34,6 +34,7 @@ export function useLocalDataStore(): DataStore {
         })) as Project[]
     },
     createProject: async projectName => {
+      debugger
       await openDatabase(projectName)
       return { id: projectName, name: projectName }
     },

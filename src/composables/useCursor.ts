@@ -1,3 +1,4 @@
+import type { Project } from '@/interfaces/DataStore'
 import type { Bar } from '@/models/Bar'
 import { Score } from '@/models/Score'
 import type { VoiceElement } from '@/models/VoiceElement'
@@ -15,9 +16,11 @@ enum Mode {
   ModeDark = 8,
 }
 
-const project: Ref<string> = ref('')
+const project: Ref<Project | null> = ref(null)
+const projectId: Ref<string> = ref('')
+const projectName: Ref<string> = ref('')
 const score: Ref<Score> = ref(Score.new())
-const scoreId: Ref<number> = ref(-1)
+const scoreId: Ref<string> = ref('')
 const trackId: Ref<number> = ref(0)
 const barId: Ref<number> = ref(0)
 const voiceId: Ref<number> = ref(0)
@@ -26,6 +29,7 @@ const noteId: Ref<number> = ref(0)
 const tempoPercent: Ref<number> = ref(100)
 const isDarkMode = ref(false)
 const isPlaybackLooping = ref(false)
+const projectType: Ref<string> = ref('Local')
 
 const selection: Ref<Array<VoiceElement | Bar>> = ref([])
 
@@ -105,7 +109,10 @@ const mode: Ref<Mode> = ref(Mode.ModeNote)
 
 export const useCursor = () => {
   return {
+    projectType,
     project,
+    projectId,
+    projectName,
     score,
     scoreId,
     track,

@@ -19,6 +19,7 @@ import {
   Button,
   Checkbox,
   Chip,
+  Card,
   Column,
   DataTable,
   Dialog,
@@ -44,9 +45,11 @@ import {
 } from 'primevue'
 
 const app = createApp(App)
-
+app.use(ToastService);
 app.use(createPinia())
 app.use(PrimeVue, {
+  // unstyled: true
+  // theme: 'none'
   theme: {
     preset: Aura,
     options: {
@@ -89,5 +92,6 @@ app.component('p-floatlabel', FloatLabel)
 app.component('p-menubar', Menubar)
 app.component('p-multiselect', MultiSelect)
 app.component('p-treetable', TreeTable)
+app.component('p-card', Card)
 
 app.mount('#app')

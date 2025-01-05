@@ -2,46 +2,76 @@
 import CanvasFrame from './components/CanvasFrame.vue'
 import DynamicDialog from 'primevue/dynamicdialog'
 import { useCursor } from './composables/useCursor'
-import { useIndexedDBStore } from './stores/useIndexedDBStore'
 import { useSettingsStore } from './stores/settingsStore'
 import { onMounted, watch } from 'vue'
 import type { Score } from './models/Score'
+import { useDataStore } from './composables/datastores/useDataStore'
+import { useToast } from 'primevue'
 
-const { project, score, scoreId } = useCursor()
-const { loadProjects, loadProject, loadScore } = useIndexedDBStore()
-const { saveSettingsToDB, loadSettingsFromDB } = useSettingsStore()
+const { projectId, projectType, score, scoreId } = useCursor()
+const { loadSettingsFromDB } = useSettingsStore()
+const datastore = useDataStore()
 
-watch(project, async () => {
-  if (project.value) {
-    console.log('switching project:', project.value)
-    loadProject(project.value)
-    saveSettingsToDB()
-  }
-})
+const toast = useToast()
 
 watch(scoreId, async newCurrentScoreId => {
-  if (project.value == null || newCurrentScoreId == undefined || newCurrentScoreId <= 0) {
+  if (!projectId.value || !newCurrentScoreId) {
     return
   }
+  console.log('projectId', projectId.value)
   console.log('Current Score:', newCurrentScoreId)
+  console.log('user initiated:', !!window.event)
   if (newCurrentScoreId != null) {
-    const loadedScore = await loadScore(project.value, newCurrentScoreId)
+    const loadedScore = await datastore.getScore(projectId.value, newCurrentScoreId)
     console.log('Loaded Score:', score.value)
     score.value = loadedScore as Score
-    saveSettingsToDB()
   }
 })
 
 onMounted(async () => {
-  await loadProjects()
-  await loadSettingsFromDB()
+  loadSettingsFromDB()
 })
+
+const restoreProject = async (options) => {
+  console.log('Restoring Project:', options.message.data)
+  projectType.value = options.message.data.projectType
+  projectId.value = options.message.data.projectId
+  scoreId.value = options.message.data.scoreId
+
+  toast.removeGroup('restore');
+}
 </script>
 
 <template>
   <p-toast />
+  <p-toast group="restore">
+    <template #message="options">
+      <div class="flex flex-col gap-5 w-full">
+          <div class="flex align-items-center">
+            <i class="pi pi-google text-2xl mr-4"></i>
+            <h2  class="text-xl font-bold">Restore last score??</h2>
+          </div>
+        <div class="flex flex-col text-center">
+          <p>Project: {{ options.message.data.projectName }}</p>
+          <p>Score: {{ options.message.data.scoreTitle }}</p>
+        </div>
+        <div class="flex flex-row gap-2 justify-end">
+          <p-button
+            label="Restore"
+            class="p-button-success p-button-sm"
+            @click="restoreProject(options)"
+          />
+          <p-button
+            label="Cancel"
+            class="p-button-secondary p-button-sm"
+            @click="() => console.log('Cancel clicked')"
+          />
+        </div>
+      </div>
+    </template>
+</p-toast>
+
   <DynamicDialog />
-  <!-- <SidePanel></SidePanel> -->
   <CanvasFrame></CanvasFrame>
 </template>
 

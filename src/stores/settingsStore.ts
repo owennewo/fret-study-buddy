@@ -1,13 +1,13 @@
 import { defineStore } from 'pinia'
 import { openDB } from 'idb'
 import { useCursor } from '@/composables/useCursor'
-import { useIndexedDBStore } from '@/stores/useIndexedDBStore'
-// import type { Score } from '@/models/Score'
+
+import { useToast } from 'primevue/usetoast';
 
 export const useSettingsStore = defineStore('settingsStore', () => {
-  const { project, scoreId, score, tempoPercent, isDarkMode, isPlaybackLooping } = useCursor()
 
-  const { loadProject, loadScore } = useIndexedDBStore()
+  const { projectId, projectName, scoreId, score, tempoPercent, isDarkMode, isPlaybackLooping, projectType } = useCursor()
+  const toast = useToast();
 
   async function getDB() {
     const db = openDB('appDatabase', 1, {
@@ -24,30 +24,52 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     const db = await getDB()
     const settings = await db.get('settings', 'appSettings')
 
-    scoreId.value = settings?.currentScoreId || 0
-    project.value = settings?.currentProjectName || ''
-    tempoPercent.value = settings?.tempoPercent || 100
-    isDarkMode.value = settings?.isDarkMode || false
-    isPlaybackLooping.value = settings?.isPlaybackLooping || false
-    // if (settings) {
-    //   project.value = (await loadProject(settings.currentProjectName || '')) as string
-    //   score.value = (await loadScore(settings.currentScoreId || 0)) as Score
-    //   debugger
-    // }
+    const savedProjectType = settings?.projectType || 'Local'
+    const savedProjectId = settings?.projectId ?? ''
+    const savedProjectName = settings?.projectName ?? ''
+
+    const savedScoreId = settings?.scoreId ?? ''
+    const savedScoreTitle = settings?.scoreTitle ?? 'missing-title'
+
+
+    tempoPercent.value = settings?.tempoPercent ?? 100
+    isDarkMode.value = settings?.isDarkMode ?? false
+    isPlaybackLooping.value = settings?.isPlaybackLooping ?? false
+
+    if (savedProjectType == 'GDrive') {
+      toast.add({ group:'restore', severity: 'info', summary: 'Info', data: {
+        projectType: savedProjectType,
+        projectId: savedProjectId,
+        projectName: savedProjectName,
+        scoreId: savedScoreId,
+        scoreTitle: savedScoreTitle
+      },
+      // life: 10000
+    });
+    } else {
+      projectType.value = savedProjectType
+      projectId.value = savedProjectId
+      projectName.value = savedProjectName
+      scoreId.value = savedScoreId
+    }
+    db.close()
+
   }
 
   async function saveSettingsToDB() {
     const db = await getDB()
     const settings = {
       id: 'appSettings',
-      currentProjectName: project.value,
-      currentScoreId: score.value?.id,
+      projectType: projectType.value,
+      projectId: projectId.value,
+      projectName: projectName.value,
+      scoreId: score.value?.id,
+      scoreTitle: score.value?.title,
       tempoPercent: tempoPercent.value,
       isDarkMode: isDarkMode.value,
       isPlaybackLooping: isPlaybackLooping.value,
     }
     console.log('saving settings', settings)
-
     await db.put('settings', settings)
   }
 
