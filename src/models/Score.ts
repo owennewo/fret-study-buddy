@@ -14,7 +14,7 @@ interface Error {
 }
 
 class Score {
-  id: number | null
+  id: string | null
   title: string
   createdDateTime: Date
   modifiedDateTime: Date

@@ -36,7 +36,7 @@ export function useLocalDataStore(): DataStore {
     createProject: async projectName => {
       debugger
       await openDatabase(projectName)
-      return { id: projectName, name: projectName }
+      return { id: projectName, name: projectName } as Project
     },
     deleteProject: async projectId => {
       const result = await indexedDB.deleteDatabase(projectId)
@@ -77,7 +77,7 @@ export function useLocalDataStore(): DataStore {
         await db.put(SCORES_STORE, clonedScore)
       } else {
         const newId = await db.add(SCORES_STORE, clonedScore, undefined)
-        score.id = newId as number
+        score.id = newId as string
       }
 
       return {
@@ -85,5 +85,13 @@ export function useLocalDataStore(): DataStore {
         title: score.title,
       } as ScoreSummary
     },
+    exportProject: async function (projectId) {
+      // throw new Error('not implemented' + projectId)
+      return {} as Blob
+    },
+    importProject: async function (projectName, projectBlob) {
+      return {} as Project
+    }
+
   }
 }

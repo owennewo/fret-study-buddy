@@ -64,7 +64,7 @@ const restoreProject = async (options) => {
           <p-button
             label="Cancel"
             class="p-button-secondary p-button-sm"
-            @click="() => console.log('Cancel clicked')"
+            @click="() =>   toast.removeGroup('restore')"
           />
         </div>
       </div>

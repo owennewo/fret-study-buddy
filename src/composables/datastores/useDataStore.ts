@@ -3,6 +3,7 @@ import { useGDriveDataStore } from "./useGDriveDataStore"
 import { useLocalDataStore } from "./useLocalDataStore"
 import { computed } from "vue"
 import { useCursor } from "../useCursor"
+import type { Score } from "@/models/Score"
 
 const localDataStore = useLocalDataStore()
 const griveDataStore = useGDriveDataStore()
@@ -40,6 +41,12 @@ export function useDataStore(): DataStore {
     },
     deleteScore: async (projectId: string, scoreId: string) => {
       return await ds.value.deleteScore(projectId, scoreId)
-    }
+    },
+    exportProject: async (projectId: string) => {
+      return await ds.value.exportProject(projectId)
+    },
+    importProject: async (projectName: string, projectBlob: Blob) => {
+      return await ds.value.importProject(projectName, projectBlob)
+    },
   }
 }

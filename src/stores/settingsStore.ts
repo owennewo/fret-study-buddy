@@ -3,6 +3,7 @@ import { openDB } from 'idb'
 import { useCursor } from '@/composables/useCursor'
 
 import { useToast } from 'primevue/usetoast';
+import type { ToastMessageOptions } from 'primevue';
 
 export const useSettingsStore = defineStore('settingsStore', () => {
 
@@ -35,19 +36,24 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     tempoPercent.value = settings?.tempoPercent ?? 100
     isDarkMode.value = settings?.isDarkMode ?? false
     isPlaybackLooping.value = settings?.isPlaybackLooping ?? false
+    projectType.value = savedProjectType
 
     if (savedProjectType == 'GDrive') {
-      toast.add({ group:'restore', severity: 'info', summary: 'Info', data: {
-        projectType: savedProjectType,
-        projectId: savedProjectId,
-        projectName: savedProjectName,
-        scoreId: savedScoreId,
-        scoreTitle: savedScoreTitle
-      },
-      // life: 10000
-    });
+      toast.add(
+        {
+          group:'restore',
+          severity: 'info',
+          summary: 'Info',
+          data: {
+            projectType: savedProjectType,
+            projectId: savedProjectId,
+            projectName: savedProjectName,
+            scoreId: savedScoreId,
+            scoreTitle: savedScoreTitle
+          },
+          life: 10000
+        } as unknown as ToastMessageOptions);
     } else {
-      projectType.value = savedProjectType
       projectId.value = savedProjectId
       projectName.value = savedProjectName
       scoreId.value = savedScoreId

@@ -1,5 +1,5 @@
 import { gapi } from 'gapi-script';
-import type { DataStore } from '@/interfaces/DataStore'
+import type { DataStore, ScoreSummary } from '@/interfaces/DataStore'
 import { Score } from '@/models/Score'
 import JSZip from 'jszip';
 
@@ -171,6 +171,7 @@ export function useGDriveDataStore(): DataStore {
 
       const metadata = {
         name: `${score.title}.json`, // Name the score file based on its title
+        ...(score.title && { parents: [projectId] }),
       };
 
       const fileContent = JSON.stringify(score);
@@ -195,7 +196,7 @@ export function useGDriveDataStore(): DataStore {
         );
       } else {
         // If the score does not have an ID, create a new file
-        metadata.parents = [projectId];
+        // metadata.parents = [projectId];
         response = await fetch(
           'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',
           {
@@ -215,7 +216,7 @@ export function useGDriveDataStore(): DataStore {
       return {
         id: json.id,
         title: score.title,
-      };
+      } as ScoreSummary;
     },
     exportProject: async function (projectId) {
       const token = await signIn();

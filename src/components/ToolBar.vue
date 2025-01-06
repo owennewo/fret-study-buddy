@@ -88,18 +88,18 @@ const openScore = () => {
 }
 const nextScore = () => {
   console.log('next score')
-  const scoreIndex = project?.value?.scores.findIndex(scoreLite => scoreLite.title == score.value.title)
+  const scoreIndex = project?.value?.scores.findIndex(scoreLite => scoreLite.title == score.value.title) ?? -1
   const newScore = project?.value?.scores[scoreIndex + 1]
   // loadScore(project.value, newScore.id)
-  scoreId.value = newScore.id
+  scoreId.value = newScore!.id
 }
 
 const prevScore = () => {
   console.log('prev score')
-  const scoreIndex = project?.value?.scores.findIndex(scoreLite => scoreLite.title == score.value.title)
+  const scoreIndex = project?.value?.scores.findIndex(scoreLite => scoreLite.title == score.value.title) ?? -1
   const newScore = project?.value?.scores[scoreIndex - 1]
   // loadScore(project.value, newScore.id)
-  scoreId.value = newScore.id
+  scoreId.value = newScore!.id
 }
 
 

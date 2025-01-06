@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, toRaw } from 'vue'
+import { ref, onMounted, toRaw, type Ref } from 'vue'
 
 import { useCursor } from '@/composables/useCursor'
 import { useSettingsStore } from '@/stores/settingsStore'
@@ -10,7 +10,7 @@ const { score, scoreId, projectType, projectId, projectName } = useCursor()
 const { saveSettingsToDB } = useSettingsStore()
 
 const datastore = useDataStore()
-const nodes = ref([])
+const nodes: Ref<unknown> = ref([])
 const pop = ref()
 const projectTypes = ref([
   { name: 'Local', description: 'Stored in your browser local storage' },
@@ -23,21 +23,22 @@ const fetchNodes = async (projects) => {
         console.log('Loading nodes for Project: ', project)
       const scores = await datastore.listScores(project.id)
       return {
-        key: project.id,
+        // source:
         data: {
-          name: project.name,
-          type: 'project',
-          source: 'local',
+          projectId: project.id,
+        name: project.name,
+        type: 'project',
         },
         children: scores.map(score => {
           return {
-            key: score.id,
             data: {
-                project: project,
-                name: score.title,
-              // size: '25kb',
+              projectId: project.id,
+              projectName: project.name,
               type: 'score',
-            },
+              scoreId: score.id,
+              name: score.title,
+              key: score.id,
+            }
           }
         }),
       }
@@ -50,10 +51,9 @@ const fetchNodes = async (projects) => {
 
 const selectScore = async (row) => {
   console.log('Selected Score: ', toRaw(row))
-  projectId.value = row.data.project.id
-  projectName.value = row.data.project.name
-
-  scoreId.value = row.key
+  projectId.value = row.data.projectId
+  projectName.value = row.data.projectName
+  scoreId.value = row.data.scoreId
   console.log('Selected Score: ', scoreId.value)
   console.log('Selected Project: ', projectId.value)
   console.log('Selected Project name: ', projectName.value)
@@ -83,13 +83,16 @@ const addProject = async () => {
 const addRow = async (row) => {
   if (row.data.type === 'project')
   {
-    console.log('Adding Score to Project: ', row.key)
+    console.log('Adding Score to Project: ', row.data.projectId)
     score.value = Score.new()
-    const summary = await datastore.saveScore(row.key, score.value)
+    const summary = await datastore.saveScore(row.data.projectId, score.value)
+    debugger
+    score.value.id = summary.id
     console.log('Summary: ', summary)
     scoreId.value = summary.id
+    projectId.value = row.data.projectId
     saveSettingsToDB()
-
+    refreshProjects()
   } else {
     console.warn('Cannot add')
   }
@@ -99,9 +102,9 @@ const deleteRow = async(row) => {
   console.log('Deleting Project: ', row)
   if (row.data.type === 'project')
   {
-    await datastore.deleteProject(row.key)
+    await datastore.deleteProject(row.data.projectId)
   } else if (row.data.type === 'score') {
-    await datastore.deleteScore(row.data.project.id, row.key)
+    await datastore.deleteScore(row.data.projectId, row.data.scoreId)
   }
   refreshProjects()
 }
@@ -109,10 +112,8 @@ const deleteRow = async(row) => {
 const handleProjectImport = async event => {
   const file = event.target.files[0]
   if (file) {
-    // await importProject(file)
     await datastore.importProject(file.name, file)
     refreshProjects()
-
     console.log('Project imported successfully.')
   } else {
     console.warn('No file selected.')
@@ -133,7 +134,7 @@ const handleProjectImport = async event => {
       placeholder="Select a ProjectType"
       class="w-full md:w-56"
     />
-    <p>{{ projectType?.description ?? '' }}</p>
+    <p>{{ projectType ?? '' }}</p>
 
     <p-treetable :value="nodes" tableStyle="min-width: 50rem">
       <template #header>
@@ -141,14 +142,13 @@ const handleProjectImport = async event => {
         <p-button icon="pi pi-plus" label="Add Project" severity="info" @click="toggle" />
         <p-button icon="pi pi-plus" label="Import Project" severity="info" @click="toggle" />
         <input type="file" ref="fileInput" accept=".zip" style="display: none" @change="handleProjectImport" />
-
       </template>
       <p-column field="name" header="Name" expander style="width: 250px"></p-column>
-      <p-column field="size" header="Size" style="width: 150px"></p-column>
       <p-column field="type" header="Type" style="width: 150px"></p-column>
       <p-column style="width: 10rem">
         <template #body="slotProps">
-          <p-button :v-if="slotProps.node.data.type === 'project'" icon="pi pi-plus" rounded title="Add Score" @click="addRow(slotProps.node)" />
+
+          <p-button :v-if="slotProps.node.type === 'project'" icon="pi pi-plus" rounded title="Add Score" @click="addRow(slotProps.node)" />
           <div class="flex flex-wrap gap-2">
             <p-button
               type="button"

@@ -261,6 +261,7 @@ export const useCommands = () => {
           pasteItem = VoiceElement.fromJSON(voice.value, pasteItem?.toJSON())
           voice.value._elements.splice(element.value.index(), 1, pasteItem)
           elementId.value += 1
+          console.debug("paste", element.value.bar().index(), element.value.index())
         } else {
           // what are they pasting
           debugger
