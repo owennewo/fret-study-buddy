@@ -3,7 +3,7 @@ let sequence = ''
 interface RegexHandler {
   handler: (sequence: string) => void
 }
-
+let lastRegex: RegExp = null
 const regexHandlers: Map<RegExp, RegexHandler> = new Map()
 let isEventListenerRegistered = false
 let debounceTimer: NodeJS.Timeout | null = null
@@ -56,7 +56,21 @@ export const useKeys = () => {
     if (event.ctrlKey) {
       pressedKey = 'ctrl+' + pressedKey
     }
-    sequence += pressedKey
+
+    if (lastRegex) {
+      if (lastRegex.test(sequence + pressedKey)) {
+        console.log(`continue ${lastRegex.source}: ${sequence + pressedKey}`)
+      } else {
+        sequence = ''
+        console.log(`reset ${lastRegex.source} ${pressedKey}`)
+        lastRegex = null
+      }
+    } else {
+      console.log('start ' + pressedKey)
+    }
+      sequence += pressedKey
+
+    // sequence += pressedKey
 
     checkRegex(event)
   }
@@ -68,17 +82,27 @@ export const useKeys = () => {
         if (debounceTimer) {
           clearTimeout(debounceTimer)
         }
-        if (!regex.source.endsWith('$')) {
-          debounceTimer = setTimeout(() => (sequence = ''), 400)
-        } else {
-          sequence = ''
-        }
+        // if (!regex.source.endsWith('$')) {
+          lastRegex = regex
+          debounceTimer = setTimeout(() => {
+            sequence = ''
+            lastRegex = null
+            console.log(`reset timeout ${regex.source}`)
+          }, 400)
+        // } else {
+        //   sequence = ''
+        //   lastRegex = null
+        //   console.log(`reset2 ${regex.source}`)
+        // }
         event.preventDefault()
         return
       }
     }
     console.log(`unknown '${sequence}'`)
     sequence = ''
+    lastRegex = null
+    console.log(`reset3 ${regex.source}`)
+
   }
 
   const bind = (regex: RegExp | string, handler: (sequence: string) => void): void => {

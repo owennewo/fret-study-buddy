@@ -130,7 +130,9 @@ export const useSound = () => {
           }
 
           if (!element.isRest()) {
-            const time = nextVoiceTimes[element.voice().index()]
+            let time = nextVoiceTimes[element.voice().index()]
+            time = Math.round(time * 1000) / 1000;  // round to 3 decimal places
+            console.log(`${element.bar().index()}:${element.voice().index()}:${element.index()} ${time}`)
             noteTuples.push([time, element])
           }
           nextVoiceTimes[element.voice().index()] +=

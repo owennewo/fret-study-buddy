@@ -170,8 +170,8 @@ export function useGDriveDataStore(): DataStore {
       const token = await signIn();
 
       const metadata = {
-        name: `${score.title}.json`, // Name the score file based on its title
-        ...(score.title && { parents: [projectId] }),
+        name: `${score.title}.json`,
+        ...(!score.id && { parents: [projectId] }),  // only add parent if score is new
       };
 
       const fileContent = JSON.stringify(score);

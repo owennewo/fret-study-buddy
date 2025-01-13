@@ -4,6 +4,7 @@ import { useCanvas } from '@/composables/useCanvas'
 import { useCommands } from '@/composables/useCommands'
 import { useCursor } from '@/composables/useCursor'
 import ToolBar from './ToolBar.vue'
+import FretboardFrame from './FretboardFrame.vue'
 
 const { score, voiceId, isDarkMode } = useCursor()
 const { drawScore, canvasRef, canvasContainerRef, voiceColours } = useCanvas()
@@ -39,6 +40,7 @@ watch(
       ></p-badge>
 
       <canvas ref="canvasRef" class="theCanvas"></canvas>
+
       <p-popover ref="errorPopover">
         <p-datatable :value="score?.errors()" tableStyle="min-width: 50rem">
           <p-column field="track" header="Track" class="w-1/6"></p-column>
@@ -52,7 +54,11 @@ watch(
         </p-datatable>
       </p-popover>
     </div>
+    <!-- <div>
+      <FretboardFrame />
+    </div> -->
   </div>
+
 </template>
 
 <style scoped>

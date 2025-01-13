@@ -21,8 +21,7 @@ export const useCommands = () => {
 
   const { bind } = useKeys()
   if (!loaded) {
-    bind('^\\d+(.\\d+)?', sequence => {
-      console.log('number', sequence)
+    bind('^\\d+(.\\d+)?$', sequence => {
       note.value.fretNumber = parseInt(sequence)
       drawScore()
     })

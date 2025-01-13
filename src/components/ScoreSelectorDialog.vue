@@ -86,7 +86,6 @@ const addRow = async (row) => {
     console.log('Adding Score to Project: ', row.data.projectId)
     score.value = Score.new()
     const summary = await datastore.saveScore(row.data.projectId, score.value)
-    debugger
     score.value.id = summary.id
     console.log('Summary: ', summary)
     scoreId.value = summary.id

@@ -34,7 +34,6 @@ export function useLocalDataStore(): DataStore {
         })) as Project[]
     },
     createProject: async projectName => {
-      debugger
       await openDatabase(projectName)
       return { id: projectName, name: projectName } as Project
     },

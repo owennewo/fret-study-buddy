@@ -5,20 +5,21 @@ import { useCursor } from '@/composables/useCursor'
 import type { Bar } from '@/models/Bar'
 import type { Track } from '@/models/Track'
 import type { Voice } from '@/models/Voice'
-import type { Note } from '@/models/Note'
+import { Technique, type Note } from '@/models/Note'
 import { Application, Container, Graphics, Text, TextStyle, type TextOptions } from 'pixi.js'
 
 import { initDevtools } from '@pixi/devtools'
 import { BaseNoteValue, Duration } from '@/models/Duration'
+import { useFretboard } from './useFretboard'
 const canvasRef: Ref<HTMLCanvasElement | null> = ref(null)
 const canvasContainerRef: Ref<HTMLDivElement | null> = ref(null)
 
+const {drawFretboard } = useFretboard()
+
 let pixi: Application | null = null
-let renderCount = 0
 
 export const useCanvas = () => {
   const backgroundColour = 'lightgrey'
-  const foregroundColour = '#17202a'
 
   const voiceColours = ['#8e0000', '#4a0072', '#0000b2', '#004d40']
 
@@ -59,7 +60,31 @@ export const useCanvas = () => {
     return voiceColours[voice.index()]
   }
 
-  const drawNote = (note: Note, barHeight: number) => {
+  const drawTechniqueHammer = (note: Note, usableWidth: number) => {
+
+    const g = new Graphics();
+    const duration = note.element().prev().beatDuration() * usableWidth / note.bar().timeSignature.beatsPerBar;
+    const radiusX = (duration - score.value.fontSize) / 2; // Horizontal radius (semi-width)
+    const radiusY = score.value.fontSize / 2; // Fixed vertical radius (height)
+    const centerX = -radiusX - score.value.fontSize / 4;
+    const centerY = 0;
+
+    g.moveTo(centerX - radiusX, centerY);
+
+    // Use bezierCurveTo to create a semi-ellipse
+    g.bezierCurveTo(
+      centerX - radiusX, centerY - radiusY, // Control point 1
+      centerX + radiusX, centerY - radiusY, // Control point 2
+      centerX + radiusX, centerY            // End point
+    ).stroke({
+      color: voiceColor(note.voice()),
+      width: 2,
+    });
+
+    return g
+  }
+
+  const drawNote = (note: Note, usableWidth: number, barHeight: number) => {
     const stringSpacing = barHeight / (note.track().stringCount() - 1)
     const isCurrent = toRaw(currentNote.value) === toRaw(note)
     const rectColor = isCurrent ? voiceColor(note.voice()) : colours.value.secondary
@@ -92,6 +117,13 @@ export const useCanvas = () => {
     if (!isNaN(note.fretNumber)) {
       c.addChild(t)
     }
+
+    note.techniques.forEach(technique => {
+      if (technique == Technique.HammerOn || technique == Technique.PullOff) {
+        c.addChild(drawTechniqueHammer(note, usableWidth))
+      }
+
+    });
     return c
   }
 
@@ -135,7 +167,7 @@ export const useCanvas = () => {
     }
 
     element._notes.forEach(note => {
-      c.addChild(drawNote(note, barHeight))
+      c.addChild(drawNote(note, usableWidth, barHeight))
     })
     return c
   }
@@ -321,6 +353,8 @@ export const useCanvas = () => {
   }
 
   const drawScore = async () => {
+    // drawFretboard()
+    // return
     if (!score.value) {
       console.log('No score found')
       return
@@ -374,7 +408,6 @@ export const useCanvas = () => {
     pageContainer.addChild(scoreContainer)
 
     if (pixi && pixi.renderer) {
-      renderCount += 1
       pixi!.renderer.background.color = colours.value.secondary
       pixi!.renderer.resize(
         wrapper.clientWidth,
