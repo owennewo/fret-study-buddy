@@ -3,7 +3,7 @@ let sequence = ''
 interface RegexHandler {
   handler: (sequence: string) => void
 }
-let lastRegex: RegExp = null
+let lastRegex: RegExp | null = null
 const regexHandlers: Map<RegExp, RegexHandler> = new Map()
 let isEventListenerRegistered = false
 let debounceTimer: NodeJS.Timeout | null = null
@@ -82,27 +82,20 @@ export const useKeys = () => {
         if (debounceTimer) {
           clearTimeout(debounceTimer)
         }
-        // if (!regex.source.endsWith('$')) {
           lastRegex = regex
           debounceTimer = setTimeout(() => {
             sequence = ''
             lastRegex = null
             console.log(`reset timeout ${regex.source}`)
           }, 400)
-        // } else {
-        //   sequence = ''
-        //   lastRegex = null
-        //   console.log(`reset2 ${regex.source}`)
-        // }
         event.preventDefault()
         return
       }
     }
     console.log(`unknown '${sequence}'`)
     sequence = ''
+    console.log(`reset3 ${lastRegex!.source}`)
     lastRegex = null
-    console.log(`reset3 ${regex.source}`)
-
   }
 
   const bind = (regex: RegExp | string, handler: (sequence: string) => void): void => {
