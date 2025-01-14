@@ -60,6 +60,57 @@ export const useCanvas = () => {
     return voiceColours[voice.index()]
   }
 
+  const drawTechniqueBend = (note: Note, usableWidth: number) => {
+    const g = new Graphics();
+
+    // Adjust these to taste
+    // const duration = note.element().prev().beatDuration() * usableWidth / note.bar().timeSignature.beatsPerBar;
+    const bendWidth = score.value.fontSize * 1.5;
+    const bendHeight = score.value.fontSize * 1.2;
+    const arrowSize = 6;
+
+    // Start at the note position
+    const startX = score.value.fontSize /2;
+    const startY = 0;
+
+    // Where the curved portion ends (just before going vertical)
+    // We'll do a gentle curve up to about 80% of bendHeight
+    const curveEndX = bendWidth; // * 0.8;
+    const curveEndY = -bendHeight; // * 0.8;
+
+    // The final vertical portion
+    const endX = bendWidth;
+    const endY = -bendHeight;
+
+    // Begin drawing
+    // g.lineStyle(2, voiceColor(note.voice()));
+
+    // 1) A slight upward curve
+    g.moveTo(startX, startY);
+    g.bezierCurveTo(
+      curveEndX, -bendHeight * 0.2,    // control point 1
+      curveEndX, -bendHeight * 0.5, // control point 2
+      curveEndX, curveEndY
+    ).stroke( {width:2, color: voiceColor(note.voice())});
+
+
+    // 3) Draw an upward arrow at the very top
+    // Move from the top of the bend...
+    g.moveTo(endX, endY);
+    // ...left slash
+    g.lineTo(endX - arrowSize, endY + arrowSize);
+    // Move back to top
+    g.moveTo(endX, endY);
+    // ...right slash
+    g.lineTo(endX + arrowSize, endY + arrowSize)
+    g.lineTo(endX - arrowSize, endY + arrowSize)
+    .stroke( {width:2, color: voiceColor(note.voice())})
+    .fill(voiceColor(note.voice()));
+
+    return g;
+  };
+
+
   const drawTechniqueHammer = (note: Note, usableWidth: number) => {
 
     const g = new Graphics();
@@ -121,6 +172,8 @@ export const useCanvas = () => {
     note.techniques.forEach(technique => {
       if (technique == Technique.HammerOn || technique == Technique.PullOff) {
         c.addChild(drawTechniqueHammer(note, usableWidth))
+      } else if (technique == Technique.Bend) {
+        c.addChild(drawTechniqueBend(note, usableWidth))
       }
 
     });

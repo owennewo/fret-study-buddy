@@ -69,9 +69,6 @@ export const useKeys = () => {
       console.log('start ' + pressedKey)
     }
       sequence += pressedKey
-
-    // sequence += pressedKey
-
     checkRegex(event)
   }
 
