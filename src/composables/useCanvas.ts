@@ -83,8 +83,6 @@ export const useCanvas = () => {
     const endY = -bendHeight;
 
     // Begin drawing
-    // g.lineStyle(2, voiceColor(note.voice()));
-
     // 1) A slight upward curve
     g.moveTo(startX, startY);
     g.bezierCurveTo(
@@ -92,7 +90,6 @@ export const useCanvas = () => {
       curveEndX, -bendHeight * 0.5, // control point 2
       curveEndX, curveEndY
     ).stroke( {width:2, color: voiceColor(note.voice())});
-
 
     // 3) Draw an upward arrow at the very top
     // Move from the top of the bend...
@@ -104,8 +101,8 @@ export const useCanvas = () => {
     // ...right slash
     g.lineTo(endX + arrowSize, endY + arrowSize)
     g.lineTo(endX - arrowSize, endY + arrowSize)
-    .stroke( {width:2, color: voiceColor(note.voice())})
-    .fill(voiceColor(note.voice()));
+      .stroke( {width:2, color: voiceColor(note.voice())})
+      .fill(voiceColor(note.voice()));
 
     return g;
   };

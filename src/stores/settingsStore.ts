@@ -7,7 +7,7 @@ import type { ToastMessageOptions } from 'primevue';
 
 export const useSettingsStore = defineStore('settingsStore', () => {
 
-  const { projectId, projectName, scoreId, score, tempoPercent, isDarkMode, isPlaybackLooping, projectType } = useCursor()
+  const { projectId, projectName, scoreId, score, tempoPercent, isDarkMode, isPlaybackLooping, projectType, clientId } = useCursor()
   const toast = useToast();
 
   async function getDB() {
@@ -28,11 +28,10 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     const savedProjectType = settings?.projectType || 'Local'
     const savedProjectId = settings?.projectId ?? ''
     const savedProjectName = settings?.projectName ?? ''
-
     const savedScoreId = settings?.scoreId ?? ''
     const savedScoreTitle = settings?.scoreTitle ?? 'missing-title'
 
-
+    clientId.value = settings?.clientId ?? crypto.randomUUID()
     tempoPercent.value = settings?.tempoPercent ?? 100
     isDarkMode.value = settings?.isDarkMode ?? false
     isPlaybackLooping.value = settings?.isPlaybackLooping ?? false
@@ -59,7 +58,6 @@ export const useSettingsStore = defineStore('settingsStore', () => {
       scoreId.value = savedScoreId
     }
     db.close()
-
   }
 
   async function saveSettingsToDB() {
@@ -68,6 +66,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
       id: 'appSettings',
       projectType: projectType.value,
       projectId: projectId.value,
+      clientId: clientId.value,
       projectName: projectName.value,
       scoreId: score.value?.id,
       scoreTitle: score.value?.title,

@@ -60,7 +60,12 @@ const togglePlay = () => {
   }
 }
 
+
+
+
 const saveScoreClicked = async () => {
+  // const s1 = JSON.stringify(score.value.toJSON())
+
   datastore.saveScore(projectId.value, score.value)
   saveSettingsToDB()
 }
@@ -137,39 +142,8 @@ const syncGDrive = async () => {
   <div class="toolbar">
     <p-toolbar>
       <template #start>
-        <!-- <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 64 64"
-          width="16"
-          height="16"
-          class="icon-background"
-          style="background-color: var(--p-toolbar-background, white)"
-        >
-          <polygon
-            points="10,0 54,0 64,28 64,58 54,58 54,64 10,64 10,58 0,58 0,28"
-            rx="5"
-            class="icon-primary"
-          ></polygon>
-          <circle cx="22" cy="16" r="5" class="icon-secondary" />
-          <circle cx="14" cy="40" r="5" class="icon-secondary" />
-          <circle cx="42" cy="16" r="5" class="icon-secondary" />
-          <circle cx="50" cy="40" r="5" class="icon-secondary" />
 
-          <line x1="14" x2="20" y1="40" y2="54" class="icon-secondary" />
-          <line x1="20" x2="20" y1="54" y2="64" class="icon-secondary" />
-
-          <line x1="22" x2="28" y1="16" y2="54" class="icon-secondary" />
-          <line x1="28" x2="28" y1="54" y2="64" class="icon-secondary" />
-
-          <line x1="42" x2="36" y1="16" y2="54" class="icon-secondary" />
-          <line x1="36" x2="36" y1="54" y2="64" class="icon-secondary" />
-
-          <line x1="50" x2="44" y1="40" y2="54" class="icon-secondary" />
-          <line x1="44" x2="44" y1="54" y2="64" class="icon-secondary" />
-        </svg>
-        <i class="pi pi-bars" @click="toggleSideBar"></i> -->
         <p-inputgroup>
-          <!-- <p-inputgroupaddon> -->
           <p-inputgroupaddon>
             <p-button :class="isPlaybackLooping ? '' : 'p-button-text'" @click="toggleLoop" title="Toggle Loop">
               <i class="pi pi-replay"></i>
@@ -252,10 +226,7 @@ const syncGDrive = async () => {
             <div :class="`voice-option ${option.class}`" :title="`voice ${option.label}`">{{ option.label }}</div>
           </template>
         </p-selectbutton>
-
         <i :class="`pi ${isDarkMode ? 'pi-sun' : 'pi pi-moon'}`" @click="toggleDarkMode"></i>
-
-        <!-- <p-button icon="pi pi-google" @click="syncGDrive"></p-button> -->
         <p-button icon="pi pi-google" @click="syncGDrive"></p-button>
 
       </template>

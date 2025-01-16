@@ -58,17 +58,18 @@ export function useLocalDataStore(): DataStore {
         return null
       }
       console.log('loaded score:', scoreId, '-', fetchedScore?.title)
-      console.log(fetchedScore)
-      return Score.fromJSON(fetchedScore) as Score
+      const json = Score.fromJSON(fetchedScore)
+      console.log('json', json)
+      return json
     },
     deleteScore: async (projectId, scoreId) => {
       const db = await openDatabase(projectId)
       await db.delete(SCORES_STORE, scoreId)
     },
 
-    saveScore: async (projectId, score) => {
+    saveScore: async (projectId: string, score: Score) => {
       const db = await openDatabase(projectId)
-      score.modifiedDateTime = new Date()
+      score.metadata!.modifiedDateTime = new Date()
       const clonedScore = score.clone(true)
       console.log('saving score:', clonedScore)
 

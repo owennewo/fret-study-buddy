@@ -2,7 +2,7 @@ import type { Project } from '@/interfaces/DataStore'
 import type { Bar } from '@/models/Bar'
 import { Score } from '@/models/Score'
 import type { VoiceElement } from '@/models/VoiceElement'
-import { computed, ref, toRaw, watch, type Ref } from 'vue'
+import { computed, ref, watch, type Ref } from 'vue'
 
 enum Mode {
   ModeOpen = 0,
@@ -16,6 +16,7 @@ enum Mode {
   ModeDark = 8,
 }
 
+const clientId: Ref<string> = ref('')
 const project: Ref<Project | null> = ref(null)
 const projectId: Ref<string> = ref('')
 const projectName: Ref<string> = ref('')
@@ -109,6 +110,7 @@ const mode: Ref<Mode> = ref(Mode.ModeNote)
 
 export const useCursor = () => {
   return {
+    clientId,
     projectType,
     project,
     projectId,
