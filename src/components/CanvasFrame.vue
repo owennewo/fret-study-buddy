@@ -6,7 +6,7 @@ import { useCursor } from '@/composables/useCursor'
 import ToolBar from './ToolBar.vue'
 import FretboardFrame from './FretboardFrame.vue'
 
-const { score, voiceId, isDarkMode } = useCursor()
+const { score, scoreId, voiceId, isDarkMode } = useCursor()
 const { drawScore, canvasRef, canvasContainerRef, voiceColours } = useCanvas()
 
 const errorPopover = ref()
@@ -20,6 +20,9 @@ useCommands()
 watch(
   [score, voiceId, isDarkMode],
   () => {
+    if (score.value && scoreId.value && !score.value.id) {
+      return
+    }
     drawScore()
   },
   { deep: true },

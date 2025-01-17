@@ -1,17 +1,18 @@
 <script setup lang="ts">
-import { ref, onMounted, toRaw, type Ref } from 'vue'
+import { ref, onMounted, toRaw, type Ref, inject } from 'vue'
 
 import { useCursor } from '@/composables/useCursor'
-import { useSettingsStore } from '@/stores/settingsStore'
 import { useDataStore } from '@/composables/datastores/useDataStore'
 import { Score } from '@/models/Score'
 
 const { score, scoreId, projectType, projectId, projectName } = useCursor()
-const { saveSettingsToDB } = useSettingsStore()
+
+const dialogRef = inject('dialogRef');
 
 const datastore = useDataStore()
 const nodes: Ref<unknown> = ref([])
 const pop = ref()
+const expandedKeys = ref([])
 const projectTypes = ref([
   { name: 'Local', description: 'Stored in your browser local storage' },
   { name: 'GDrive', description: 'Stored in your google drive' },
@@ -24,6 +25,7 @@ const fetchNodes = async (projects) => {
       const scores = await datastore.listScores(project.id)
       return {
         // source:
+        key: projectId,
         data: {
           projectId: project.id,
         name: project.name,
@@ -31,6 +33,7 @@ const fetchNodes = async (projects) => {
         },
         children: scores.map(score => {
           return {
+            // key: score.id,
             data: {
               projectId: project.id,
               projectName: project.name,
@@ -45,8 +48,12 @@ const fetchNodes = async (projects) => {
     }),
   )
 
-  console.log('Tree Data: ', treeData)
   nodes.value = treeData
+  expandedKeys.value = projects.reduce((obj, project) => {
+    obj[project.id] = true
+    return obj
+  },{})
+
 }
 
 const selectScore = async (row) => {
@@ -57,7 +64,7 @@ const selectScore = async (row) => {
   console.log('Selected Score: ', scoreId.value)
   console.log('Selected Project: ', projectId.value)
   console.log('Selected Project name: ', projectName.value)
-  saveSettingsToDB()
+  dialogRef.value.close()
 }
 
 const refreshProjects = async () => {
@@ -90,7 +97,6 @@ const addRow = async (row) => {
     console.log('Summary: ', summary)
     scoreId.value = summary.id
     projectId.value = row.data.projectId
-    saveSettingsToDB()
     refreshProjects()
   } else {
     console.warn('Cannot add')
@@ -135,7 +141,7 @@ const handleProjectImport = async event => {
     />
     <p>{{ projectType ?? '' }}</p>
 
-    <p-treetable :value="nodes" tableStyle="min-width: 50rem">
+    <p-treetable :value="nodes" tableStyle="min-width: 50rem" v-model:expandedKeys="expandedKeys">
       <template #header>
         <div class="text-xl font-bold">Projects</div>
         <p-button icon="pi pi-plus" label="Add Project" severity="info" @click="toggle" />

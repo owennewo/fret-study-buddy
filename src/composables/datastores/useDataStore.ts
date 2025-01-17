@@ -57,7 +57,7 @@ export function useDataStore(): DataStore {
           title: score.title,
         } as ScoreSummary
       }
-      console.log('hash', hash)
+      console.log('hash', hash, metadata?.hash)
       metadata!.hash = hash
       metadata!.clientId = clientId.value
       metadata!.version +=1

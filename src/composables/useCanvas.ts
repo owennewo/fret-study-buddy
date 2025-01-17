@@ -39,10 +39,14 @@ export const useCanvas = () => {
   const pageContainer = new Container({ label: 'page' })
 
   if (import.meta.hot) {
-    import.meta.hot.accept(() => {
-      console.log(' HOT RELOAD!')
-      drawScore()
-    })
+    const registered = import.meta.hot.data.registered || false;
+    if (!registered) {
+      import.meta.hot.data.registered = true;
+      import.meta.hot.accept(() => {
+        console.log('HOT RELOAD!');
+        drawScore();
+      });
+    }
   }
 
   const {
@@ -402,6 +406,28 @@ export const useCanvas = () => {
     return trackContainer
   }
 
+  const setupPixi = async() => {
+    const app = new Application()
+
+      const wrapper = document.getElementById('canvas-wrapper')!
+      let first = true
+      const resizeObserver = new ResizeObserver(() => {
+        if (first) {
+          first = false
+        } else {
+          console.log("canvas resize detected")
+          drawScore()
+        }
+      })
+      resizeObserver.observe(wrapper)
+      await app.init({
+        canvas: canvasRef.value!,
+        backgroundColor: backgroundColour,
+      })
+      initDevtools(app)
+      return app;
+  }
+
   const drawScore = async () => {
     // drawFretboard()
     // return
@@ -410,31 +436,10 @@ export const useCanvas = () => {
       return
     }
     if (selection.value.length == 0) {
-      console.log('Updates')
       selection.value = [toRaw(currentElement.value)]
     }
-    console.log('DRAW SCORE')
-
     if (pixi == null) {
-      pixi = new Application()
-
-      const wrapper = document.getElementById('canvas-wrapper')!
-      const resizeObserver = new ResizeObserver(entries => {
-        for (const entry of entries) {
-          const { width, height } = entry.contentRect
-          console.log(`Wrapper resized: ${width}x${height} (${wrapper.clientWidth} ${wrapper.clientHeight})`)
-
-          drawScore()
-        }
-      })
-
-      resizeObserver.observe(wrapper)
-
-      await pixi.init({
-        canvas: canvasRef.value!,
-        backgroundColor: backgroundColour,
-      })
-      initDevtools(pixi)
+      pixi = await setupPixi()
     }
 
     const verticalGap = 30 + score.value.fontSize * 2
@@ -457,14 +462,14 @@ export const useCanvas = () => {
 
     pageContainer.addChild(scoreContainer)
 
-    if (pixi && pixi.renderer) {
+    if (pixi.renderer) {
       pixi!.renderer.background.color = colours.value.secondary
       pixi!.renderer.resize(
         wrapper.clientWidth,
         Math.floor(Math.max(scoreContainer.height + verticalGap, wrapper.clientHeight)) - 1,
       )
     } else {
-      console.warn(' RESIZE FAILED')
+      console.warn(' RESIZE FAILED', pixi, pixi?.renderer)
     }
     pixi.stage.addChild(pageContainer)
   }

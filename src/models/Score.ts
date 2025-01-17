@@ -104,12 +104,6 @@ class Score {
     })
   }
 
-  update(): void {
-    console.log('update score')
-    this._tracks.flatMap(track => track._bars).forEach(bar => bar.update())
-  }
-  _
-
   static fromJSON(data: any): Score {
     const score = new Score(data.title, data.tempo, data.timeSignature)
     score.barsPerLine = data.barsPerLine
@@ -118,7 +112,6 @@ class Score {
     score.fontSize = data.fontSize ?? 16
     score.url = data.url ?? ''
     score._tracks = data.tracks.map((trackData: any) => Track.fromJSON(score, trackData))
-    score.update()
     return score
   }
 

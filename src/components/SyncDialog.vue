@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { get } from 'http';
 import { ref } from 'vue';
 
 const projects = ref([
@@ -33,14 +32,14 @@ const projects = ref([
 
 
 const getLocalChipStyle = (item) => {
-    if (!item.localModifiedDateTime) return 'chip-missing'; 
-    if (!item.remoteModifiedDateTime || item.localModifiedDateTime >= item.remoteModifiedDateTime) return 'chip-newer'; 
+    if (!item.localModifiedDateTime) return 'chip-missing';
+    if (!item.remoteModifiedDateTime || item.localModifiedDateTime >= item.remoteModifiedDateTime) return 'chip-newer';
     return 'chip-older';
 };
 
 const getRemoteChipStyle = (item) => {
-    if (!item.remoteModifiedDateTime) return 'chip-missing'; 
-    if (!item.localModifiedDateTime || item.remoteModifiedDateTime >= item.localModifiedDateTime) return 'chip-newer'; 
+    if (!item.remoteModifiedDateTime) return 'chip-missing';
+    if (!item.localModifiedDateTime || item.remoteModifiedDateTime >= item.localModifiedDateTime) return 'chip-newer';
     return 'chip-older';
 };
 
@@ -66,7 +65,7 @@ const getSyncIcon = (action: string) => {
         case 'Push':
             return 'pi pi-arrow-right';
         default:
-            return 'pi pi-equals';       
+            return 'pi pi-equals';
     }
 };
 </script>
@@ -77,19 +76,19 @@ const getSyncIcon = (action: string) => {
         <p-column header="Most Recent" class="sync-comparison">
             <template #body="slotProps" >
                 <div class="sync-comparison">
-                <p-chip 
+                <p-chip
                     :removable="slotProps.data.localModifiedDateTime ? true : false"
-                    :label="'Local'" 
-                    :class="getLocalChipStyle(slotProps.data)" 
+                    :label="'Local'"
+                    :class="getLocalChipStyle(slotProps.data)"
                 />
-                <p-button 
+                <p-button
                     :disabled="getAction(slotProps.data) === 'None'"
                     :class="getAction(slotProps.data) === 'None' ? 'p-button-secondary p-button-text': ''"
                     :icon="getSyncIcon(getAction(slotProps.data))"
                 />
-                <p-chip 
+                <p-chip
                     :removable="slotProps.data.remoteModifiedDateTime ? true : false"
-                    :label="'Local'" 
+                    :label="'Local'"
                     :class="getRemoteChipStyle(slotProps.data)"
                 >
                 <i class="pi pi-google"></i>

@@ -62,11 +62,8 @@ export const useKeys = () => {
         console.log(`continue ${lastRegex.source}: ${sequence + pressedKey}`)
       } else {
         sequence = ''
-        console.log(`reset ${lastRegex.source} ${pressedKey}`)
         lastRegex = null
       }
-    } else {
-      console.log('start ' + pressedKey)
     }
       sequence += pressedKey
     checkRegex(event)
@@ -83,7 +80,6 @@ export const useKeys = () => {
           debounceTimer = setTimeout(() => {
             sequence = ''
             lastRegex = null
-            console.log(`reset timeout ${regex.source}`)
           }, 400)
         event.preventDefault()
         return

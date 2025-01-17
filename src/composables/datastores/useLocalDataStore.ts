@@ -16,7 +16,6 @@ export function useLocalDataStore(): DataStore {
         }
       },
     });
-    console.log(projectId, "storenames", await db.objectStoreNames)
     if (!db.objectStoreNames.contains(SCORES_STORE)) {
       throw new Error(`Object store ${SCORES_STORE} does not exist in database ${projectId}`);
     }
@@ -44,7 +43,6 @@ export function useLocalDataStore(): DataStore {
     listScores: async projectId => {
       const db = await openDatabase(projectId,1)
       const titles = await db?.getAll(SCORES_STORE)
-      console.log('loaded scores:', titles.length)
       return titles.map(score => ({
         id: score.id,
         title: score.title,
@@ -57,10 +55,7 @@ export function useLocalDataStore(): DataStore {
         console.warn('Score not found:', scoreId)
         return null
       }
-      console.log('loaded score:', scoreId, '-', fetchedScore?.title)
-      const json = Score.fromJSON(fetchedScore)
-      console.log('json', json)
-      return json
+      return Score.fromJSON(fetchedScore)
     },
     deleteScore: async (projectId, scoreId) => {
       const db = await openDatabase(projectId)

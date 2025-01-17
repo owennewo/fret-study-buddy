@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useCursor } from '@/composables/useCursor'
 import { useSound } from '@/composables/useSound'
-import { computed } from 'vue'
+import { computed, toRaw } from 'vue'
 
 import { useDialog } from 'primevue/usedialog'
 import EditScoreDialog from './EditScoreDialog.vue'
@@ -27,22 +27,6 @@ const voiceOptions = computed(() => {
   return options
 })
 
-const hasPreviousScore = computed(() => {
-  if (!project?.value?.scores) {
-    return false
-  }
-  const scoreIndex = project.value.scores.findIndex(scoreLite => scoreLite.title == score.value.title)
-  return scoreIndex > 0
-})
-
-const hasNextScore = computed(() => {
-  if (!project?.value?.scores) {
-    return false
-  }
-  const scoreIndex = project?.value?.scores.findIndex(scoreLite => scoreLite.title == score.value.title)
-  return scoreIndex < project?.value?.scores.length - 1
-})
-
 const toggleLoop = () => {
   isPlaybackLooping.value = !isPlaybackLooping.value
 }
@@ -60,12 +44,7 @@ const togglePlay = () => {
   }
 }
 
-
-
-
 const saveScoreClicked = async () => {
-  // const s1 = JSON.stringify(score.value.toJSON())
-
   datastore.saveScore(projectId.value, score.value)
   saveSettingsToDB()
 }
@@ -91,20 +70,33 @@ const openScore = () => {
     },
   })
 }
-const nextScore = () => {
+const nextScore = async() => {
   console.log('next score')
-  const scoreIndex = project?.value?.scores.findIndex(scoreLite => scoreLite.title == score.value.title) ?? -1
-  const newScore = project?.value?.scores[scoreIndex + 1]
-  // loadScore(project.value, newScore.id)
+  const scores = await datastore.listScores(projectId.value)
+  let scoreIndex = scores.findIndex(scoreLite => scoreLite.title == score.value.title) ?? -1
+  scoreIndex += 1
+  if (scoreIndex > scores.length -1) {
+    scoreIndex = 0
+  }
+
+  // debugger
+  const newScore = scores[scoreIndex]
   scoreId.value = newScore!.id
 }
 
-const prevScore = () => {
+const prevScore = async() => {
   console.log('prev score')
-  const scoreIndex = project?.value?.scores.findIndex(scoreLite => scoreLite.title == score.value.title) ?? -1
-  const newScore = project?.value?.scores[scoreIndex - 1]
-  // loadScore(project.value, newScore.id)
+  console.log('next score')
+  const scores = await datastore.listScores(projectId.value)
+  let scoreIndex = scores.findIndex(scoreLite => scoreLite.title == score.value.title) ?? -1
+  scoreIndex -= 1
+  if (scoreIndex < 0) {
+    scoreIndex = scores.length -1
+  }
+
+  const newScore = scores[scoreIndex]
   scoreId.value = newScore!.id
+
 }
 
 
@@ -178,9 +170,8 @@ const syncGDrive = async () => {
           </p-inputgroupaddon>
           <p-inputgroupaddon>
             <p-button
-              :disabled="!hasPreviousScore"
               class="p-button p-button-text"
-              :severity="hasPreviousScore ? 'primary' : 'secondary'"
+              severity="primary"
               @click="prevScore"
               title="Previous score"
             >
@@ -190,8 +181,7 @@ const syncGDrive = async () => {
 
           <p-inputgroupaddon>
             <p-button
-              :disabled="!hasNextScore"
-              :severity="hasNextScore ? 'primary' : 'secondary'"
+              severity="primary"
               class="p-button p-button-text"
               @click="nextScore"
               title="Next score"

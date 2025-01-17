@@ -75,20 +75,6 @@ class Bar {
     return this._voices.some(voice => voice.isError())
   }
 
-  update(): void {
-    this._voices.forEach(voice => {
-      let barBeats = 0
-      voice._elements.forEach(element => {
-        barBeats += element.beatDuration()
-      })
-      // if (barBeats != this.timeSignature.beatsPerBar) {
-      //   console.error('Bar does not add up to time signature', barBeats, this.timeSignature.beatsPerBar)
-      // } else {
-      //   console.log('Bar adds up to time signature', barBeats, this.timeSignature.beatsPerBar)
-      // }
-    })
-  }
-
   static fromJSON(track: Track, data: any): Bar {
     if (
       !data.timeSignature ||

@@ -8,12 +8,14 @@ import NoteDialog from '@/components/NoteDialog.vue'
 import { useDialog } from 'primevue'
 import { useSound } from './useSound'
 import ScoreSelectorDialog from '@/components/ScoreSelectorDialog.vue'
+import { useDataStore } from './datastores/useDataStore'
 
 const { drawScore } = useCanvas()
-const { track, bar, barId, voice, voiceId, element, elementId, note, noteId, selection } = useCursor()
+const { projectId, score, track, bar, barId, voice, voiceId, element, elementId, note, noteId, selection } = useCursor()
 const { togglePlay } = useSound()
-let loaded = false
+const datastore = useDataStore()
 
+let loaded = false
 let copySelection: Array<VoiceElement | Bar> = []
 
 export const useCommands = () => {
@@ -234,7 +236,7 @@ export const useCommands = () => {
     })
 
     bind('^ctrl\\+s$', () => {
-      console.log('save')
+      datastore.saveScore(projectId.value, score.value)
     })
 
     bind('^ctrl\\+c$', () => {

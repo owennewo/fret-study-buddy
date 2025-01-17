@@ -18,12 +18,8 @@ watch(scoreId, async newCurrentScoreId => {
   if (!projectId.value || !newCurrentScoreId) {
     return
   }
-  console.log('projectId', projectId.value)
-  console.log('Current Score:', newCurrentScoreId)
-  console.log('user initiated:', !!window.event)
   if (newCurrentScoreId != null) {
     const loadedScore = await datastore.getScore(projectId.value, newCurrentScoreId)
-    console.log('Loaded Score:', score.value)
     score.value = loadedScore as Score
   }
 })
@@ -37,7 +33,6 @@ const restoreProject = async (options) => {
   projectType.value = options.message.data.projectType
   projectId.value = options.message.data.projectId
   scoreId.value = options.message.data.scoreId
-
   toast.removeGroup('restore');
 }
 </script>

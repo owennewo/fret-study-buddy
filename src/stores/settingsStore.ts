@@ -4,11 +4,16 @@ import { useCursor } from '@/composables/useCursor'
 
 import { useToast } from 'primevue/usetoast';
 import type { ToastMessageOptions } from 'primevue';
+import { watch } from 'vue';
 
 export const useSettingsStore = defineStore('settingsStore', () => {
 
-  const { projectId, projectName, scoreId, score, tempoPercent, isDarkMode, isPlaybackLooping, projectType, clientId } = useCursor()
+  const { projectId, projectName, scoreId, tempoPercent, isDarkMode, isPlaybackLooping, projectType, clientId } = useCursor()
   const toast = useToast();
+
+  watch([projectType, projectId, clientId, projectName, scoreId, tempoPercent, isDarkMode, isPlaybackLooping],  () => {
+    saveSettingsToDB()
+  })
 
   async function getDB() {
     const db = openDB('appDatabase', 1, {
@@ -22,6 +27,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   }
 
   async function loadSettingsFromDB() {
+
     const db = await getDB()
     const settings = await db.get('settings', 'appSettings')
 
@@ -29,7 +35,6 @@ export const useSettingsStore = defineStore('settingsStore', () => {
     const savedProjectId = settings?.projectId ?? ''
     const savedProjectName = settings?.projectName ?? ''
     const savedScoreId = settings?.scoreId ?? ''
-    const savedScoreTitle = settings?.scoreTitle ?? 'missing-title'
 
     clientId.value = settings?.clientId ?? crypto.randomUUID()
     tempoPercent.value = settings?.tempoPercent ?? 100
@@ -48,7 +53,6 @@ export const useSettingsStore = defineStore('settingsStore', () => {
             projectId: savedProjectId,
             projectName: savedProjectName,
             scoreId: savedScoreId,
-            scoreTitle: savedScoreTitle
           },
           life: 10000
         } as unknown as ToastMessageOptions);
@@ -68,13 +72,11 @@ export const useSettingsStore = defineStore('settingsStore', () => {
       projectId: projectId.value,
       clientId: clientId.value,
       projectName: projectName.value,
-      scoreId: score.value?.id,
-      scoreTitle: score.value?.title,
+      scoreId: scoreId.value,
       tempoPercent: tempoPercent.value,
       isDarkMode: isDarkMode.value,
       isPlaybackLooping: isPlaybackLooping.value,
     }
-    console.log('saving settings', settings)
     await db.put('settings', settings)
   }
 
