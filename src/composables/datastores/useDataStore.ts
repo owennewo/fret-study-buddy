@@ -45,24 +45,38 @@ export function useDataStore(): DataStore {
     saveScore: async (projectId: string, score: Score) => {
       // we want to hash the score without the metadata as this can have
       // unimportant data that would otherwise change the hash
-      const metadata = score.metadata;
-      delete score.metadata
-      const scoreText = JSON.stringify(score)
+
+      const oldVersion = score.metadata!.version
+      const oldModifiedDateTime = score.metadata!.modifiedDateTime
+      const oldHash = score.metadata!.hash
+      delete score.metadata!.modifiedDateTime
+      delete score.metadata!.version
+      delete score.metadata!.hash
+
+      const scoreText = JSON.stringify(score.toJSON())
       const hash = await hashJson(scoreText)
-      if (hash == metadata?.hash) {
+      console.log(scoreText)
+      if (hash == oldHash) {
         console.log("Nothing has changed, don't save")
-        score.metadata = metadata
+        score.metadata!.modifiedDateTime = oldModifiedDateTime
+        score.metadata!.version = oldVersion
+        score.metadata!.hash = oldHash
         return {
           id: score.id!.toString(),
           title: score.title,
         } as ScoreSummary
       }
-      console.log('hash', hash, metadata?.hash)
-      metadata!.hash = hash
-      metadata!.clientId = clientId.value
-      metadata!.version +=1
-      score.metadata = metadata
+      score.metadata!.modifiedDateTime = new Date()
+      score.metadata!.hash = hash
+      score.metadata!.clientId = clientId.value
+      score.metadata!.version = oldVersion! + 1
       return await ds.value.saveScore(projectId, score)
+    },
+    syncScore: async (projectId: string, score: Score) => {
+      const localVerion = score.metadata?.version
+      const localClientId = score.metadata?.clientId
+      console.log(`checking ${projectId} ${score.id} ${localVerion} ${localClientId}`)
+
     },
     deleteScore: async (projectId: string, scoreId: string) => {
       return await ds.value.deleteScore(projectId, scoreId)

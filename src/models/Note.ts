@@ -283,9 +283,10 @@ class Note {
   toJSON(): object {
     return Object.assign(
       {
-        fretNumber: this.fretNumber,
-        techniques: this.techniques,
+        // techniques: this.techniques,
       },
+      this.techniques.length == 0 ? {}: { techniques: this.techniques},
+      isNaN(this.fretNumber) ? {} : { fretNumber: this.fretNumber},
       isNaN(this.leftHandFinger) ? {} : { leftHandFinger: this.leftHandFinger },
       isNaN(this.rightHandFinger) ? {} : { rightHandFinger: this.rightHandFinger },
     )

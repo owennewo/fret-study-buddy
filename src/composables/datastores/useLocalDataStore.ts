@@ -2,16 +2,21 @@ import type { DataStore, Project, ScoreSummary } from '@/interfaces/DataStore'
 import { Score } from '@/models/Score'
 import { openDB } from 'idb'
 
+
+const DATABASE_NAME = 'ApplicationDatabase'
+const SCORES_STORE = 'Scores'
+const SETTINGS_STORE = 'Settings'
+
+
 export function useLocalDataStore(): DataStore {
-  const SCORES_STORE = 'Scores'
 
   const openDatabase = async (projectId: string, version: number = 1) => {
-    const db = await openDB(projectId, version, {
+
+    const db = await openDB(projectId, 1, {
       upgrade(db) {
         if (!db.objectStoreNames.contains(SCORES_STORE)) {
           db.createObjectStore(SCORES_STORE, {
             keyPath: 'id',
-            autoIncrement: true,
           });
         }
       },
@@ -50,7 +55,7 @@ export function useLocalDataStore(): DataStore {
     },
     getScore: async (projectId: string, scoreId: string) => {
       const db = await openDatabase(projectId)
-      const fetchedScore = await db.get(SCORES_STORE, parseInt(scoreId))
+      const fetchedScore = await db.get(SCORES_STORE, scoreId)
       if (!fetchedScore) {
         console.warn('Score not found:', scoreId)
         return null
@@ -63,16 +68,16 @@ export function useLocalDataStore(): DataStore {
     },
 
     saveScore: async (projectId: string, score: Score) => {
-      const db = await openDatabase(projectId)
-      score.metadata!.modifiedDateTime = new Date()
+      const db = await openDatabase(DATABASE_NAME)
       const clonedScore = score.clone(true)
       console.log('saving score:', clonedScore)
 
       if (clonedScore.id) {
         await db.put(SCORES_STORE, clonedScore)
       } else {
-        const newId = await db.add(SCORES_STORE, clonedScore, undefined)
-        score.id = newId as string
+        clonedScore.id = crypto.randomUUID()
+        await db.add(SCORES_STORE, clonedScore, undefined)
+        // score.id = newId as string
       }
 
       return {
@@ -86,6 +91,10 @@ export function useLocalDataStore(): DataStore {
     },
     importProject: async function (projectName, projectBlob) {
       return {} as Project
+    },
+
+    syncScore: async (projectId: string, score: Score) => {
+      // do nothing
     }
 
   }

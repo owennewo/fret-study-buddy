@@ -7,7 +7,7 @@ import { Score } from '@/models/Score'
 
 const { score, scoreId, projectType, projectId, projectName } = useCursor()
 
-const dialogRef = inject('dialogRef');
+const dialogRef = inject('dialogRef') as Ref<{ close: () => void }>;
 
 const datastore = useDataStore()
 const nodes: Ref<unknown> = ref([])

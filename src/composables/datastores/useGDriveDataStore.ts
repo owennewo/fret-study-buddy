@@ -43,25 +43,56 @@ export function useGDriveDataStore(): DataStore {
   }
 
   return {
-    listProjects: async function () {
+
+     listProjects: async function() {
       const token = await signIn();
-      const query = "mimeType='application/vnd.google-apps.folder' and 'appDataFolder' in parents";
 
-      const response = await fetch(
-        `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}&spaces=appDataFolder`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      // gapi.load('client', function () {
+        await gapi.client.load('drive', 'v3') //, async function () {
+          const response = await gapi.client.drive.files.list({
+              q: "'appDataFolder' in parents",
+              spaces: 'appDataFolder',
+              // fields: 'files(id, name)'
+            });
+            const projects =  response.result.files.map(item => ({
+              id: item.id,
+              name: item.name,
+            }));
+            debugger;
+            return projects
 
-      if (!response.ok) {
-        throw new Error(`Failed to list projects: ${response.statusText}`);
-      }
+        // });
+    // });
+      // const token = await signIn();
 
-      const json = await response.json();
-      console.log('folders', json);
-      return json.files; // Returns only folders representing projects
+      // const response = await gapi.client.drive.files.list({
+      //   q: "mimeType='application/vnd.google-apps.folder' and 'appDataFolder' in parents",
+      //   spaces: 'appDataFolder',
+      //   fields: 'files(id, name)'
+      // });
+      // return response.result.files;
     },
+
+
+    // listProjects: async function () {
+    //   const token = await signIn();
+    //   const query = "mimeType='application/vnd.google-apps.folder' and 'appDataFolder' in parents";
+
+    //   const response = await fetch(
+    //     `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}&spaces=appDataFolder`,
+    //     {
+    //       headers: { Authorization: `Bearer ${token}` },
+    //     }
+    //   );
+
+    //   if (!response.ok) {
+    //     throw new Error(`Failed to list projects: ${response.statusText}`);
+    //   }
+
+    //   const json = await response.json();
+    //   console.log('folders', json);
+    //   return json.files; // Returns only folders representing projects
+    // },
     createProject: async projectName => {
       const token = await signIn();
 
@@ -281,5 +312,9 @@ export function useGDriveDataStore(): DataStore {
 
       return project; // Return the created project metadata
     },
+
+    syncScore: async (projectId: string, score: Score) => {
+      // do nothing
+    }
   }
 }

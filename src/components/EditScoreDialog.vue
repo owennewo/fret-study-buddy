@@ -34,6 +34,11 @@ const removeTrack = index => {
     <label for="title">Title</label>
   </p-floatlabel>
   <p-floatlabel variant="on">
+    <p-inputtext v-model="score.metadata!.project" inputId="project" variant="filled" />
+    <label for="project">Project</label>
+  </p-floatlabel>
+
+  <p-floatlabel variant="on">
     <p-inputtext v-model="score.url" inputId="url" variant="filled" style="width: 200px" />
     <a v-if="score.url" :href="score.url" target="_blank" class="p-button-icon" style="float: right">
       <i class="pi pi-external-link"></i>

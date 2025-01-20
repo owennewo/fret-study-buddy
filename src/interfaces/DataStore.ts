@@ -25,5 +25,5 @@ export interface DataStore {
     deleteScore(projectId: string, scoreId: string): Promise<void>; // Example: Deletes a score by project ID and score ID
     exportProject(projectId: string): Promise<Blob>; // Example: Exports a project as a Blob
     importProject(projectName: string, projectBlob: Blob): Promise<Project>; // Example: Imports a project from a Blob
-
+    syncScore(projectId, score: Score): Promise<void>; // Example: Syncs a score
   }

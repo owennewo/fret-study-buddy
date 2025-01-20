@@ -1,11 +1,13 @@
 export class Metadata {
+  project: string
   createdDateTime: Date
-  modifiedDateTime: Date
+  modifiedDateTime?: Date
   clientId: string
-  version: number
-  hash: string
+  version?: number
+  hash?: string
 
-  constructor(createdDateTime = new Date(), modifiedDateTime = new Date(), clientId: string = '', version: number = 0, hash: string = '') {
+  constructor(project: string = 'scratch', createdDateTime = new Date(), modifiedDateTime = new Date(), clientId: string = '', version: number = 0, hash: string = '') {
+    this.project = project
     this.createdDateTime = createdDateTime
     this.modifiedDateTime = modifiedDateTime
     this.clientId = clientId
@@ -15,7 +17,7 @@ export class Metadata {
 
   static fromJSON(data: any): Metadata {
     if (data) {
-      return new Metadata(data.createdDateTime, data.modifiedDateTime, data.clientId, data.version, data.hash)
+      return new Metadata(data.project, data.createdDateTime, data.modifiedDateTime, data.clientId, data.version, data.hash)
     } else {
       return new Metadata()
     }
@@ -23,6 +25,7 @@ export class Metadata {
 
   toJSON(): object {
     return {
+      project: this.project,
       createdDateTime: this.createdDateTime,
       modifiedDateTime: this.modifiedDateTime,
       clientId: this.clientId,

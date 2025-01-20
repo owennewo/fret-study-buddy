@@ -66,11 +66,13 @@ export class Duration {
 
   // Convert to JSON
   toJSON(): object {
-    return {
-      baseDuration: this.baseDuration,
-      dotCount: this.dotCount,
-      isTriplet: this.isTriplet,
-    }
+    return Object.assign(
+      {
+        baseDuration: this.baseDuration,
+      },
+      this.dotCount == 0 ? {}: { dotCount: this.dotCount },
+      !this.isTriplet ? {}: { isTriplet: this.isTriplet},
+    )
   }
 
   // Create a new Duration from JSON

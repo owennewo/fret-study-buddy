@@ -6,6 +6,10 @@ import { useToast } from 'primevue/usetoast';
 import type { ToastMessageOptions } from 'primevue';
 import { watch } from 'vue';
 
+const DATABASE_NAME = 'ApplicationDatabase'
+const SCORES_STORE = 'Scores'
+const SETTINGS_STORE = 'Settings'
+
 export const useSettingsStore = defineStore('settingsStore', () => {
 
   const { projectId, projectName, scoreId, tempoPercent, isDarkMode, isPlaybackLooping, projectType, clientId } = useCursor()
@@ -16,10 +20,15 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   })
 
   async function getDB() {
-    const db = openDB('appDatabase', 1, {
+    const db = openDB(DATABASE_NAME, 1, {
       upgrade(db) {
-        if (!db.objectStoreNames.contains('settings')) {
-          db.createObjectStore('settings', { keyPath: 'id' })
+        if (!db.objectStoreNames.contains(SETTINGS_STORE)) {
+          db.createObjectStore(SETTINGS_STORE, { keyPath: 'id' })
+        }
+        if (!db.objectStoreNames.contains(SCORES_STORE)) {
+          db.createObjectStore(SCORES_STORE, {
+            keyPath: 'id',
+          });
         }
       },
     })
@@ -29,7 +38,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   async function loadSettingsFromDB() {
 
     const db = await getDB()
-    const settings = await db.get('settings', 'appSettings')
+    const settings = await db.get(SETTINGS_STORE, DATABASE_NAME)
 
     const savedProjectType = settings?.projectType || 'Local'
     const savedProjectId = settings?.projectId ?? ''
@@ -67,7 +76,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
   async function saveSettingsToDB() {
     const db = await getDB()
     const settings = {
-      id: 'appSettings',
+      id: DATABASE_NAME,
       projectType: projectType.value,
       projectId: projectId.value,
       clientId: clientId.value,
@@ -77,7 +86,7 @@ export const useSettingsStore = defineStore('settingsStore', () => {
       isDarkMode: isDarkMode.value,
       isPlaybackLooping: isPlaybackLooping.value,
     }
-    await db.put('settings', settings)
+    await db.put(SETTINGS_STORE, settings)
   }
 
   return {

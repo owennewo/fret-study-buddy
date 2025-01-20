@@ -100,33 +100,9 @@ const prevScore = async() => {
 }
 
 
-const syncGDrive = async () => {
-
-  dialog.open(ScoreSelectorDialog, {
-  // dialog.open(SyncDialog, {
-    props: {
-      header: 'Project Sync',
-      modal: true,
-      dismissableMask: true,
-    },
-  })
-
-
-  // const files = await listFiles()
-  // debugger
-  // if (files.length > 0) {
-  //   console.log('files', files)
-
-  //   const projectFile = await downloadFile(files[0].id);
-
-  //   await importProject(projectFile);
-
-  //   console.log('Project downloaded and imported successfully!');
-
-  // } else {
-  //   console.log('No files found')
-  // }
-
+const syncScore = async () => {
+  console.log('sync score')
+  datastore.syncScore(projectId.value, score.value)
 }
 </script>
 
@@ -217,7 +193,7 @@ const syncGDrive = async () => {
           </template>
         </p-selectbutton>
         <i :class="`pi ${isDarkMode ? 'pi-sun' : 'pi pi-moon'}`" @click="toggleDarkMode"></i>
-        <p-button icon="pi pi-google" @click="syncGDrive"></p-button>
+        <p-button icon="pi pi-google" @click="syncScore"></p-button>
 
       </template>
     </p-toolbar>
