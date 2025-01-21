@@ -42,6 +42,8 @@ import {
   ToggleButton,
   Toolbar,
   TreeTable,
+  IconField,
+  InputIcon,
 } from 'primevue'
 
 const app = createApp(App)
@@ -93,5 +95,7 @@ app.component('p-menubar', Menubar)
 app.component('p-multiselect', MultiSelect)
 app.component('p-treetable', TreeTable)
 app.component('p-card', Card)
+app.component('p-iconfield', IconField)
+app.component('p-inputicon', InputIcon)
 
 app.mount('#app')

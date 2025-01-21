@@ -20,7 +20,8 @@ useCommands()
 watch(
   [score, voiceId, isDarkMode],
   () => {
-    if (score.value && scoreId.value && !score.value.id) {
+    if (score.value && scoreId.value && !score.value.metadata!.id) {
+      console.log("skipping")
       return
     }
     drawScore()

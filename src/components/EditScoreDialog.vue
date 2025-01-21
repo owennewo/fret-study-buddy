@@ -30,7 +30,7 @@ const removeTrack = index => {
 
 <template>
   <p-floatlabel variant="on">
-    <p-inputtext v-model="score.title" inputId="title" variant="filled" />
+    <p-inputtext v-model="score.metadata!.title" inputId="title" variant="filled" />
     <label for="title">Title</label>
   </p-floatlabel>
   <p-floatlabel variant="on">

@@ -16,7 +16,7 @@ const { saveSettingsToDB } = useSettingsStore()
 const dialog = useDialog()
 const datastore = useDataStore();
 const { play, pause, isPlaying } = useSound()
-const { score, scoreId, voiceId, tempoPercent, isDarkMode, isPlaybackLooping, projectId, project } = useCursor()
+const { score, scoreId, voiceId, tempoPercent, isDarkMode, isPlaybackLooping } = useCursor()
 
 const voiceOptions = computed(() => {
   const options = Array.from({ length: 4 }, (_, i) => ({
@@ -45,7 +45,7 @@ const togglePlay = () => {
 }
 
 const saveScoreClicked = async () => {
-  datastore.saveScore(projectId.value, score.value)
+  datastore.saveScore(score.value)
   saveSettingsToDB()
 }
 
@@ -72,8 +72,8 @@ const openScore = () => {
 }
 const nextScore = async() => {
   console.log('next score')
-  const scores = await datastore.listScores(projectId.value)
-  let scoreIndex = scores.findIndex(scoreLite => scoreLite.title == score.value.title) ?? -1
+  const scores = await datastore.listScores()
+  let scoreIndex = scores.findIndex(scoreLite => scoreLite.title == score.value.metadata!.title) ?? -1
   scoreIndex += 1
   if (scoreIndex > scores.length -1) {
     scoreIndex = 0
@@ -81,28 +81,28 @@ const nextScore = async() => {
 
   // debugger
   const newScore = scores[scoreIndex]
-  scoreId.value = newScore!.id
+  scoreId.value = newScore!.id!
 }
 
 const prevScore = async() => {
   console.log('prev score')
   console.log('next score')
-  const scores = await datastore.listScores(projectId.value)
-  let scoreIndex = scores.findIndex(scoreLite => scoreLite.title == score.value.title) ?? -1
+  const scores = await datastore.listScores()
+  let scoreIndex = scores.findIndex(scoreLite => scoreLite.title == score.value.metadata!.title) ?? -1
   scoreIndex -= 1
   if (scoreIndex < 0) {
     scoreIndex = scores.length -1
   }
 
   const newScore = scores[scoreIndex]
-  scoreId.value = newScore!.id
+  scoreId.value = newScore!.id!
 
 }
 
 
 const syncScore = async () => {
   console.log('sync score')
-  datastore.syncScore(projectId.value, score.value)
+  datastore.syncScore(score.value)
 }
 </script>
 
@@ -166,7 +166,7 @@ const syncScore = async () => {
             </p-button>
           </p-inputgroupaddon>
 
-          <p-inputtext readonly :value="score?.title" placeholder="score" />
+          <p-inputtext readonly :value="score?.metadata?.title" placeholder="score" />
           <p-inputgroupaddon>
             <p-button class="p-button p-button-text" @click="editScore" title="Edit score">
               <i class="pi pi-pencil"></i>

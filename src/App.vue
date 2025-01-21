@@ -19,7 +19,7 @@ watch(scoreId, async newCurrentScoreId => {
     return
   }
   if (newCurrentScoreId != null) {
-    const loadedScore = await datastore.getScore(projectId.value, newCurrentScoreId)
+    const loadedScore = await datastore.getScore(newCurrentScoreId)
     score.value = loadedScore as Score
   }
 })

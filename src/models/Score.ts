@@ -15,8 +15,6 @@ interface Error {
 }
 
 class Score {
-  id: string | null
-  title: string
   metadata?: Metadata
   url: string
   tempo: number
@@ -26,12 +24,10 @@ class Score {
   _tracks: Track[]
 
   constructor(
-    title: string = 'Untitled',
     tempo: number = 120,
     timeSignature: TimeSignature = { beatsPerBar: 4, beatValue: 4 },
   ) {
-    this.id = null
-    this.title = title
+
     this.metadata = new Metadata()
     this.barsPerLine = 4
     this.fontSize = 16
@@ -54,7 +50,6 @@ class Score {
 
   toJSON(): object {
     return {
-      title: this.title,
       metadata: this.metadata? this.metadata.toJSON(): null,
       url: this.url,
       tempo: this.tempo,
@@ -68,8 +63,8 @@ class Score {
   clone(keepId = false): Score {
     // deep copy, e.g. to store in indexdb which throws DataCloneError when not happy
     const clonedScore = JSON.parse(JSON.stringify(this.toJSON())) as Score
-    if (keepId && this.id) {
-      clonedScore.id = this.id
+    if (keepId && this.metadata!.id) {
+      clonedScore.metadata!.id = this.metadata!.id
     }
     return clonedScore
   }
@@ -105,9 +100,9 @@ class Score {
   }
 
   static fromJSON(data: any): Score {
-    const score = new Score(data.title, data.tempo, data.timeSignature)
+    const score = new Score(data.tempo, data.timeSignature)
     score.barsPerLine = data.barsPerLine
-    score.id = data.id
+    // score.id = data.id
     score.metadata = Metadata.fromJSON(data.metadata)
     score.fontSize = data.fontSize ?? 16
     score.url = data.url ?? ''
@@ -116,7 +111,7 @@ class Score {
   }
 
   static new(): Score {
-    const score = new Score('Untitled', 100, {
+    const score = new Score(100, {
       beatsPerBar: 4,
       beatValue: 4,
     })

@@ -30,19 +30,19 @@ export function useDataStore(): DataStore {
     listProjects: async () => {
       return await ds.value.listProjects()
     },
-    createProject: async (projectName: string) => {
-      return await ds.value.createProject(projectName)
+    // createProject: async (projectName: string) => {
+    //   return await ds.value.createProject(projectName)
+    // },
+    // deleteProject: async (projectId: string) => {
+    //   return await ds.value.deleteProject(projectId)
+    // },
+    listScores: async () => {
+      return await ds.value.listScores()
     },
-    deleteProject: async (projectId: string) => {
-      return await ds.value.deleteProject(projectId)
+    getScore: async (scoreId: string) => {
+      return await ds.value.getScore(scoreId)
     },
-    listScores: async (projectId: string) => {
-      return await ds.value.listScores(projectId)
-    },
-    getScore: async (projectId: string, scoreId: string) => {
-      return await ds.value.getScore(projectId, scoreId)
-    },
-    saveScore: async (projectId: string, score: Score) => {
+    saveScore: async (score: Score) => {
       // we want to hash the score without the metadata as this can have
       // unimportant data that would otherwise change the hash
 
@@ -61,31 +61,31 @@ export function useDataStore(): DataStore {
         score.metadata!.modifiedDateTime = oldModifiedDateTime
         score.metadata!.version = oldVersion
         score.metadata!.hash = oldHash
-        return {
-          id: score.id!.toString(),
-          title: score.title,
-        } as ScoreSummary
+        return score.metadata!
       }
       score.metadata!.modifiedDateTime = new Date()
       score.metadata!.hash = hash
       score.metadata!.clientId = clientId.value
       score.metadata!.version = oldVersion! + 1
-      return await ds.value.saveScore(projectId, score)
+
+      //deleteme
+      // score.metadata!.id = score!.id!
+      // score.metadata!.title = score.title
+      return await ds.value.saveScore(score)
     },
-    syncScore: async (projectId: string, score: Score) => {
+    syncScore: async (score: Score) => {
       const localVerion = score.metadata?.version
       const localClientId = score.metadata?.clientId
-      console.log(`checking ${projectId} ${score.id} ${localVerion} ${localClientId}`)
-
+      console.log(`checking ${score.metadata!.id} ${localVerion} ${localClientId}`)
     },
-    deleteScore: async (projectId: string, scoreId: string) => {
-      return await ds.value.deleteScore(projectId, scoreId)
+    deleteScore: async (scoreId: string) => {
+      return await ds.value.deleteScore(scoreId)
     },
-    exportProject: async (projectId: string) => {
-      return await ds.value.exportProject(projectId)
-    },
-    importProject: async (projectName: string, projectBlob: Blob) => {
-      return await ds.value.importProject(projectName, projectBlob)
-    },
+    // exportProject: async () => {
+    //   return await ds.value.exportProject()
+    // },
+    // importProject: async (projectName: string, projectBlob: Blob) => {
+    //   return await ds.value.importProject(projectName, projectBlob)
+    // },
   }
 }
