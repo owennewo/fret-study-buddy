@@ -1,4 +1,4 @@
-import type { DataStore, ScoreSummary } from "@/interfaces/DataStore"
+import type { DataStore } from "@/interfaces/DataStore"
 import { useGDriveDataStore } from "./useGDriveDataStore"
 import { useLocalDataStore } from "./useLocalDataStore"
 import { computed } from "vue"
@@ -10,7 +10,7 @@ const griveDataStore = useGDriveDataStore()
 const { projectType, clientId } = useCursor()
 
 
-export function useDataStore(): DataStore {
+export function useDataStore() {
 
   const ds = computed((): DataStore=> {
     if (projectType.value == 'GDrive') {
@@ -25,26 +25,101 @@ export function useDataStore(): DataStore {
         .map(byte => byte.toString(16).padStart(2, '0'))
         .join('');
 
+  const merge = (localScores, remoteScores) => {
+    const combined = new Map()
+    if (localScores)  {
+      localScores.forEach(score => {
+        combined.set(score.id, {
+          local: score,
+          remote: null,
+        })
+      })
+    }
+
+    if (remoteScores) {
+      remoteScores.forEach(score => {
+        if (combined.has(score.id)) {
+          combined.get(score.id).remote = score
+        } else {
+          combined.set(score.id, {
+            local: null,
+            remote: score,
+          })
+        }
+      })
+    }
+
+    combined.forEach((value, key) => {
+      if (value.local && value.remote) {
+        if (value.local.version > value.remote.version) {
+          value.local.isLatest = true
+          value.remote.isLatest = false
+          value.latest = value.local
+          if (value.local.clientId != value.remote.clientId) {
+            value.remote.clientMismatch = true
+          }
+          if (value.local.version < value.remote.version) {
+            value.remote.isLatest = true
+            value.local.isLatest = false
+            value.latest = value.remote
+            if (value.local.clientId != value.remote.clientId) {
+              value.local.clientMismatch = true
+            }
+          } else {
+            // same versio
+            value.local.isLatest = true
+            value.remote.isLatest = true
+            value.latest = value.local
+            if (value.local.clientId != value.local.clientId) {
+              value.local.clientMismatch = true
+              value.remote.clientMismatch = true
+            }
+          }
+        }
+      }  else if (value.local) {
+        value.local.isLatest = true
+        value.remote = {
+          isLatest: false
+        }
+        value.latest = value.local
+      } else if (value.remote){
+        value.local = {
+          isLatest: false
+        }
+        value.remote.isLatest = true
+        value.latest = value.remote
+      } else {
+        console.error("Merge error: This should never happen")
+      }
+    })
+
+    return combined;
+
+  }
 
   return {
-    listProjects: async () => {
-      return await ds.value.listProjects()
-    },
-    // createProject: async (projectName: string) => {
-    //   return await ds.value.createProject(projectName)
-    // },
-    // deleteProject: async (projectId: string) => {
-    //   return await ds.value.deleteProject(projectId)
-    // },
-    listScores: async () => {
+    listScores: async (fetchLocal = true, fetchRemote = false) => {
+      if (fetchLocal && fetchRemote) {
+        const localScores = await localDataStore.listScores()
+        const remoteScores = await griveDataStore.listScores()
+        return merge(localScores, remoteScores)
+      } else if (fetchLocal) {
+        const localScores = await localDataStore.listScores()
+        return merge(localScores, null)
+      } else if (fetchRemote) {
+        const remoteScores = await griveDataStore.listScores()
+        return merge(null, remoteScores)
+      }
+
       return await ds.value.listScores()
     },
     getScore: async (scoreId: string) => {
       return await ds.value.getScore(scoreId)
     },
-    saveScore: async (score: Score) => {
+    saveScore: async (score: Score, remote: boolean = true) => {
       // we want to hash the score without the metadata as this can have
       // unimportant data that would otherwise change the hash
+
 
       const oldVersion = score.metadata!.version
       const oldModifiedDateTime = score.metadata!.modifiedDateTime
@@ -71,7 +146,12 @@ export function useDataStore(): DataStore {
       //deleteme
       // score.metadata!.id = score!.id!
       // score.metadata!.title = score.title
-      return await ds.value.saveScore(score)
+
+      if (remote) {
+        return await griveDataStore.saveScore(score)
+      } else {
+        return await localDataStore.saveScore(score)
+      }
     },
     syncScore: async (score: Score) => {
       const localVerion = score.metadata?.version

@@ -17,7 +17,6 @@ const projectTypes = ref([
   { name: 'GDrive', description: 'Stored in your google drive' },
 ])
 
-
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
   name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
@@ -28,25 +27,23 @@ const filters = ref({
 });
 
 const fetchNodes = async () => {
-  const scores = await datastore.listScores()
+  nodes.value = Array.from((await datastore.listScores()).values())
+  console.log('Nodes: ', nodes.value)
 
-  nodes.value = scores.map(score => {
-    return {
-      title: score.title,
-      type: 'foo',
-      project: score.project,
-      id: score.id,
-    }
-  })
+  // nodes.value = scores.map(score => {
+  //   return {
+  //     title: score.title,
+  //     type: 'foo',
+  //     project: score.project,
+  //     id: score.id,
+  //     version: score.version
+  //   }
+  // })
 
 }
 
 const selectScore = async (data) => {
   console.log('Selected Score: ', toRaw(data))
-  // debugger
-  // projectId.value = row.data.projectId
-  // projectName.value = row.data.projectName
-  // debugger
   scoreId.value = data.id
   console.log('Selected Score: ', scoreId.value)
   console.log('Selected Project: ', projectId.value)
@@ -54,13 +51,9 @@ const selectScore = async (data) => {
   dialogRef.value.close()
 }
 
-const refreshProjects = async () => {
-  // const projects = await datastore.listProjects()
-  await fetchNodes()
-}
 
 onMounted(async () => {
-  refreshProjects()
+  fetchNodes()
 })
 
 // const toggle = event => {
@@ -96,7 +89,7 @@ const deleteScore = async (row) => {
   // } else if (row.data.type === 'score') {
     await datastore.deleteScore(row.data.scoreId)
   // }
-  refreshProjects()
+  fetchNodes()
 }
 
 // const handleProjectImport = async event => {
@@ -132,18 +125,30 @@ const deleteScore = async (row) => {
       </template>
       <template #empty> No customers found. </template>
       <template #loading> Loading customers data. Please wait. </template>
-      <p-column field="title" header="Title" style="width: 250px"></p-column>
-      <p-column field="type" header="Type" style="width: 150px"></p-column>
-      <p-column field="project" header="Project" style="width: 150px"></p-column>
+      <p-column field="latest.title" header="Title" style="width: 250px"></p-column>
+      <p-column field="latest.project" header="Project" style="width: 150px"></p-column>
+      <p-column header="Local" style="width: 150px">
+        <template #body="slotProps">
+          <span v-if="slotProps.data.local.isLatest">{{ slotProps.data.local.version }}</span>
+          <p-button v-else>overwrite</p-button>
+        </template>
+      </p-column>
+      <p-column header="Sync" style="width: 150px">
+        <template #body="slotProps">
+          <p-button v-if="slotProps.data.local.isLatest && !slotProps.data.remote.isLatest" >>></p-button>
+          <p-button v-if="slotProps.data.remote.isLatest && !slotProps.data.local.isLatest" ><<</p-button>
+        </template>
+      </p-column>
+
+      <p-column header="Remote" style="width: 150px">
+        <template #body="slotProps">
+          <span>{{ slotProps.data.remote.version ?? 'missing' }}</span>
+          <!-- <p-button v-else>overwrite</p-button> -->
+        </template>
+      </p-column>
 
       <p-column style="width: 10rem">
         <template #body="slotProps">
-          <!-- <p-button
-            icon="pi pi-plus"
-            rounded
-            title="Add Score"
-            @click="addRow(slotProps.node)"
-          /> -->
           <div class="flex flex-wrap gap-2">
             <p-button type="button" icon="pi pi-pencil" rounded severity="success"
               @click="selectScore(slotProps.data)" />
@@ -153,44 +158,6 @@ const deleteScore = async (row) => {
       </p-column>
     </p-datatable>
 
-    <!-- <p-treetable :value="nodes" tableStyle="min-width: 50rem" v-model:expandedKeys="expandedKeys">
-      <template #header>
-        <div class="text-xl font-bold">Projects</div>
-        <p-button icon="pi pi-plus" label="Add Project" severity="info" @click="toggle" />
-        <p-button icon="pi pi-plus" label="Import Project" severity="info" @click="toggle" />
-        <input type="file" ref="fileInput" accept=".zip" style="display: none" @change="handleProjectImport" />
-      </template>
-      <p-column field="name" header="Name" expander style="width: 250px"></p-column>
-      <p-column field="type" header="Type" style="width: 150px"></p-column>
-      <p-column style="width: 10rem">
-        <template #body="slotProps">
-
-          <p-button :v-if="slotProps.node.type === 'project'" icon="pi pi-plus" rounded title="Add Score" @click="addRow(slotProps.node)" />
-          <div class="flex flex-wrap gap-2">
-            <p-button
-              type="button"
-              icon="pi pi-pencil"
-              rounded
-              severity="success"
-              @click="selectScore(slotProps.node)"
-            />
-            <p-button
-              type="button"
-              icon="pi pi-trash"
-              rounded
-              severity="success"
-              @click="deleteRow(slotProps.node)"
-            />
-          </div>
-        </template>
-      </p-column>
-
-      <template #footer>
-        <div class="flex justify-start">
-          <p-button icon="pi pi-refresh" label="Reload" severity="warn" @click="refreshProjects()" />
-        </div>
-      </template>
-    </p-treetable> -->
   </div>
   <p-popover ref="pop">
     <div class="flex flex-col gap-4">

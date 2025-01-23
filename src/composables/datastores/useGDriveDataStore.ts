@@ -1,5 +1,5 @@
 import { gapi } from 'gapi-script';
-import type { DataStore, ScoreSummary } from '@/interfaces/DataStore'
+import type { DataStore } from '@/interfaces/DataStore'
 import { Score } from '@/models/Score'
 import JSZip from 'jszip';
 import type { Metadata } from '@/models/Metadata';
@@ -33,107 +33,53 @@ export function useGDriveDataStore(): DataStore {
     await gapi.auth2.getAuthInstance().signIn();
     cachedToken = gapi.auth.getToken().access_token;
     tokenExpiry = now + 3600 * 1000; // Token valid for 1 hour
+    await gapi.client.load('drive', 'v3')
     return cachedToken;
   }
 
   function signOut() {
-      const auth = gapi.auth2.getAuthInstance();
-      auth.signOut();
-      cachedToken = null;
-      tokenExpiry = -1;
+    const auth = gapi.auth2.getAuthInstance();
+    auth.signOut();
+    cachedToken = null;
+    tokenExpiry = -1;
   }
 
   return {
 
-     listProjects: async function() {
+    listProjects: async function () {
       const token = await signIn();
 
-        await gapi.client.load('drive', 'v3') //, async function () {
-          const response = await gapi.client.drive.files.list({
-              q: "'appDataFolder' in parents",
-              spaces: 'appDataFolder',
-              // fields: 'files(id, name)'
-            });
-            const projects =  response.result.files.map(item => ({
-              id: item.id,
-              name: item.name,
-            }));
-            debugger;
-            return projects
+      const response = await gapi.client.drive.files.list({
+        q: "'appDataFolder' in parents",
+        spaces: 'appDataFolder',
+        // fields: 'files(id, name)'
+      });
+      const projects = response.result.files.map(item => ({
+        id: item.id,
+        name: item.name,
+      }));
+      debugger;
+      return projects
 
     },
 
-
-    // createProject: async projectName => {
-    //   const token = await signIn();
-
-    //   const response = await fetch('https://www.googleapis.com/drive/v3/files', {
-    //     method: 'POST',
-    //     headers: {
-    //       Authorization: `Bearer ${token}`,
-    //       'Content-Type': 'application/json',
-    //     },
-    //     body: JSON.stringify({
-    //       name: projectName,
-    //       mimeType: 'application/vnd.google-apps.folder',
-    //       parents: ['appDataFolder'],
-    //     }),
-    //   });
-
-    //   if (!response.ok) {
-    //     throw new Error(`Failed to create project folder: ${response.statusText}`);
-    //   }
-    //   return response.json() ;
-
-    // },
-    // deleteProject: async function (projectId) {
-    //   const token = await signIn();
-    //   const files = await this.listScores();
-
-    //   if (files && files.length > 0) {
-    //     await Promise.all(
-    //       files.map((file) =>
-    //         fetch(`https://www.googleapis.com/drive/v3/files/${file.id}`, {
-    //           method: 'DELETE',
-    //           headers: { Authorization: `Bearer ${token}` },
-    //         })
-    //       )
-    //     );
-    //   }
-
-    //   const folderResponse = await fetch(
-    //     `https://www.googleapis.com/drive/v3/files/${projectId}`,
-    //     {
-    //       method: 'DELETE',
-    //       headers: { Authorization: `Bearer ${token}` },
-    //     }
-    //   );
-
-    //   if (!folderResponse.ok) {
-    //     throw new Error(`Failed to delete folder: ${folderResponse.statusText}`);
-    //   }
-    // },
     listScores: async function () {
       const token = await signIn();
-      const projectId = 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
-      const query = `'${projectId}' in parents`;
-      const response = await fetch(
-        `https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=${encodeURIComponent(query)}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
 
-      if (!response.ok) {
-        throw new Error(`Failed to list scores: ${response.statusText}`);
-      }
 
-      const json = await response.json();
-      return json.files.map(file=> ({
-        id: file.id,
-        title: file.name.split('.')[0],
-      })); // Returns all scores in the project folder
+      const response = await gapi.client.drive.files.list({
+        q: "'appDataFolder' in parents",
+        spaces: 'appDataFolder',
+        fields: 'files(id, name)'
+      });
+      const projects = response.result.files.map(item => ({
+        id: item.id,
+        name: item.name,
+      }));
+      debugger;
+      return projects
     },
+
     getScore: async function (scoreId) {
       const token = await signIn();
 
@@ -169,121 +115,77 @@ export function useGDriveDataStore(): DataStore {
         throw new Error(`Failed to delete score: ${response.statusText}`);
       }
     },
+    hasScore: async function (scoreId: string): Promise<boolean> {
+      if (!scoreId) return false; // If no ID is provided, treat it as non-existent
+
+      try {
+        const response = await gapi.client.drive.files.get({
+          fileId: scoreId,
+          fields: 'id', // Fetch minimal fields to check existence
+        });
+
+        return !!response.result.id; // If a result ID is returned, the file exists
+      } catch (error) {
+        if (error.status === 404) {
+          // File not found
+          return false;
+        } else {
+          // Handle other errors
+          throw new Error(`Error checking file existence: ${error}`);
+        }
+      }
+    },
     saveScore: async function (score) {
       const token = await signIn();
-      const projectId = 'XXXXXXXXXXXXXXXXXXXX'
+      debugger
+
       const metadata = {
         name: `${score.metadata!.title}.json`,
-        ...(!score.metadata!.id && { parents: [projectId] }),  // only add parent if score is new
+        mimeType: 'application/json',
+        parents: ['appDataFolder'], // Ensure the file is saved in the appDataFolder
       };
 
       const fileContent = JSON.stringify(score);
-      const formData = new FormData();
-      formData.append(
-        'metadata',
-        new Blob([JSON.stringify(metadata)], { type: 'application/json' })
-      );
-      formData.append('file', new Blob([fileContent], { type: 'application/json' }));
+      const fileBlob = new Blob([fileContent], { type: 'application/json' });
+
+      // Check if the score already exists
+      const fileExists = await this.hasScore(score.metadata!.id);
 
       let response;
 
-      if (score.metadata!.id) {
-        // If the score has an ID, update the existing file
-        response = await fetch(
-          `https://www.googleapis.com/upload/drive/v3/files/${score.metadata!.id}?uploadType=multipart`,
-          {
-            method: 'PATCH',
-            headers: { Authorization: `Bearer ${token}` },
-            body: formData,
-          }
-        );
+      if (fileExists) {
+        // If the file exists, update it
+        response = await gapi.client.drive.files.update({
+          fileId: score.metadata!.id,
+          uploadType: 'media', // Use media upload for simplicity
+          resource: metadata,
+          media: {
+            mimeType: 'application/json',
+            body: fileBlob,
+          },
+        });
       } else {
-        // If the score does not have an ID, create a new file
-        // metadata.parents = [projectId];
-        response = await fetch(
-          'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',
-          {
-            method: 'POST',
-            headers: { Authorization: `Bearer ${token}` },
-            body: formData,
-          }
-        );
+        // If the file does not exist, create it
+        response = await gapi.client.drive.files.create({
+          uploadType: 'media',
+          resource: metadata,
+          media: {
+            mimeType: 'application/json',
+            body: fileBlob,
+          },
+        });
       }
 
-      if (!response.ok) {
-        throw new Error(`Failed to save score: ${response.statusText}`);
+      if (!response.result) {
+        throw new Error(`Failed to save score: ${response}`);
       }
-
-      const json = await response.json();
 
       return {
-        id: json.id,
+        id: response.result.id,
         title: score.metadata!.title,
       } as Metadata;
     },
-    // exportProject: async function () {
-    //   const token = await signIn();
-    //   const files = await this.listScores();
 
-    //   if (!files || files.length === 0) {
-    //     throw new Error("No scores found for this project");
-    //   }
-
-    //   const zip = new JSZip();
-
-    //   // Fetch each score and add it to the zip
-    //   await Promise.all(
-    //     files.map(async (file) => {
-    //       const response = await fetch(
-    //         `https://www.googleapis.com/drive/v3/files/${file.id}?alt=media`,
-    //         {
-    //           headers: { Authorization: `Bearer ${token}` },
-    //         }
-    //       );
-
-    //       if (!response.ok) {
-    //         throw new Error(`Failed to fetch score ${file.title}: ${response.statusText}`);
-    //       }
-
-    //       const blob = await response.blob();
-    //       zip.file(`${file.title}.json`, blob);
-    //     })
-    //   );
-
-    //   // Generate the zip file as a Blob
-    //   const zipBlob = await zip.generateAsync({ type: 'blob' });
-
-    //   return zipBlob; // The calling code can handle downloading this blob
-    // },
-    // importProject: async function (projectName, projectBlob) {
-    //   // const token = await signIn();
-
-    //   // // Step 1: Create the project folder
-    //   // const project = await this.createProject(projectName);
-
-    //   // // Step 2: Extract the zip file contents
-    //   // const zip = await JSZip.loadAsync(projectBlob);
-    //   // const files = Object.keys(zip.files);
-
-    //   // if (files.length === 0) {
-    //   //   throw new Error('The provided project zip is empty.');
-    //   // }
-
-    //   // // Step 3: Save each extracted file as a score
-    //   // await Promise.all(
-    //   //   files.map(async (fileName) => {
-    //   //     const file = zip.files[fileName];
-    //   //     if (!file.dir) {
-    //   //       const fileContent = await file.async('string'); // Get the file content as a string
-    //   //       const scoreData = JSON.parse(fileContent); // Parse the JSON content
-    //   //       const score = new Score(scoreData); // Assume Score model handles JSON parsing
-    //   //       await this.saveScore(score); // Save the score to the project
-    //   //     }
-    //   //   })
-    //   // );
-
-    //   // return project; // Return the created project metadata
-    // },
 
     syncScore: async (score: Score) => {
       // do nothing
