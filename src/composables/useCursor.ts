@@ -30,7 +30,6 @@ const noteId: Ref<number> = ref(0)
 const tempoPercent: Ref<number> = ref(100)
 const isDarkMode = ref(false)
 const isPlaybackLooping = ref(false)
-const projectType: Ref<string> = ref('Local')
 
 const selection: Ref<Array<VoiceElement | Bar>> = ref([])
 
@@ -111,7 +110,6 @@ const mode: Ref<Mode> = ref(Mode.ModeNote)
 export const useCursor = () => {
   return {
     clientId,
-    projectType,
     project,
     projectId,
     projectName,

@@ -1,7 +1,6 @@
 import { gapi } from 'gapi-script';
 import type { DataStore } from '@/interfaces/DataStore'
 import { Score } from '@/models/Score'
-import JSZip from 'jszip';
 import type { Metadata } from '@/models/Metadata';
 
 const CLIENT_ID = '636098428920-uvjfhutnn0f8h78ntv8kd8qob6i4ot74.apps.googleusercontent.com';
@@ -10,7 +9,7 @@ const SCOPES = 'https://www.googleapis.com/auth/drive.appdata';
 let cachedToken = null;
 let tokenExpiry: number = -1;
 
-export function useGDriveDataStore(): DataStore {
+export function useGDriveDataStore() {
   async function signIn() {
     const now = Date.now();
 
@@ -46,22 +45,22 @@ export function useGDriveDataStore(): DataStore {
 
   return {
 
-    listProjects: async function () {
-      const token = await signIn();
+    // listProjects: async function () {
+    //   const token = await signIn();
 
-      const response = await gapi.client.drive.files.list({
-        q: "'appDataFolder' in parents",
-        spaces: 'appDataFolder',
-        // fields: 'files(id, name)'
-      });
-      const projects = response.result.files.map(item => ({
-        id: item.id,
-        name: item.name,
-      }));
-      debugger;
-      return projects
+    //   const response = await gapi.client.drive.files.list({
+    //     q: "'appDataFolder' in parents",
+    //     spaces: 'appDataFolder',
+    //     // fields: 'files(id, name)'
+    //   });
+    //   const projects = response.result.files.map(item => ({
+    //     id: item.id,
+    //     name: item.name,
+    //   }));
+    //   debugger;
+    //   return projects
 
-    },
+    // },
 
     listScores: async function () {
       const token = await signIn();

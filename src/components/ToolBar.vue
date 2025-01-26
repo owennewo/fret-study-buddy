@@ -9,9 +9,9 @@ import ScoreSelectorDialog from './ScoreSelectorDialog.vue'
 import { useDataStore } from '@/composables/datastores/useDataStore'
 
 
-import {useSettingsStore} from '@/stores/settingsStore'
+import {useLocalDataStore} from '@/composables/datastores/useLocalDataStore'
 
-const { saveSettingsToDB } = useSettingsStore()
+const { saveSettingsToDB } = useLocalDataStore()
 
 const dialog = useDialog()
 const datastore = useDataStore();

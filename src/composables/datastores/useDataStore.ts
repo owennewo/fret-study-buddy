@@ -7,18 +7,10 @@ import type { Score } from "@/models/Score"
 
 const localDataStore = useLocalDataStore()
 const griveDataStore = useGDriveDataStore()
-const { projectType, clientId } = useCursor()
+const { clientId } = useCursor()
 
 
 export function useDataStore() {
-
-  const ds = computed((): DataStore=> {
-    if (projectType.value == 'GDrive') {
-      return griveDataStore
-    } else {
-      return localDataStore
-    }
-  })
 
   const hashJson = async (json) =>
     Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(json))))
@@ -110,13 +102,11 @@ export function useDataStore() {
         const remoteScores = await griveDataStore.listScores()
         return merge(null, remoteScores)
       }
-
-      return await ds.value.listScores()
     },
     getScore: async (scoreId: string) => {
-      return await ds.value.getScore(scoreId)
+      return await localDataStore.getScore(scoreId)
     },
-    saveScore: async (score: Score, remote: boolean = true) => {
+    saveScore: async (score: Score) => {
       // we want to hash the score without the metadata as this can have
       // unimportant data that would otherwise change the hash
 
@@ -147,19 +137,27 @@ export function useDataStore() {
       // score.metadata!.id = score!.id!
       // score.metadata!.title = score.title
 
-      if (remote) {
-        return await griveDataStore.saveScore(score)
-      } else {
+      // if (remote) {
+      //   return await griveDataStore.saveScore(score)
+      // } else {
         return await localDataStore.saveScore(score)
-      }
+      // }
     },
-    syncScore: async (score: Score) => {
-      const localVerion = score.metadata?.version
-      const localClientId = score.metadata?.clientId
-      console.log(`checking ${score.metadata!.id} ${localVerion} ${localClientId}`)
+    pushScore: async function(score) {
+      await griveDataStore.saveScore(score)
     },
+
+    pullScore: async function(scoreId) {
+      return await griveDataStore.getScore(scoreId) as Score
+    },
+
+    // syncScore: async (score: Score) => {
+    //   const localVerion = score.metadata?.version
+    //   const localClientId = score.metadata?.clientId
+    //   console.log(`checking ${score.metadata!.id} ${localVerion} ${localClientId}`)
+    // },
     deleteScore: async (scoreId: string) => {
-      return await ds.value.deleteScore(scoreId)
+      return await localDataStore.deleteScore(scoreId)
     },
     // exportProject: async () => {
     //   return await ds.value.exportProject()

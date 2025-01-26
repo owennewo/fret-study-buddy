@@ -4,18 +4,15 @@ import { ref, onMounted, toRaw, type Ref, inject } from 'vue'
 import { useCursor } from '@/composables/useCursor'
 import { useDataStore } from '@/composables/datastores/useDataStore'
 import { FilterMatchMode } from '@primevue/core/api';
+import { Score } from '@/models/Score';
 
-const { scoreId, projectType, projectId, projectName } = useCursor()
+const { score, scoreId, projectId, projectName } = useCursor()
 
 const dialogRef = inject('dialogRef') as Ref<{ close: () => void }>;
 
 const datastore = useDataStore()
 const nodes: Ref<unknown> = ref([])
 const pop = ref()
-const projectTypes = ref([
-  { name: 'Local', description: 'Stored in your browser local storage' },
-  { name: 'GDrive', description: 'Stored in your google drive' },
-])
 
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -26,103 +23,81 @@ const filters = ref({
   verified: { value: null, matchMode: FilterMatchMode.EQUALS }
 });
 
-const fetchNodes = async () => {
-  nodes.value = Array.from((await datastore.listScores()).values())
-  console.log('Nodes: ', nodes.value)
-
-  // nodes.value = scores.map(score => {
-  //   return {
-  //     title: score.title,
-  //     type: 'foo',
-  //     project: score.project,
-  //     id: score.id,
-  //     version: score.version
-  //   }
-  // })
-
+const loadScores = async (remote: boolean = false) => {
+  nodes.value = Array.from((await datastore.listScores(true, remote)).values())
 }
 
 const selectScore = async (data) => {
-  console.log('Selected Score: ', toRaw(data))
-  scoreId.value = data.id
+  console.log('Selected Score: ', toRaw(data.local))
+  scoreId.value = data.local.id
   console.log('Selected Score: ', scoreId.value)
-  console.log('Selected Project: ', projectId.value)
-  console.log('Selected Project name: ', projectName.value)
+  // console.log('Selected Project: ', projectId.value)
+  // console.log('Selected Project name: ', projectName.value)
   dialogRef.value.close()
 }
 
-
 onMounted(async () => {
-  fetchNodes()
+  loadScores()
 })
 
-// const toggle = event => {
-//   pop.value.toggle(event)
-// }
-
-// const addProject = async () => {
-//   console.log('Project Name: ', projectName.value, 'Project Type: ', projectType.value)
-//   await datastore.createProject(projectName.value)
-//   refreshProjects()
-// }
-
-
-// const addRow = async (row) => {
-//   if (row.data.type === 'project') {
-//     console.log('Adding Score to Project: ', row.data.projectId)
-//     score.value = Score.new()
-//     const summary = await datastore.saveScore(score.value)
-//     score.value.metadata!.id = summary.id!
-//     console.log('Summary: ', summary)
-//     scoreId.value = summary.id!
-//     projectId.value = row.data.projectId
-//     refreshProjects()
-//   } else {
-//     console.warn('Cannot add')
-//   }
-// }
-
-const deleteScore = async (row) => {
-  // console.log('Deleting Project: ', row)
-  // if (row.data.type === 'project') {
-  //   await datastore.deleteProject(row.data.projectId)
-  // } else if (row.data.type === 'score') {
-    await datastore.deleteScore(row.data.scoreId)
-  // }
-  fetchNodes()
+const addScore = async (row) => {
+  debugger
+    // console.log('Adding Score to Project: ', row.data.projectId)
+    score.value = Score.new()
+    const summary = await datastore.saveScore(score.value)
+    score.value.metadata!.id = summary.id!
+    console.log('Summary: ', summary)
+    scoreId.value = summary.id!
+    projectId.value = row.data.projectId
+    loadScores()
 }
 
-// const handleProjectImport = async event => {
-//   const file = event.target.files[0]
-//   if (file) {
-//     await datastore.importProject(file.name, file)
-//     refreshProjects()
-//     console.log('Project imported successfully.')
-//   } else {
-//     console.warn('No file selected.')
-//   }
-// }
+const deleteScore = async (data) => {
+  debugger
+  await datastore.deleteScore(data.local.id)
+  loadScores()
+}
+
+const sync = () => {
+  console.log("sync")
+  debugger
+  loadScores(true)
+}
+
+const pushFile = async(scoreId) => {
+  debugger
+  const rowScore = await datastore.getScore(scoreId)
+  datastore.pushScore(rowScore)
+}
+
+const pullFile = (scoreId) => {
+  debugger
+  const rowScore = datastore.pullScore(scoreId)
+  datastore.saveScore(rowScore)
+}
 
 
 </script>
 
 <template>
   <div class="card">
-
-    <p-select v-model="projectType" :options="projectTypes" optionValue="name" optionLabel="name"
-      placeholder="Select a ProjectType" class="w-full md:w-56" />
-
     <p-datatable :value="nodes" v-model:filters="filters">
-      <template #header>
-        <div class="flex justify-end">
-          <p-iconfield>
-            <p-inputicon>
-              <i class="pi pi-search" />
-            </p-inputicon>
-            <p-inputtext v-model="filters['global'].value" placeholder="Keyword Search" />
-          </p-iconfield>
-        </div>
-      </template>
+      <div class="flex justify-between items-center">
+      <div class="flex items-center space-x-4">
+        <p-button icon="pi pi-plus" rounded raised @click="addScore"/>
+        <p-button icon="pi pi-refresh" rounded raised @click="loadScores" />
+        <p-button icon="pi pi-google" rounded raised @click="sync()" />
+      </div>
+
+      <div>
+        <p-iconfield>
+          <p-inputicon>
+            <i class="pi pi-search" />
+          </p-inputicon>
+          <p-inputtext v-model="filters['global'].value" placeholder="Keyword Search" />
+        </p-iconfield>
+      </div>
+    </div>
       <template #empty> No customers found. </template>
       <template #loading> Loading customers data. Please wait. </template>
       <p-column field="latest.title" header="Title" style="width: 250px"></p-column>
@@ -135,8 +110,8 @@ const deleteScore = async (row) => {
       </p-column>
       <p-column header="Sync" style="width: 150px">
         <template #body="slotProps">
-          <p-button v-if="slotProps.data.local.isLatest && !slotProps.data.remote.isLatest" >>></p-button>
-          <p-button v-if="slotProps.data.remote.isLatest && !slotProps.data.local.isLatest" ><<</p-button>
+          <p-button v-if="slotProps.data.local.isLatest && !slotProps.data.remote.isLatest" @click="pushFile(slotProps.data)">>></p-button>
+          <p-button v-if="slotProps.data.remote.isLatest && !slotProps.data.local.isLatest" @click="pullFile(slotProps.data)"><<</p-button>
         </template>
       </p-column>
 
