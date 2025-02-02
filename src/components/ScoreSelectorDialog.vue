@@ -42,14 +42,14 @@ onMounted(async () => {
 
 const addScore = async (row) => {
   debugger
-    // console.log('Adding Score to Project: ', row.data.projectId)
-    score.value = Score.new()
-    const summary = await datastore.saveScore(score.value)
-    score.value.metadata!.id = summary.id!
-    console.log('Summary: ', summary)
-    scoreId.value = summary.id!
-    projectId.value = row.data.projectId
-    loadScores()
+  // console.log('Adding Score to Project: ', row.data.projectId)
+  score.value = Score.new()
+  const summary = await datastore.saveScore(score.value)
+  score.value.metadata!.id = summary.id!
+  console.log('Summary: ', summary)
+  scoreId.value = summary.id!
+  projectId.value = row.data.projectId
+  loadScores()
 }
 
 const deleteScore = async (data) => {
@@ -60,13 +60,12 @@ const deleteScore = async (data) => {
 
 const sync = () => {
   console.log("sync")
-  debugger
+  // debugger
   loadScores(true)
 }
 
-const pushFile = async(scoreId) => {
-  debugger
-  const rowScore = await datastore.getScore(scoreId)
+const pushFile = async (data) => {
+  const rowScore = await datastore.getScore(data.local.id)
   datastore.pushScore(rowScore)
 }
 
@@ -83,21 +82,21 @@ const pullFile = (scoreId) => {
   <div class="card">
     <p-datatable :value="nodes" v-model:filters="filters">
       <div class="flex justify-between items-center">
-      <div class="flex items-center space-x-4">
-        <p-button icon="pi pi-plus" rounded raised @click="addScore"/>
-        <p-button icon="pi pi-refresh" rounded raised @click="loadScores" />
-        <p-button icon="pi pi-google" rounded raised @click="sync()" />
-      </div>
+        <div class="flex items-center space-x-4">
+          <p-button icon="pi pi-plus" rounded raised @click="addScore" />
+          <p-button icon="pi pi-refresh" rounded raised @click="loadScores" />
+          <p-button icon="pi pi-google" rounded raised @click="sync()" />
+        </div>
 
-      <div>
-        <p-iconfield>
-          <p-inputicon>
-            <i class="pi pi-search" />
-          </p-inputicon>
-          <p-inputtext v-model="filters['global'].value" placeholder="Keyword Search" />
-        </p-iconfield>
+        <div>
+          <p-iconfield>
+            <p-inputicon>
+              <i class="pi pi-search" />
+            </p-inputicon>
+            <p-inputtext v-model="filters['global'].value" placeholder="Keyword Search" />
+          </p-iconfield>
+        </div>
       </div>
-    </div>
       <template #empty> No customers found. </template>
       <template #loading> Loading customers data. Please wait. </template>
       <p-column field="latest.title" header="Title" style="width: 250px"></p-column>
@@ -110,8 +109,11 @@ const pullFile = (scoreId) => {
       </p-column>
       <p-column header="Sync" style="width: 150px">
         <template #body="slotProps">
-          <p-button v-if="slotProps.data.local.isLatest && !slotProps.data.remote.isLatest" @click="pushFile(slotProps.data)">>></p-button>
-          <p-button v-if="slotProps.data.remote.isLatest && !slotProps.data.local.isLatest" @click="pullFile(slotProps.data)"><<</p-button>
+          <p-button v-if="slotProps.data.local.isLatest && !slotProps.data.remote.isLatest"
+            @click="pushFile(slotProps.data)">>></p-button>
+          <p-button v-if="slotProps.data.remote.isLatest && !slotProps.data.local.isLatest"
+            @click="pullFile(slotProps.data)">
+            pull </p-button>
         </template>
       </p-column>
 
@@ -127,7 +129,8 @@ const pullFile = (scoreId) => {
           <div class="flex flex-wrap gap-2">
             <p-button type="button" icon="pi pi-pencil" rounded severity="success"
               @click="selectScore(slotProps.data)" />
-            <p-button type="button" icon="pi pi-trash" rounded severity="success" @click="deleteScore(slotProps.data)" />
+            <p-button type="button" icon="pi pi-trash" rounded severity="success"
+              @click="deleteScore(slotProps.data)" />
           </div>
         </template>
       </p-column>

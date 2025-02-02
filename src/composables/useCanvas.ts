@@ -14,7 +14,7 @@ import { useFretboard } from './useFretboard'
 const canvasRef: Ref<HTMLCanvasElement | null> = ref(null)
 const canvasContainerRef: Ref<HTMLDivElement | null> = ref(null)
 
-const {drawFretboard } = useFretboard()
+const { drawFretboard } = useFretboard()
 
 let pixi: Application | null = null
 
@@ -26,13 +26,13 @@ export const useCanvas = () => {
   const colours = computed(() => {
     return isDarkMode.value
       ? {
-          primary: 'white',
-          secondary: 'black',
-        }
+        primary: 'white',
+        secondary: 'black',
+      }
       : {
-          primary: 'black',
-          secondary: 'white',
-        }
+        primary: 'black',
+        secondary: 'white',
+      }
   })
 
   // const foregroundColour2 = '#d0d3d4'
@@ -74,7 +74,7 @@ export const useCanvas = () => {
     const arrowSize = 6;
 
     // Start at the note position
-    const startX = score.value.fontSize /2;
+    const startX = score.value.fontSize / 2;
     const startY = 0;
 
     // Where the curved portion ends (just before going vertical)
@@ -93,7 +93,7 @@ export const useCanvas = () => {
       curveEndX, -bendHeight * 0.2,    // control point 1
       curveEndX, -bendHeight * 0.5, // control point 2
       curveEndX, curveEndY
-    ).stroke( {width:2, color: voiceColor(note.voice())});
+    ).stroke({ width: 2, color: voiceColor(note.voice()) });
 
     // 3) Draw an upward arrow at the very top
     // Move from the top of the bend...
@@ -105,7 +105,7 @@ export const useCanvas = () => {
     // ...right slash
     g.lineTo(endX + arrowSize, endY + arrowSize)
     g.lineTo(endX - arrowSize, endY + arrowSize)
-      .stroke( {width:2, color: voiceColor(note.voice())})
+      .stroke({ width: 2, color: voiceColor(note.voice()) })
       .fill(voiceColor(note.voice()));
 
     return g;
@@ -186,7 +186,7 @@ export const useCanvas = () => {
 
     c.x =
       (usableWidth * element.location()) /
-        Math.max(element.voice().duration(), element.bar().timeSignature.beatsPerBar) +
+      Math.max(element.voice().duration(), element.bar().timeSignature.beatsPerBar) +
       element.score().fontSize / 2
     c.y = -element.score().fontSize / 2
 
@@ -406,26 +406,26 @@ export const useCanvas = () => {
     return trackContainer
   }
 
-  const setupPixi = async() => {
+  const setupPixi = async () => {
     const app = new Application()
 
-      const wrapper = document.getElementById('canvas-wrapper')!
-      let first = true
-      const resizeObserver = new ResizeObserver(() => {
-        if (first) {
-          first = false
-        } else {
-          console.log("canvas resize detected")
-          drawScore()
-        }
-      })
-      resizeObserver.observe(wrapper)
-      await app.init({
-        canvas: canvasRef.value!,
-        backgroundColor: backgroundColour,
-      })
-      initDevtools(app)
-      return app;
+    const wrapper = document.getElementById('canvas-wrapper')!
+    let first = true
+    const resizeObserver = new ResizeObserver(() => {
+      if (first) {
+        first = false
+      } else {
+        console.log("canvas resize detected")
+        drawScore()
+      }
+    })
+    resizeObserver.observe(wrapper)
+    await app.init({
+      canvas: canvasRef.value!,
+      backgroundColor: backgroundColour,
+    })
+    initDevtools(app)
+    return app;
   }
 
   const drawScore = async () => {

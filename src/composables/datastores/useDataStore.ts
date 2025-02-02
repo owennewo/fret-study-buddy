@@ -4,6 +4,7 @@ import { useLocalDataStore } from "./useLocalDataStore"
 import { computed } from "vue"
 import { useCursor } from "../useCursor"
 import type { Score } from "@/models/Score"
+import type { Metadata } from "@/models/Metadata"
 
 const localDataStore = useLocalDataStore()
 const griveDataStore = useGDriveDataStore()
@@ -14,12 +15,12 @@ export function useDataStore() {
 
   const hashJson = async (json) =>
     Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(json))))
-        .map(byte => byte.toString(16).padStart(2, '0'))
-        .join('');
+      .map(byte => byte.toString(16).padStart(2, '0'))
+      .join('');
 
   const merge = (localScores, remoteScores) => {
     const combined = new Map()
-    if (localScores)  {
+    if (localScores) {
       localScores.forEach(score => {
         combined.set(score.id, {
           local: score,
@@ -68,13 +69,13 @@ export function useDataStore() {
             }
           }
         }
-      }  else if (value.local) {
+      } else if (value.local) {
         value.local.isLatest = true
         value.remote = {
           isLatest: false
         }
         value.latest = value.local
-      } else if (value.remote){
+      } else if (value.remote) {
         value.local = {
           isLatest: false
         }
@@ -85,7 +86,7 @@ export function useDataStore() {
       }
     })
 
-    return combined;
+    return combined as Map<string, { local: Metadata, remote: Metadata, latest: Metadata }>;
 
   }
 
@@ -140,14 +141,14 @@ export function useDataStore() {
       // if (remote) {
       //   return await griveDataStore.saveScore(score)
       // } else {
-        return await localDataStore.saveScore(score)
+      return await localDataStore.saveScore(score)
       // }
     },
-    pushScore: async function(score) {
+    pushScore: async function (score) {
       await griveDataStore.saveScore(score)
     },
 
-    pullScore: async function(scoreId) {
+    pullScore: async function (scoreId) {
       return await griveDataStore.getScore(scoreId) as Score
     },
 
@@ -157,7 +158,19 @@ export function useDataStore() {
     //   console.log(`checking ${score.metadata!.id} ${localVerion} ${localClientId}`)
     // },
     deleteScore: async (scoreId: string) => {
-      return await localDataStore.deleteScore(scoreId)
+      const files = await griveDataStore.listScores()
+      debugger
+      files.forEach(async file => {
+        debugger
+        await griveDataStore.deleteScore(file.googleId)
+      })
+      // return await localDataStore.deleteScore(scoreId)
+    },
+    resetRemote: async () => {
+      const files = await griveDataStore.listScores()
+      files.forEach(async file => {
+        await griveDataStore.deleteScore(file.googleId)
+      })
     },
     // exportProject: async () => {
     //   return await ds.value.exportProject()

@@ -82,12 +82,8 @@ export function useLocalDataStore() {
 
 
   return {
-
-
     loadSettingsFromDB,
     saveSettingsToDB,
-
-
     listProjects: async () => {
       return (await indexedDB.databases())
         .filter(db => db.name !== 'appDatabase')
@@ -96,21 +92,17 @@ export function useLocalDataStore() {
           name: db.name,
         })) as Project[]
     },
-
     listScores: async () => {
       const db = await openDatabase()
       const titles = await db?.getAll(SCORES_STORE)
       return titles.map(score => score.metadata)
     },
-
     getScore: async (scoreId: string) => {
       const db = await openDatabase()
       if (!db.objectStoreNames.contains(SCORES_STORE)) {
         const objectStore = db.createObjectStore(SCORES_STORE, { keyPath: 'id' });
-
         objectStore.createIndex('metadata_id', 'metadata.id', { unique: true });
       }
-
       const fetchedScore = await db.get(SCORES_STORE, scoreId)
       if (!fetchedScore) {
         console.warn('Score not found:', scoreId)

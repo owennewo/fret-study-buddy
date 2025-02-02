@@ -23,7 +23,7 @@ export class Metadata {
     console.assert(data, "data should exist")
 
     // if (data) {
-      return new Metadata(data.id, data.title, data.project, data.createdDateTime, data.modifiedDateTime, data.clientId, data.version, data.hash)
+    return new Metadata(data.id, data.title, data.project, data.createdDateTime, data.modifiedDateTime, data.clientId, data.version, data.hash)
     // } else {
     //   return new Metadata()
     // }

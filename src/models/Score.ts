@@ -50,7 +50,7 @@ class Score {
 
   toJSON(): object {
     return {
-      metadata: this.metadata? this.metadata.toJSON(): null,
+      metadata: this.metadata ? this.metadata.toJSON() : null,
       url: this.url,
       tempo: this.tempo,
       timeSignature: this.timeSignature,

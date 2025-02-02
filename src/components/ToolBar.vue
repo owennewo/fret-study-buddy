@@ -9,7 +9,7 @@ import ScoreSelectorDialog from './ScoreSelectorDialog.vue'
 import { useDataStore } from '@/composables/datastores/useDataStore'
 
 
-import {useLocalDataStore} from '@/composables/datastores/useLocalDataStore'
+import { useLocalDataStore } from '@/composables/datastores/useLocalDataStore'
 
 const { saveSettingsToDB } = useLocalDataStore()
 
@@ -31,7 +31,7 @@ const toggleLoop = () => {
   isPlaybackLooping.value = !isPlaybackLooping.value
 }
 
-const toggleDarkMode = async() => {
+const toggleDarkMode = async () => {
   isDarkMode.value = !isDarkMode.value
   document.documentElement.classList.toggle('dark-mode', isDarkMode.value)
 }
@@ -70,12 +70,12 @@ const openScore = () => {
     },
   })
 }
-const nextScore = async() => {
-  console.log('next score')
-  const scores = await datastore.listScores()
-  let scoreIndex = scores.findIndex(scoreLite => scoreLite.title == score.value.metadata!.title) ?? -1
+const nextScore = async () => {
+  const scores = Array.from((await datastore.listScores())?.values() || [])
+    .map(score => score.local);
+  let scoreIndex = scores.findIndex(metadata => metadata!.title == score.value.metadata!.title) ?? -1
   scoreIndex += 1
-  if (scoreIndex > scores.length -1) {
+  if (scoreIndex > scores.length - 1) {
     scoreIndex = 0
   }
 
@@ -84,19 +84,16 @@ const nextScore = async() => {
   scoreId.value = newScore!.id!
 }
 
-const prevScore = async() => {
-  console.log('prev score')
-  console.log('next score')
-  const scores = await datastore.listScores()
-  let scoreIndex = scores.findIndex(scoreLite => scoreLite.title == score.value.metadata!.title) ?? -1
+const prevScore = async () => {
+  const scores = Array.from((await datastore.listScores())?.values() || [])
+    .map(score => score.local);
+  let scoreIndex = scores.findIndex(metadata => metadata!.title == score.value.metadata!.title) ?? -1
   scoreIndex -= 1
   if (scoreIndex < 0) {
-    scoreIndex = scores.length -1
+    scoreIndex = scores.length - 1
   }
-
   const newScore = scores[scoreIndex]
   scoreId.value = newScore!.id!
-
 }
 
 
@@ -117,18 +114,8 @@ const syncScore = async () => {
               <i class="pi pi-replay"></i>
             </p-button>
           </p-inputgroupaddon>
-          <p-inputnumber
-            v-model="tempoPercent"
-            inputId="tempoPercent"
-            variant="filled"
-            :min="10"
-            :max="200"
-            :step="10"
-            suffix="%"
-            showButtons
-            readOnly
-            style="width: 6rem"
-          />
+          <p-inputnumber v-model="tempoPercent" inputId="tempoPercent" variant="filled" :min="10" :max="200" :step="10"
+            suffix="%" showButtons readOnly style="width: 6rem" />
           <p-inputgroupaddon>
             <p-button :class="isPlaying ? '' : 'p-button-text'" @click="togglePlay" title="Toggle Play">
               <i :class="`pi ${isPlaying ? 'pi-pause' : 'pi-play'}`"></i>
@@ -145,23 +132,13 @@ const syncScore = async () => {
             </button>
           </p-inputgroupaddon>
           <p-inputgroupaddon>
-            <p-button
-              class="p-button p-button-text"
-              severity="primary"
-              @click="prevScore"
-              title="Previous score"
-            >
+            <p-button class="p-button p-button-text" severity="primary" @click="prevScore" title="Previous score">
               <i class="pi pi-angle-left"></i>
             </p-button>
           </p-inputgroupaddon>
 
           <p-inputgroupaddon>
-            <p-button
-              severity="primary"
-              class="p-button p-button-text"
-              @click="nextScore"
-              title="Next score"
-            >
+            <p-button severity="primary" class="p-button p-button-text" @click="nextScore" title="Next score">
               <i class="pi pi-angle-right"></i>
             </p-button>
           </p-inputgroupaddon>
@@ -181,13 +158,8 @@ const syncScore = async () => {
       </template>
 
       <template #end>
-        <p-selectbutton
-          v-model="voiceId"
-          :options="voiceOptions"
-          optionLabel="label"
-          optionValue="value"
-          :allowEmpty="false"
-        >
+        <p-selectbutton v-model="voiceId" :options="voiceOptions" optionLabel="label" optionValue="value"
+          :allowEmpty="false">
           <template #option="{ option }">
             <div :class="`voice-option ${option.class}`" :title="`voice ${option.label}`">{{ option.label }}</div>
           </template>

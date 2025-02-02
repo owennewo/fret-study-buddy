@@ -34,14 +34,8 @@ watch(
   <div class="right-column">
     <ToolBar />
     <div ref="canvasContainerRef" id="canvas-wrapper">
-      <p-badge
-        v-if="score?.errors().length > 0"
-        @click="toggleErrorPopover"
-        severity="danger"
-        size="medium"
-        :value="score?.errors().length"
-        class="errorBadge"
-      ></p-badge>
+      <p-badge v-if="score?.errors().length > 0" @click="toggleErrorPopover" severity="danger" size="medium"
+        :value="score?.errors().length" class="errorBadge"></p-badge>
 
       <canvas ref="canvasRef" class="theCanvas"></canvas>
 
@@ -90,6 +84,7 @@ button.p-togglebutton-checked .voice-1 {
   background-color: v-bind('voiceColours[1]');
   color: white;
 }
+
 button .voice-2 {
   color: v-bind('voiceColours[2]');
 }
@@ -98,6 +93,7 @@ button.p-togglebutton-checked .voice-2 {
   background-color: v-bind('voiceColours[2]');
   color: white;
 }
+
 button .voice-3 {
   color: v-bind('voiceColours[3]');
 }
@@ -189,6 +185,7 @@ g.note.rest {
 
 g.note.rest:hover {
   opacity: 0.5;
+
   rect {
     fill: var(--foreground-color);
   }
@@ -211,15 +208,16 @@ g.bar.current line.bar {
   stroke-width: 2;
 }
 
-.note > rect {
+.note>rect {
   fill: var(--background-color);
   cursor: pointer;
 }
-.note.current > rect {
+
+.note.current>rect {
   fill: var(--foreground-color);
 }
 
-.note.current > text {
+.note.current>text {
   stroke: var(--background-color);
   fill: var(--background-color);
 }
@@ -268,6 +266,7 @@ path.vibrato {
 button.p-togglebutton {
   padding: 0px;
 }
+
 .voice-option {
   padding: 8px;
 }

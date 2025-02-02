@@ -1,10 +1,12 @@
 import { gapi } from 'gapi-script';
-import type { DataStore } from '@/interfaces/DataStore'
 import { Score } from '@/models/Score'
 import type { Metadata } from '@/models/Metadata';
 
 const CLIENT_ID = '636098428920-uvjfhutnn0f8h78ntv8kd8qob6i4ot74.apps.googleusercontent.com';
-const SCOPES = 'https://www.googleapis.com/auth/drive.appdata';
+// const SCOPES = 'https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/drive.install https://www.googleapis.com/auth/drive.file'
+const SCOPES = 'https://www.googleapis.com/auth/drive.appdata'
+
+
 
 let cachedToken = null;
 let tokenExpiry: number = -1;
@@ -45,37 +47,37 @@ export function useGDriveDataStore() {
 
   return {
 
-    // listProjects: async function () {
-    //   const token = await signIn();
-
-    //   const response = await gapi.client.drive.files.list({
-    //     q: "'appDataFolder' in parents",
-    //     spaces: 'appDataFolder',
-    //     // fields: 'files(id, name)'
-    //   });
-    //   const projects = response.result.files.map(item => ({
-    //     id: item.id,
-    //     name: item.name,
-    //   }));
-    //   debugger;
-    //   return projects
-
-    // },
-
     listScores: async function () {
       const token = await signIn();
-
-
       const response = await gapi.client.drive.files.list({
         q: "'appDataFolder' in parents",
         spaces: 'appDataFolder',
-        fields: 'files(id, name)'
+        fields: 'files(id, name, appProperties, parents)',
       });
-      const projects = response.result.files.map(item => ({
-        id: item.id,
-        name: item.name,
-      }));
-      debugger;
+      const projects = response.result.files.map(item => {
+        const props = item.appProperties
+        props.googleId = item.id
+        return props
+      }
+
+      )
+      // ({
+      //   id: item.appProperties.scoreId,
+      //   title: item.appProperties.title,
+      //   project: item.appProperties.project,
+
+      //   scoreId: score.metadata!.id,
+      //   title: score.metadata!.title,
+      //   project: score.metadata!.project,
+      //   version: score.metadata!.version,
+      //   clientId: score.metadata!.clientId,
+      //   hash: score.metadata!.hash,
+      //   modifiedDateTime: score.metadata!.modifiedDateTime,
+      //   createdDateTime: score.metadata!.createdDateTime,
+
+
+      // }));
+      console.log("projects", projects)
       return projects
     },
 
@@ -92,6 +94,7 @@ export function useGDriveDataStore() {
       if (!response.ok) {
         throw new Error(`Failed to get score: ${response.statusText}`);
       }
+
 
       const fileBlob = await response.blob();
       const scoreText = await fileBlob.text()
@@ -136,56 +139,67 @@ export function useGDriveDataStore() {
     },
     saveScore: async function (score) {
       const token = await signIn();
-      debugger
-
+      // const projectId = 'XXXXXXXXXXXXXXXXXXXX'
       const metadata = {
         name: `${score.metadata!.title}.json`,
-        mimeType: 'application/json',
-        parents: ['appDataFolder'], // Ensure the file is saved in the appDataFolder
+        parents: ['appDataFolder'],  // only add parent if score is new
+        appProperties: {
+          id: score.metadata!.id,
+          title: score.metadata!.title,
+          project: score.metadata!.project,
+          version: score.metadata!.version,
+          clientId: score.metadata!.clientId,
+          hash: score.metadata!.hash,
+          modifiedDateTime: score.metadata!.modifiedDateTime,
+          createdDateTime: score.metadata!.createdDateTime,
+        },
       };
 
       const fileContent = JSON.stringify(score);
-      const fileBlob = new Blob([fileContent], { type: 'application/json' });
-
-      // Check if the score already exists
-      const fileExists = await this.hasScore(score.metadata!.id);
+      const formData = new FormData();
+      formData.append(
+        'metadata',
+        new Blob([JSON.stringify(metadata)], { type: 'application/json' })
+      );
+      formData.append('file', new Blob([fileContent], { type: 'application/json' }));
 
       let response;
 
-      if (fileExists) {
-        // If the file exists, update it
-        response = await gapi.client.drive.files.update({
-          fileId: score.metadata!.id,
-          uploadType: 'media', // Use media upload for simplicity
-          resource: metadata,
-          media: {
-            mimeType: 'application/json',
-            body: fileBlob,
-          },
-        });
+      debugger
+      if (await this.hasScore(score.metadata.id)) {
+        // If the score has an ID, update the existing file
+        response = await fetch(
+          `https://www.googleapis.com/upload/drive/v3/files/${score.metadata!.id}?uploadType=multipart`,
+          {
+            method: 'PATCH',
+            headers: { Authorization: `Bearer ${token}` },
+            body: formData,
+          }
+        );
       } else {
-        // If the file does not exist, create it
-        response = await gapi.client.drive.files.create({
-          uploadType: 'media',
-          resource: metadata,
-          media: {
-            mimeType: 'application/json',
-            body: fileBlob,
-          },
-        });
+        // If the score does not have an ID, create a new file
+        // metadata.parents = [projectId];
+        response = await fetch(
+          'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',
+          {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${token}` },
+            body: formData,
+          }
+        );
       }
 
-      if (!response.result) {
-        throw new Error(`Failed to save score: ${response}`);
+      if (!response.ok) {
+        throw new Error(`Failed to save score: ${response.statusText}`);
       }
+
+      const json = await response.json();
 
       return {
-        id: response.result.id,
+        id: json.id,
         title: score.metadata!.title,
       } as Metadata;
     },
-
-
     syncScore: async (score: Score) => {
       // do nothing
     }
