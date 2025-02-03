@@ -44,6 +44,7 @@ import {
   TreeTable,
   IconField,
   InputIcon,
+  SplitButton,
 } from 'primevue'
 
 const app = createApp(App)
@@ -97,5 +98,6 @@ app.component('p-treetable', TreeTable)
 app.component('p-card', Card)
 app.component('p-iconfield', IconField)
 app.component('p-inputicon', InputIcon)
+app.component('p-splitbutton', SplitButton)
 
 app.mount('#app')

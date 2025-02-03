@@ -1,7 +1,7 @@
 import type { DataStore } from "@/interfaces/DataStore"
 import { useGDriveDataStore } from "./useGDriveDataStore"
 import { useLocalDataStore } from "./useLocalDataStore"
-import { computed } from "vue"
+import { computed, toRaw } from "vue"
 import { useCursor } from "../useCursor"
 import type { Score } from "@/models/Score"
 import type { Metadata } from "@/models/Metadata"
@@ -51,22 +51,21 @@ export function useDataStore() {
           if (value.local.clientId != value.remote.clientId) {
             value.remote.clientMismatch = true
           }
-          if (value.local.version < value.remote.version) {
-            value.remote.isLatest = true
-            value.local.isLatest = false
-            value.latest = value.remote
-            if (value.local.clientId != value.remote.clientId) {
-              value.local.clientMismatch = true
-            }
-          } else {
-            // same versio
-            value.local.isLatest = true
-            value.remote.isLatest = true
-            value.latest = value.local
-            if (value.local.clientId != value.local.clientId) {
-              value.local.clientMismatch = true
-              value.remote.clientMismatch = true
-            }
+        } else if (value.local.version < value.remote.version) {
+          value.remote.isLatest = true
+          value.local.isLatest = false
+          value.latest = value.remote
+          if (value.local.clientId != value.remote.clientId) {
+            value.local.clientMismatch = true
+          }
+        } else {
+          // same versio
+          value.local.isLatest = true
+          value.remote.isLatest = true
+          value.latest = value.local
+          if (value.local.clientId != value.local.clientId) {
+            value.local.clientMismatch = true
+            value.remote.clientMismatch = true
           }
         }
       } else if (value.local) {
@@ -85,9 +84,7 @@ export function useDataStore() {
         console.error("Merge error: This should never happen")
       }
     })
-
     return combined as Map<string, { local: Metadata, remote: Metadata, latest: Metadata }>;
-
   }
 
   return {
@@ -104,67 +101,59 @@ export function useDataStore() {
         return merge(null, remoteScores)
       }
     },
-    getScore: async (scoreId: string) => {
-      return await localDataStore.getScore(scoreId)
+    getLocal: async (id: string) => {
+      return await localDataStore.getScore(id)
     },
-    saveScore: async (score: Score) => {
+    getRemote: async (googleId: string) => {
+      return await griveDataStore.getScore(googleId)
+    },
+
+    saveLocal: async (score: Score) => {
       // we want to hash the score without the metadata as this can have
       // unimportant data that would otherwise change the hash
 
+      const exists = await localDataStore.hasScore(toRaw(score!.metadata!.id!))
 
       const oldVersion = score.metadata!.version
       const oldModifiedDateTime = score.metadata!.modifiedDateTime
       const oldHash = score.metadata!.hash
-      delete score.metadata!.modifiedDateTime
-      delete score.metadata!.version
-      delete score.metadata!.hash
 
+      if (exists) {
+        delete score.metadata!.modifiedDateTime
+        delete score.metadata!.version
+        delete score.metadata!.hash
+      }
       const scoreText = JSON.stringify(score.toJSON())
       const hash = await hashJson(scoreText)
       console.log(scoreText)
-      if (hash == oldHash) {
+      if (exists && hash == oldHash) {
         console.log("Nothing has changed, don't save")
         score.metadata!.modifiedDateTime = oldModifiedDateTime
         score.metadata!.version = oldVersion
         score.metadata!.hash = oldHash
         return score.metadata!
       }
-      score.metadata!.modifiedDateTime = new Date()
-      score.metadata!.hash = hash
-      score.metadata!.clientId = clientId.value
-      score.metadata!.version = oldVersion! + 1
+      if (exists) {
+        score.metadata!.version = oldVersion! + 1
+        score.metadata!.modifiedDateTime = new Date()
+        score.metadata!.hash = hash
+        score.metadata!.clientId = clientId.value
+      }
 
-      //deleteme
-      // score.metadata!.id = score!.id!
-      // score.metadata!.title = score.title
-
-      // if (remote) {
-      //   return await griveDataStore.saveScore(score)
-      // } else {
       return await localDataStore.saveScore(score)
-      // }
     },
-    pushScore: async function (score) {
+
+    saveRemote: async function (score) {
       await griveDataStore.saveScore(score)
     },
 
-    pullScore: async function (scoreId) {
-      return await griveDataStore.getScore(scoreId) as Score
+    deleteLocal: async (id: string) => {
+      await localDataStore.deleteScore(id)
     },
 
-    // syncScore: async (score: Score) => {
-    //   const localVerion = score.metadata?.version
-    //   const localClientId = score.metadata?.clientId
-    //   console.log(`checking ${score.metadata!.id} ${localVerion} ${localClientId}`)
-    // },
-    deleteScore: async (scoreId: string) => {
-      const files = await griveDataStore.listScores()
-      debugger
-      files.forEach(async file => {
-        debugger
-        await griveDataStore.deleteScore(file.googleId)
-      })
-      // return await localDataStore.deleteScore(scoreId)
+
+    deleteRemote: async (googleId: string) => {
+      await griveDataStore.deleteScore(googleId)
     },
     resetRemote: async () => {
       const files = await griveDataStore.listScores()
@@ -172,11 +161,5 @@ export function useDataStore() {
         await griveDataStore.deleteScore(file.googleId)
       })
     },
-    // exportProject: async () => {
-    //   return await ds.value.exportProject()
-    // },
-    // importProject: async (projectName: string, projectBlob: Blob) => {
-    //   return await ds.value.importProject(projectName, projectBlob)
-    // },
   }
 }

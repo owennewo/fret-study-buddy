@@ -19,8 +19,7 @@ watch(scoreId, async newCurrentScoreId => {
     return
   }
   if (newCurrentScoreId != null) {
-    const loadedScore = await datastore.getScore(newCurrentScoreId)
-    debugger
+    const loadedScore = await datastore.getLocal(newCurrentScoreId)
     score.value = loadedScore as Score
   }
 })

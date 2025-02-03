@@ -147,7 +147,7 @@ export function useGDriveDataStore() {
           id: score.metadata!.id,
           title: score.metadata!.title,
           project: score.metadata!.project,
-          version: score.metadata!.version,
+          version: parseInt(score.metadata!.version),
           clientId: score.metadata!.clientId,
           hash: score.metadata!.hash,
           modifiedDateTime: score.metadata!.modifiedDateTime,

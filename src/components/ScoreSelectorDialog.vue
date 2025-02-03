@@ -6,7 +6,7 @@ import { useDataStore } from '@/composables/datastores/useDataStore'
 import { FilterMatchMode } from '@primevue/core/api';
 import { Score } from '@/models/Score';
 
-const { score, scoreId, projectId, projectName } = useCursor()
+const { score, scoreId, projectName } = useCursor()
 
 const dialogRef = inject('dialogRef') as Ref<{ close: () => void }>;
 
@@ -48,15 +48,11 @@ const addScore = async (row) => {
   score.value.metadata!.id = summary.id!
   console.log('Summary: ', summary)
   scoreId.value = summary.id!
-  projectId.value = row.data.projectId
+  // projectId.value = row.data.projectId
   loadScores()
 }
 
-const deleteScore = async (data) => {
-  debugger
-  await datastore.deleteScore(data.local.id)
-  loadScores()
-}
+
 
 const sync = () => {
   console.log("sync")
@@ -64,16 +60,56 @@ const sync = () => {
   loadScores(true)
 }
 
-const pushFile = async (data) => {
-  const rowScore = await datastore.getScore(data.local.id)
-  datastore.pushScore(rowScore)
+
+const actions = (data) => {
+  console.log('items', data)
+
+  const items = [
+    {
+      label: 'Push',
+      command: async () => {
+        const rowScore = await datastore.getLocal(data.local.id)
+        datastore.saveRemote(rowScore)
+        console.log('Push', data)
+      }
+    },
+    {
+      label: 'Pull',
+      command: async () => {
+        const rowScore = await datastore.getRemote(data.remote.googleId)
+        datastore.saveLocal(rowScore)
+      }
+    },
+    { separator: true },
+
+    ...(data.remote?.id
+      ? [
+        {
+          label: 'Delete Remote',
+          command: async () => {
+            console.log('Delete Remote', data.remote.googleId)
+            await datastore.deleteRemote(data.remote.googleId)
+          }
+        }
+      ]
+      : []),
+    ...(data.local?.id
+      ? [
+        {
+          label: 'Delete Local',
+          command: async () => {
+            console.log('Delete Local', data.local.id)
+            debugger
+            await datastore.deleteLocal(data.local.id)
+            loadScores()
+          }
+        }
+      ]
+      : []),
+  ];
+  return items
 }
 
-const pullFile = (scoreId) => {
-  debugger
-  const rowScore = datastore.pullScore(scoreId)
-  datastore.saveScore(rowScore)
-}
 
 
 </script>
@@ -103,17 +139,12 @@ const pullFile = (scoreId) => {
       <p-column field="latest.project" header="Project" style="width: 150px"></p-column>
       <p-column header="Local" style="width: 150px">
         <template #body="slotProps">
-          <span v-if="slotProps.data.local.isLatest">{{ slotProps.data.local.version }}</span>
-          <p-button v-else>overwrite</p-button>
+          <span>{{ slotProps.data.local.version ?? 'missing' }}</span>
         </template>
       </p-column>
       <p-column header="Sync" style="width: 150px">
         <template #body="slotProps">
-          <p-button v-if="slotProps.data.local.isLatest && !slotProps.data.remote.isLatest"
-            @click="pushFile(slotProps.data)">>></p-button>
-          <p-button v-if="slotProps.data.remote.isLatest && !slotProps.data.local.isLatest"
-            @click="pullFile(slotProps.data)">
-            pull </p-button>
+          <p-splitbutton label="Select" @click="selectScore(slotProps.data)" :model="actions(slotProps.data)" />
         </template>
       </p-column>
 
@@ -124,7 +155,7 @@ const pullFile = (scoreId) => {
         </template>
       </p-column>
 
-      <p-column style="width: 10rem">
+      <!-- <p-column style="width: 10rem">
         <template #body="slotProps">
           <div class="flex flex-wrap gap-2">
             <p-button type="button" icon="pi pi-pencil" rounded severity="success"
@@ -133,7 +164,7 @@ const pullFile = (scoreId) => {
               @click="deleteScore(slotProps.data)" />
           </div>
         </template>
-      </p-column>
+      </p-column> -->
     </p-datatable>
 
   </div>

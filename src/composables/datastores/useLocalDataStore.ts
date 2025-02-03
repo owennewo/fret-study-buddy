@@ -15,7 +15,6 @@ export function useLocalDataStore() {
 
 
   const { projectId, projectName, scoreId, tempoPercent, isDarkMode, isPlaybackLooping, clientId } = useCursor()
-  // const toast = useToast();
 
   watch([projectId, clientId, projectName, scoreId, tempoPercent, isDarkMode, isPlaybackLooping], () => {
     saveSettingsToDB()
@@ -80,7 +79,6 @@ export function useLocalDataStore() {
     await db.put(SETTINGS_STORE, settings)
   }
 
-
   return {
     loadSettingsFromDB,
     saveSettingsToDB,
@@ -95,6 +93,7 @@ export function useLocalDataStore() {
     listScores: async () => {
       const db = await openDatabase()
       const titles = await db?.getAll(SCORES_STORE)
+      debugger
       return titles.map(score => score.metadata)
     },
     getScore: async (scoreId: string) => {
@@ -109,6 +108,11 @@ export function useLocalDataStore() {
         return null
       }
       return Score.fromJSON(fetchedScore)
+    },
+    hasScore: async (scoreId: string): Promise<boolean> => {
+      const db = await openDatabase();
+      const key = await db.getKey(SCORES_STORE, scoreId);
+      return key !== undefined;
     },
     deleteScore: async (scoreId) => {
       const db = await openDatabase()
