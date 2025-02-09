@@ -14,9 +14,9 @@ const SETTINGS_STORE = 'Settings'
 export function useLocalDataStore() {
 
 
-  const { projectId, projectName, scoreId, tempoPercent, isDarkMode, isPlaybackLooping, clientId } = useCursor()
+  const { projectId, projectName, scoreId, tempoPercent, isDarkMode, isPlaybackLooping, clientId, googleToken, googleTokenExpiry } = useCursor()
 
-  watch([projectId, clientId, projectName, scoreId, tempoPercent, isDarkMode, isPlaybackLooping], () => {
+  watch([projectId, clientId, projectName, scoreId, tempoPercent, isDarkMode, isPlaybackLooping, googleToken], () => {
     saveSettingsToDB()
   })
 
@@ -56,6 +56,8 @@ export function useLocalDataStore() {
     tempoPercent.value = settings?.tempoPercent ?? 100
     isDarkMode.value = settings?.isDarkMode ?? false
     isPlaybackLooping.value = settings?.isPlaybackLooping ?? false
+    googleToken.value = settings?.googleToken
+    googleTokenExpiry.value = settings?.googleTokenExpiry
 
     projectId.value = savedProjectId
     projectName.value = savedProjectName
@@ -75,6 +77,8 @@ export function useLocalDataStore() {
       tempoPercent: tempoPercent.value,
       isDarkMode: isDarkMode.value,
       isPlaybackLooping: isPlaybackLooping.value,
+      googleToken: googleToken.value,
+      googleTokenExpiry: googleTokenExpiry.value,
     }
     await db.put(SETTINGS_STORE, settings)
   }
@@ -93,7 +97,6 @@ export function useLocalDataStore() {
     listScores: async () => {
       const db = await openDatabase()
       const titles = await db?.getAll(SCORES_STORE)
-      debugger
       return titles.map(score => score.metadata)
     },
     getScore: async (scoreId: string) => {

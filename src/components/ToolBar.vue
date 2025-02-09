@@ -45,7 +45,7 @@ const togglePlay = () => {
 }
 
 const saveScoreClicked = async () => {
-  datastore.saveScore(score.value)
+  datastore.saveLocal(score.value)
   saveSettingsToDB()
 }
 

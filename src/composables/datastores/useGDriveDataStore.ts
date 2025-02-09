@@ -1,23 +1,20 @@
 import { gapi } from 'gapi-script';
 import { Score } from '@/models/Score'
 import type { Metadata } from '@/models/Metadata';
+import { useCursor } from '../useCursor';
 
 const CLIENT_ID = '636098428920-uvjfhutnn0f8h78ntv8kd8qob6i4ot74.apps.googleusercontent.com';
 // const SCOPES = 'https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/drive.install https://www.googleapis.com/auth/drive.file'
 const SCOPES = 'https://www.googleapis.com/auth/drive.appdata'
 
-
-
-let cachedToken = null;
-let tokenExpiry: number = -1;
-
 export function useGDriveDataStore() {
+
+  const { googleToken, googleTokenExpiry } = useCursor()
+
+
   async function signIn() {
     const now = Date.now();
 
-    if (cachedToken && tokenExpiry && now < tokenExpiry) {
-      return cachedToken;
-    }
 
     await new Promise((resolve, reject) => {
       gapi.load('client:auth2', () => {
@@ -30,55 +27,53 @@ export function useGDriveDataStore() {
     });
 
     await gapi.client.init({ clientId: CLIENT_ID, scope: SCOPES });
+    await gapi.client.load('drive', 'v3')
+
+    if (googleToken.value && googleTokenExpiry.value && now < googleTokenExpiry.value) {
+      console.log(`reusing cached token (exp=${new Date(googleTokenExpiry.value)}`)
+      return googleToken.value;
+    }
+
 
     await gapi.auth2.getAuthInstance().signIn();
-    cachedToken = gapi.auth.getToken().access_token;
-    tokenExpiry = now + 3600 * 1000; // Token valid for 1 hour
-    await gapi.client.load('drive', 'v3')
-    return cachedToken;
+    googleTokenExpiry.value = now + 3600 * 1000
+    googleToken.value = gapi.auth.getToken().access_token;
+    console.log("token stored ")
+    return googleToken.value;
   }
 
   function signOut() {
     const auth = gapi.auth2.getAuthInstance();
     auth.signOut();
-    cachedToken = null;
-    tokenExpiry = -1;
+    googleTokenExpiry.value = -1
+    googleToken.value = null;
   }
 
   return {
 
     listScores: async function () {
       const token = await signIn();
-      const response = await gapi.client.drive.files.list({
-        q: "'appDataFolder' in parents",
+
+      const params = new URLSearchParams({
         spaces: 'appDataFolder',
-        fields: 'files(id, name, appProperties, parents)',
+        fields: 'files(id,name,appProperties)'
       });
-      const projects = response.result.files.map(item => {
+
+      const response = await fetch(`https://www.googleapis.com/drive/v3/files?${params.toString()}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        }
+      });
+      const data = await response.json();
+      const results = data.files.map(item => {
         const props = item.appProperties
         props.googleId = item.id
         return props
-      }
+      })
 
-      )
-      // ({
-      //   id: item.appProperties.scoreId,
-      //   title: item.appProperties.title,
-      //   project: item.appProperties.project,
-
-      //   scoreId: score.metadata!.id,
-      //   title: score.metadata!.title,
-      //   project: score.metadata!.project,
-      //   version: score.metadata!.version,
-      //   clientId: score.metadata!.clientId,
-      //   hash: score.metadata!.hash,
-      //   modifiedDateTime: score.metadata!.modifiedDateTime,
-      //   createdDateTime: score.metadata!.createdDateTime,
-
-
-      // }));
-      console.log("projects", projects)
-      return projects
+      return results;
     },
 
     getScore: async function (scoreId) {
@@ -105,37 +100,31 @@ export function useGDriveDataStore() {
     deleteScore: async function (scoreId) {
       const token = await signIn();
 
-      const response = await fetch(
-        `https://www.googleapis.com/drive/v3/files/${scoreId}`,
-        {
-          method: 'DELETE',
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const match = await this.findScore(scoreId)
 
-      if (!response.ok) {
-        throw new Error(`Failed to delete score: ${response.statusText}`);
+      if (match) {
+        console.log('deleting', match.id, match.googleId)
+
+        const response = await fetch(
+          `https://www.googleapis.com/drive/v3/files/${match.googleId}`,
+          {
+            method: 'DELETE',
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`Failed to delete score: ${response.statusText}`);
+        }
+      } else {
+        console.warn(`Score not found: ${scoreId}`);
       }
     },
-    hasScore: async function (scoreId: string): Promise<boolean> {
-      if (!scoreId) return false; // If no ID is provided, treat it as non-existent
-
-      try {
-        const response = await gapi.client.drive.files.get({
-          fileId: scoreId,
-          fields: 'id', // Fetch minimal fields to check existence
-        });
-
-        return !!response.result.id; // If a result ID is returned, the file exists
-      } catch (error) {
-        if (error.status === 404) {
-          // File not found
-          return false;
-        } else {
-          // Handle other errors
-          throw new Error(`Error checking file existence: ${error}`);
-        }
-      }
+    findScore: async function (scoreId: string): Promise<Metadata> {
+      if (!scoreId) return false;
+      const scores = await this.listScores();
+      const metadata = scores.find(metadata => metadata.id == scoreId)
+      return metadata;
     },
     saveScore: async function (score) {
       const token = await signIn();
@@ -163,31 +152,47 @@ export function useGDriveDataStore() {
       );
       formData.append('file', new Blob([fileContent], { type: 'application/json' }));
 
-      let response;
+      // let response;
+      const match = await this.findScore(score.metadata.id)
 
-      debugger
-      if (await this.hasScore(score.metadata.id)) {
-        // If the score has an ID, update the existing file
-        response = await fetch(
-          `https://www.googleapis.com/upload/drive/v3/files/${score.metadata!.id}?uploadType=multipart`,
-          {
-            method: 'PATCH',
-            headers: { Authorization: `Bearer ${token}` },
-            body: formData,
-          }
-        );
-      } else {
-        // If the score does not have an ID, create a new file
-        // metadata.parents = [projectId];
-        response = await fetch(
-          'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',
-          {
-            method: 'POST',
-            headers: { Authorization: `Bearer ${token}` },
-            body: formData,
-          }
-        );
+      if (match) {
+        // console.log('patch', match.id, match.googleId)
+        // debugger
+        // // If the score has an ID, update the existing file
+        // // response = await fetch(
+        // //   `https://www.googleapis.com/upload/drive/v3/files/${match.googleId}?uploadType=multipart`,
+        // //   {
+        // //     method: 'PUT',
+        // //     headers: { Authorization: `Bearer ${token}` },
+        // //     body: formData,
+        // //   }
+        // // );
+
+        // response = await gapi.client.request({
+        //   path: `/upload/drive/v3/files/${match.googleId}`,
+        //   method: 'PUT',
+        //   params: { uploadType: 'multipart' },
+        //   // headers: {
+        //   //   'Content-Type': `multipart/related"`
+        //   // },
+        //   body: formData,
+        // });
+
+        this.deleteScore(score.metadata.id)
       }
+
+      // } else {
+      // If the score does not have an ID, create a new file
+      // metadata.parents = [projectId];
+      const response = await fetch(
+        'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',
+        {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+          body: formData,
+        }
+      );
+      // }
 
       if (!response.ok) {
         throw new Error(`Failed to save score: ${response.statusText}`);

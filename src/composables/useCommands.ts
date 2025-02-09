@@ -236,7 +236,7 @@ export const useCommands = () => {
     })
 
     bind('^ctrl\\+s$', () => {
-      datastore.saveScore(score.value)
+      datastore.saveLocal(score.value)
     })
 
     bind('^ctrl\\+c$', () => {

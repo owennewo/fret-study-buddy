@@ -76,7 +76,7 @@ const actions = (data) => {
     {
       label: 'Pull',
       command: async () => {
-        const rowScore = await datastore.getRemote(data.remote.googleId)
+        const rowScore = await datastore.getRemote(data.remote.id)
         datastore.saveLocal(rowScore)
       }
     },
@@ -87,8 +87,8 @@ const actions = (data) => {
         {
           label: 'Delete Remote',
           command: async () => {
-            console.log('Delete Remote', data.remote.googleId)
-            await datastore.deleteRemote(data.remote.googleId)
+            console.log('Delete Remote', data.remote.id)
+            await datastore.deleteRemote(data.remote.id)
           }
         }
       ]
