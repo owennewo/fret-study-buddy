@@ -7,6 +7,7 @@ import { onMounted, watch } from 'vue'
 import type { Score } from './models/Score'
 import { useDataStore } from './composables/datastores/useDataStore'
 import { useToast } from 'primevue'
+import type { Metadata } from './models/Metadata'
 
 const { projectId, score, scoreId } = useCursor()
 const { loadSettingsFromDB } = useLocalDataStore()
@@ -19,7 +20,7 @@ watch(scoreId, async newCurrentScoreId => {
     return
   }
   if (newCurrentScoreId != null) {
-    const loadedScore = await datastore.getLocal(newCurrentScoreId)
+    const loadedScore = await datastore.getLocal({ id: newCurrentScoreId } as Metadata)
     score.value = loadedScore as Score
   }
 })

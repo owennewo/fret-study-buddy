@@ -24,7 +24,7 @@ const filters = ref({
 });
 
 const loadScores = async (remote: boolean = false) => {
-  nodes.value = Array.from((await datastore.listScores(true, remote)).values())
+  nodes.value = Array.from((await datastore.listScores(true, remote))!.values())
 }
 
 const selectScore = async (data) => {
@@ -44,7 +44,7 @@ const addScore = async (row) => {
   debugger
   // console.log('Adding Score to Project: ', row.data.projectId)
   score.value = Score.new()
-  const summary = await datastore.saveScore(score.value)
+  const summary = await datastore.saveLocal(score.value)
   score.value.metadata!.id = summary.id!
   console.log('Summary: ', summary)
   scoreId.value = summary.id!

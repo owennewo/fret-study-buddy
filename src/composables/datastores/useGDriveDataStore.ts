@@ -100,7 +100,7 @@ export function useGDriveDataStore() {
     deleteScore: async function (scoreId) {
       const token = await signIn();
 
-      const match = await this.findScore(scoreId)
+      const match = await this.findScore(scoreId) as Metadata
 
       if (match) {
         console.log('deleting', match.id, match.remoteId)
@@ -119,7 +119,7 @@ export function useGDriveDataStore() {
         console.warn(`Score not found: ${scoreId}`);
       }
     },
-    findScore: async function (scoreId: string): Promise<Metadata> {
+    findScore: async function (scoreId: string): Promise<Metadata | boolean> {
       if (!scoreId) return false;
       const scores = await this.listScores();
       const metadata = scores.find(metadata => metadata.id == scoreId)

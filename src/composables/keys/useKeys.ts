@@ -6,7 +6,7 @@ interface RegexHandler {
 let lastRegex: RegExp | null = null
 const regexHandlers: Map<RegExp, RegexHandler> = new Map()
 let isEventListenerRegistered = false
-let debounceTimer: NodeJS.Timeout | null = null
+let debounceTimer: number | undefined = undefined
 
 export const useKeys = () => {
   const ignore = (event: KeyboardEvent): boolean => {
@@ -65,7 +65,7 @@ export const useKeys = () => {
         lastRegex = null
       }
     }
-      sequence += pressedKey
+    sequence += pressedKey
     checkRegex(event)
   }
 
@@ -76,11 +76,11 @@ export const useKeys = () => {
         if (debounceTimer) {
           clearTimeout(debounceTimer)
         }
-          lastRegex = regex
-          debounceTimer = setTimeout(() => {
-            sequence = ''
-            lastRegex = null
-          }, 400)
+        lastRegex = regex
+        debounceTimer = setTimeout(() => {
+          sequence = ''
+          lastRegex = null
+        }, 400)
         event.preventDefault()
         return
       }

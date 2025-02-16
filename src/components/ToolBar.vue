@@ -95,19 +95,12 @@ const prevScore = async () => {
   const newScore = scores[scoreIndex]
   scoreId.value = newScore!.id!
 }
-
-
-const syncScore = async () => {
-  console.log('sync score')
-  datastore.syncScore(score.value)
-}
 </script>
 
 <template>
   <div class="toolbar">
     <p-toolbar>
       <template #start>
-
         <p-inputgroup>
           <p-inputgroupaddon>
             <p-button :class="isPlaybackLooping ? '' : 'p-button-text'" @click="toggleLoop" title="Toggle Loop">
@@ -165,7 +158,7 @@ const syncScore = async () => {
           </template>
         </p-selectbutton>
         <i :class="`pi ${isDarkMode ? 'pi-sun' : 'pi pi-moon'}`" @click="toggleDarkMode"></i>
-        <p-button icon="pi pi-google" @click="syncScore"></p-button>
+
 
       </template>
     </p-toolbar>
