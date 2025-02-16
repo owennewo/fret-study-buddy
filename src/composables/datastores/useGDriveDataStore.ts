@@ -69,18 +69,18 @@ export function useGDriveDataStore() {
       const data = await response.json();
       const results = data.files.map(item => {
         const props = item.appProperties
-        props.googleId = item.id
+        props.remoteId = item.id
         return props
       })
 
       return results;
     },
 
-    getScore: async function (scoreId) {
+    getScore: async function (metadata: Metadata) {
       const token = await signIn();
 
       const response = await fetch(
-        `https://www.googleapis.com/drive/v3/files/${scoreId}?alt=media`,
+        `https://www.googleapis.com/drive/v3/files/${metadata.remoteId}?alt=media`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -94,7 +94,7 @@ export function useGDriveDataStore() {
       const fileBlob = await response.blob();
       const scoreText = await fileBlob.text()
       const score = JSON.parse(scoreText)
-      score.id = scoreId
+      score.id = metadata.id
       return Score.fromJSON(score); // Assumes `Score` can parse a JSON string
     },
     deleteScore: async function (scoreId) {
@@ -103,10 +103,9 @@ export function useGDriveDataStore() {
       const match = await this.findScore(scoreId)
 
       if (match) {
-        console.log('deleting', match.id, match.googleId)
-
+        console.log('deleting', match.id, match.remoteId)
         const response = await fetch(
-          `https://www.googleapis.com/drive/v3/files/${match.googleId}`,
+          `https://www.googleapis.com/drive/v3/files/${match.remoteId}`,
           {
             method: 'DELETE',
             headers: { Authorization: `Bearer ${token}` },

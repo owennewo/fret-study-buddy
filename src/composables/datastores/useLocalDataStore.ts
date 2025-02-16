@@ -4,6 +4,7 @@ import { openDB } from 'idb'
 import { useToast } from 'primevue'
 import { watch } from 'vue'
 import { useCursor } from '../useCursor'
+import type { Metadata } from '@/models/Metadata'
 
 
 const DATABASE_NAME = 'ApplicationDatabase'
@@ -86,26 +87,26 @@ export function useLocalDataStore() {
   return {
     loadSettingsFromDB,
     saveSettingsToDB,
-    listProjects: async () => {
-      return (await indexedDB.databases())
-        .filter(db => db.name !== 'appDatabase')
-        .map(db => ({
-          id: db.name,
-          name: db.name,
-        })) as Project[]
-    },
+    // listProjects: async () => {
+    //   return (await indexedDB.databases())
+    //     .filter(db => db.name !== 'appDatabase')
+    //     .map(db => ({
+    //       id: db.name,
+    //       name: db.name,
+    //     })) as Project[]
+    // },
     listScores: async () => {
       const db = await openDatabase()
       const titles = await db?.getAll(SCORES_STORE)
       return titles.map(score => score.metadata)
     },
-    getScore: async (scoreId: string) => {
+    getScore: async (metadata: Metadata) => {
       const db = await openDatabase()
       if (!db.objectStoreNames.contains(SCORES_STORE)) {
         const objectStore = db.createObjectStore(SCORES_STORE, { keyPath: 'id' });
         objectStore.createIndex('metadata_id', 'metadata.id', { unique: true });
       }
-      const fetchedScore = await db.get(SCORES_STORE, scoreId)
+      const fetchedScore = await db.get(SCORES_STORE, metadata.id!)
       if (!fetchedScore) {
         console.warn('Score not found:', scoreId)
         return null

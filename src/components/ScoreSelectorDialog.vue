@@ -68,7 +68,7 @@ const actions = (data) => {
     {
       label: 'Push',
       command: async () => {
-        const rowScore = await datastore.getLocal(data.local.id)
+        const rowScore = await datastore.getLocal(data.local)
         datastore.saveRemote(rowScore)
         console.log('Push', data)
       }
@@ -76,7 +76,7 @@ const actions = (data) => {
     {
       label: 'Pull',
       command: async () => {
-        const rowScore = await datastore.getRemote(data.remote.id)
+        const rowScore = await datastore.getRemote(data.remote)
         datastore.saveLocal(rowScore)
       }
     },

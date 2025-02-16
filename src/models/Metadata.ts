@@ -1,6 +1,7 @@
 export class Metadata {
   project: string
   id?: string | null
+  remoteId?: string | null
   title: string
   createdDateTime: Date
   modifiedDateTime?: Date

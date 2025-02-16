@@ -101,11 +101,11 @@ export function useDataStore() {
         return merge(null, remoteScores)
       }
     },
-    getLocal: async (id: string) => {
-      return await localDataStore.getScore(id)
+    getLocal: async (metadata: Metadata) => {
+      return await localDataStore.getScore(metadata)
     },
-    getRemote: async (googleId: string) => {
-      return await griveDataStore.getScore(googleId)
+    getRemote: async (metadata: Metadata) => {
+      return await griveDataStore.getScore(metadata)
     },
 
     saveLocal: async (score: Score) => {
