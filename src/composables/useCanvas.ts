@@ -229,40 +229,40 @@ export const useCanvas = () => {
   const drawVoice = (voice: Voice, usableWidth: number, barHeight: number) => {
     const c = new Container({ label: `voice${voice.index()}` })
 
-    if (voice.index() == voiceId.value) {
-      const g = new Graphics()
-      const selectionDimension = voice._elements.reduce(
-        (acc, element) => {
-          if (selection.value.includes(toRaw(element))) {
-            return [
-              Math.min(isNaN(acc[0]) ? element.location() : acc[0], element.location()),
-              Math.max(
-                isNaN(acc[1]) ? element.location() + element.beatDuration() : acc[1],
-                element.location() + element.beatDuration(),
-              ),
-              Math.min(isNaN(acc[2]) ? 0 : acc[2], 0),
-              Math.max(
-                isNaN(acc[3]) ? currentTrack.value.stringCount() - 1 : acc[3],
-                currentTrack.value.stringCount() - 1,
-              ),
-            ]
-          }
-          return acc
-        },
-        [NaN, NaN, NaN, NaN],
-      )
+    // if (voice.index() == voiceId.value) {
+    const g = new Graphics()
+    const selectionDimension = voice._elements.reduce(
+      (acc, element) => {
+        if (selection.value.includes(toRaw(element))) {
+          return [
+            Math.min(isNaN(acc[0]) ? element.location() : acc[0], element.location()),
+            Math.max(
+              isNaN(acc[1]) ? element.location() + element.beatDuration() : acc[1],
+              element.location() + element.beatDuration(),
+            ),
+            Math.min(isNaN(acc[2]) ? 0 : acc[2], 0),
+            Math.max(
+              isNaN(acc[3]) ? currentTrack.value.stringCount() - 1 : acc[3],
+              currentTrack.value.stringCount() - 1,
+            ),
+          ]
+        }
+        return acc
+      },
+      [NaN, NaN, NaN, NaN],
+    )
 
-      const voiceDuration = Math.max(voice.bar().timeSignature.beatsPerBar, voice.duration())
-      if (!isNaN(selectionDimension[0])) {
-        g.rect(
-          (selectionDimension[0] / voiceDuration) * usableWidth, // - voice.score().fontSize / 2,
-          0,
-          ((selectionDimension[1] - selectionDimension[0]) / voiceDuration) * usableWidth,
-          barHeight,
-        ).fill({ color: voiceColours[voice.index()], alpha: 0.5 })
-      }
-      c.addChild(g)
+    const voiceDuration = Math.max(voice.bar().timeSignature.beatsPerBar, voice.duration())
+    if (!isNaN(selectionDimension[0])) {
+      g.rect(
+        (selectionDimension[0] / voiceDuration) * usableWidth, // - voice.score().fontSize / 2,
+        0,
+        ((selectionDimension[1] - selectionDimension[0]) / voiceDuration) * usableWidth,
+        barHeight,
+      ).fill({ color: voiceColours[voice.index()], alpha: 0.5 })
     }
+    c.addChild(g)
+    // }
 
     voice._elements.forEach(element => {
       c.addChild(drawElement(element, usableWidth, barHeight))
@@ -431,6 +431,8 @@ export const useCanvas = () => {
   const drawScore = async () => {
     // drawFretboard()
     // return
+
+
     if (!score.value) {
       console.log('No score found')
       return

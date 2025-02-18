@@ -33,7 +33,6 @@ export const useSound = () => {
 
   const loadInstrument = async (track: Track) => {
     const samples = track.instrument.tone.samples
-    // const strings = instruments[instrumentName].tunings[tuningName].samples;
 
     const sampleName = track.instrument.tone.name
     const sampleUrls = samples.reduce((acc: object, item) => {
@@ -65,10 +64,10 @@ export const useSound = () => {
   }
 
   const play = async () => {
-    if (Tone.Transport.state == 'paused') {
+    if (Tone.getTransport().state == 'paused') {
       console.log('resuming')
       isPlaying.value = true
-      Tone.Transport.start()
+      Tone.getTransport().start()
       return
     }
 
@@ -80,13 +79,13 @@ export const useSound = () => {
       console.log('disposing previous part')
       part.stop(0)
       part.dispose()
-      await Tone.Transport.stop()
-      Tone.Transport.position = 0
-      await Tone.Transport.cancel(0)
+      await Tone.getTransport().stop()
+      Tone.getTransport().position = 0
+      await Tone.getTransport().cancel(0)
     }
 
-    Tone.Transport.timeSignature = [score.value.timeSignature.beatsPerBar, score.value.timeSignature.beatValue]
-    Tone.Transport.bpm.value = (score.value.tempo * tempoPercent.value) / 100
+    Tone.getTransport().timeSignature = [score.value.timeSignature.beatsPerBar, score.value.timeSignature.beatValue]
+    Tone.getTransport().bpm.value = (score.value.tempo * tempoPercent.value) / 100
     isPlaying.value = true
     await Tone.start()
     console.log('audio is ready')
@@ -132,11 +131,21 @@ export const useSound = () => {
           if (!element.isRest()) {
             let time = nextVoiceTimes[element.voice().index()]
             time = Math.round(time * 1000) / 1000;  // round to 3 decimal places
-            console.log(`${element.bar().index()}:${element.voice().index()}:${element.index()} ${time}`)
+            // console.log(`${element.bar().index()}:${element.voice().index()}:${element.index()} ${time}`)
             noteTuples.push([time, element])
           }
+          let duration = element.beatDuration()
+          if (element.isLast()) {
+            // This fixes bars that have missing elements
+            const voiceDuration = element.voice().duration()
+            const barDuration = element.bar().timeSignature.beatsPerBar
+            const remainingDuration = barDuration - voiceDuration
+            if (remainingDuration > 0) {
+              duration += remainingDuration
+            }
+          }
           nextVoiceTimes[element.voice().index()] +=
-            element.beatDuration() * Tone.Time(`${bar.timeSignature.beatsPerBar}n`).toSeconds()
+            duration * Tone.Time(`${bar.timeSignature.beatsPerBar}n`).toSeconds()
         })
     })
 
@@ -152,35 +161,36 @@ export const useSound = () => {
         // Trigger the chord with all pitches
         instrument.triggerAttackRelease(pitches, duration, time)
 
-        selection.value = [toRaw(element)]
-        drawScore()
+        selection.value = [...selection.value, toRaw(element)]
+        nextTick(() => {
+          drawScore()
+        })
 
         // Schedule visual updates for the chord
-        Tone.Draw.schedule(() => {
-          setTimeout(
-            () => {
-              playedCount += 1
-              if (playedCount === noteTuples.length) {
-                console.log('ENDED')
-                selection.value = cacheSelection.map(item => toRaw(item))
-                drawScore()
-                isPlaying.value = false
+        // Tone.Draw.schedule(() => {
+        //   setTimeout(
+        //     () => {
+        //       playedCount += 1
+        //       if (playedCount === noteTuples.length) {
+        //         console.log('ENDED')
+        //         selection.value = cacheSelection.map(item => toRaw(item))
+        //         drawScore()
+        //         isPlaying.value = false
 
-                if (isPlaybackLooping.value) {
-                  nextTick(() => {
-                    play()
-                  })
-                }
-              }
-            },
-            duration * Tone.Time('4n').toMilliseconds(),
-          )
-        }, time)
+        //         if (isPlaybackLooping.value) {
+        //           nextTick(() => {
+        //             play()
+        //           })
+        //         }
+        //       }
+        //     },
+        //     duration * Tone.Time('4n').toMilliseconds(),
+        //   )
+        // }, time)
       }
     }, noteTuples)
 
     part.start(0)
-    // part.loop = true
 
     Tone.getTransport().start()
     console.log('done')
