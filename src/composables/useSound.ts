@@ -12,7 +12,7 @@ export const useSound = () => {
   const { drawScore } = useCanvas()
   const isPlaying = ref(false)
 
-  let cacheSelection: Array<Bar | VoiceElement> = []
+  let cacheSelection: Set<Bar | VoiceElement> = new Set([])
 
   let part: Tone.Part
   let instrument: Tone.Sampler
@@ -92,7 +92,7 @@ export const useSound = () => {
 
     Tone.loaded().then(() => {
       console.log('Samples loaded')
-      cacheSelection = [...selection.value]
+      cacheSelection = new Set([...selection.value])
       startPlayback(selectedTrack)
     })
   }
@@ -105,7 +105,7 @@ export const useSound = () => {
     const nextVoiceTimes = [0, 0, 0, 0]
 
     track._bars.forEach(bar => {
-      if (selection.value.length > 0 && selection.value[0] instanceof Bar && !selection.value.includes(toRaw(bar))) {
+      if (selection.value.size > 0 && selection.value[0] instanceof Bar && !selection.value.has(toRaw(bar))) {
         return // skips bars not in seletion
       }
       bar._voices
@@ -113,13 +113,13 @@ export const useSound = () => {
         .forEach((element: VoiceElement) => {
           // debugger
           if (
-            selection.value.length > 1 &&
+            selection.value.size > 1 &&
             selection.value[0] instanceof VoiceElement &&
-            !selection.value.includes(toRaw(element))
+            !selection.value.has(toRaw(element))
           ) {
             return
           } else if (
-            selection.value.length == 1 &&
+            selection.value.size == 1 &&
             selection.value[0] instanceof VoiceElement &&
             (element.bar().index() < selection.value[0].bar().index() ||
               (element.bar().index() == selection.value[0].bar().index() &&
@@ -160,33 +160,35 @@ export const useSound = () => {
       if (pitches.length > 0) {
         // Trigger the chord with all pitches
         instrument.triggerAttackRelease(pitches, duration, time)
-
-        selection.value = [...selection.value, toRaw(element)]
+        // debugger
+        selection.value.add(toRaw(element))
         nextTick(() => {
           drawScore()
         })
 
         // Schedule visual updates for the chord
-        // Tone.Draw.schedule(() => {
-        //   setTimeout(
-        //     () => {
-        //       playedCount += 1
-        //       if (playedCount === noteTuples.length) {
-        //         console.log('ENDED')
-        //         selection.value = cacheSelection.map(item => toRaw(item))
-        //         drawScore()
-        //         isPlaying.value = false
+        Tone.Draw.schedule(() => {
+          setTimeout(
+            () => {
+              // debugger
+              selection.value.delete(toRaw(element))
+              playedCount += 1
+              if (playedCount === noteTuples.length) {
+                console.log('ENDED')
+                selection.value = cacheSelection //.map(item => toRaw(item))
+                drawScore()
+                isPlaying.value = false
 
-        //         if (isPlaybackLooping.value) {
-        //           nextTick(() => {
-        //             play()
-        //           })
-        //         }
-        //       }
-        //     },
-        //     duration * Tone.Time('4n').toMilliseconds(),
-        //   )
-        // }, time)
+                if (isPlaybackLooping.value) {
+                  nextTick(() => {
+                    play()
+                  })
+                }
+              }
+            },
+            duration * Tone.Time('4n').toMilliseconds(),
+          )
+        }, time)
       }
     }, noteTuples)
 

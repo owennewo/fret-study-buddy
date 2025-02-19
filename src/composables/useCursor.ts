@@ -2,7 +2,7 @@ import type { Project } from '@/interfaces/DataStore'
 import type { Bar } from '@/models/Bar'
 import { Score } from '@/models/Score'
 import type { VoiceElement } from '@/models/VoiceElement'
-import { computed, ref, watch, type Ref } from 'vue'
+import { computed, ref, shallowRef, watch, type Ref, type ShallowRef } from 'vue'
 
 enum Mode {
   ModeOpen = 0,
@@ -33,7 +33,7 @@ const isPlaybackLooping = ref(false)
 const googleToken = ref()
 const googleTokenExpiry = ref()
 
-const selection: Ref<Array<VoiceElement | Bar>> = ref([])
+const selection: ShallowRef<Set<VoiceElement | Bar>> = shallowRef(new Set<VoiceElement | Bar>())
 
 const track = computed(() => {
   if (trackId.value > score.value._tracks.length - 1) {
@@ -104,7 +104,7 @@ const note = computed(() => {
 })
 
 watch(voiceId, () => {
-  selection.value = []
+  selection.value = new Set([])
 })
 
 const mode: Ref<Mode> = ref(Mode.ModeNote)

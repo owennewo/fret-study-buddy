@@ -60,7 +60,7 @@ export const useCanvas = () => {
     isDarkMode,
   } = useCursor()
 
-  const voiceColor = (voice: Voice) => {
+  const voiceColour = (voice: Voice) => {
     return voiceColours[voice.index()]
   }
 
@@ -93,7 +93,7 @@ export const useCanvas = () => {
       curveEndX, -bendHeight * 0.2,    // control point 1
       curveEndX, -bendHeight * 0.5, // control point 2
       curveEndX, curveEndY
-    ).stroke({ width: 2, color: voiceColor(note.voice()) });
+    ).stroke({ width: 2, color: voiceColour(note.voice()) });
 
     // 3) Draw an upward arrow at the very top
     // Move from the top of the bend...
@@ -105,8 +105,8 @@ export const useCanvas = () => {
     // ...right slash
     g.lineTo(endX + arrowSize, endY + arrowSize)
     g.lineTo(endX - arrowSize, endY + arrowSize)
-      .stroke({ width: 2, color: voiceColor(note.voice()) })
-      .fill(voiceColor(note.voice()));
+      .stroke({ width: 2, color: voiceColour(note.voice()) })
+      .fill(voiceColour(note.voice()));
 
     return g;
   };
@@ -129,7 +129,7 @@ export const useCanvas = () => {
       centerX + radiusX, centerY - radiusY, // Control point 2
       centerX + radiusX, centerY            // End point
     ).stroke({
-      color: voiceColor(note.voice()),
+      color: voiceColour(note.voice()),
       width: 2,
     });
 
@@ -139,11 +139,11 @@ export const useCanvas = () => {
   const drawNote = (note: Note, usableWidth: number, barHeight: number) => {
     const stringSpacing = barHeight / (note.track().stringCount() - 1)
     const isCurrent = toRaw(currentNote.value) === toRaw(note)
-    const rectColor = isCurrent ? voiceColor(note.voice()) : colours.value.secondary
+    const rectColor = isCurrent ? voiceColour(note.voice()) : colours.value.secondary
     if (note.fretNumber == 4) {
       // debugger
     }
-    const textColor = isCurrent ? colours.value.secondary : voiceColor(note.voice())
+    const textColor = isCurrent ? colours.value.secondary : voiceColour(note.voice())
 
     const c = new Container({
       label: `note${note.index()}`,
@@ -190,35 +190,35 @@ export const useCanvas = () => {
       element.score().fontSize / 2
     c.y = -element.score().fontSize / 2
 
-    if (element.voice().index() == voiceId.value) {
-      if (
-        element.beatDuration() > 10 ||
-        element.beatDuration() < -10 ||
-        element.beatDuration() == null ||
-        element.beatDuration() == undefined
-      ) {
-        console.log('##### Invalid duration', element)
-        debugger
-        element.duration = new Duration(BaseNoteValue.Quarter)
-      }
-
-      if (element.name) {
-        const textStyle = new TextStyle({
-          fontSize: element.score().fontSize,
-          fill: colours.value.primary, // Text color
-        })
-
-        // Create the text
-        const t = new Text({
-          text: element.name,
-          style: textStyle,
-          x: 0,
-          y: -1 * element.score().fontSize,
-        } as TextOptions)
-
-        c.addChild(t)
-      }
+    // if (element.voice().index() == voiceId.value) {
+    if (
+      element.beatDuration() > 10 ||
+      element.beatDuration() < -10 ||
+      element.beatDuration() == null ||
+      element.beatDuration() == undefined
+    ) {
+      console.log('##### Invalid duration', element)
+      debugger
+      element.duration = new Duration(BaseNoteValue.Quarter)
     }
+
+    if (element.name) {
+      const textStyle = new TextStyle({
+        fontSize: element.score().fontSize,
+        fill: colours.value.primary, // Text color
+      })
+
+      // Create the text
+      const t = new Text({
+        text: element.name,
+        style: textStyle,
+        x: 0,
+        y: -1 * element.score().fontSize,
+      } as TextOptions)
+
+      c.addChild(t)
+    }
+    // }
 
     element._notes.forEach(note => {
       c.addChild(drawNote(note, usableWidth, barHeight))
@@ -228,12 +228,11 @@ export const useCanvas = () => {
 
   const drawVoice = (voice: Voice, usableWidth: number, barHeight: number) => {
     const c = new Container({ label: `voice${voice.index()}` })
-
     // if (voice.index() == voiceId.value) {
     const g = new Graphics()
     const selectionDimension = voice._elements.reduce(
       (acc, element) => {
-        if (selection.value.includes(toRaw(element))) {
+        if (selection.value.has(toRaw(element))) {
           return [
             Math.min(isNaN(acc[0]) ? element.location() : acc[0], element.location()),
             Math.max(
@@ -251,6 +250,7 @@ export const useCanvas = () => {
       },
       [NaN, NaN, NaN, NaN],
     )
+    // console.log('voice', voice.bar().index(), voice.index(), selectionDimension, selection.value)
 
     const voiceDuration = Math.max(voice.bar().timeSignature.beatsPerBar, voice.duration())
     if (!isNaN(selectionDimension[0])) {
@@ -312,7 +312,7 @@ export const useCanvas = () => {
       .lineTo(barWidth, barHeight + 1) // End bar
       .stroke({ width: bar.index() == bar.track()._bars.length - 1 ? 4 : 1, color: colours.value.primary })
 
-    if (selection.value.includes(bar)) {
+    if (selection.value.has(bar)) {
       console.log('BAR selected', bar.index())
       g.rect(
         0, // - voice.score().fontSize / 2,
@@ -437,8 +437,8 @@ export const useCanvas = () => {
       console.log('No score found')
       return
     }
-    if (selection.value.length == 0) {
-      selection.value = [toRaw(currentElement.value)]
+    if (selection.value.size == 0) {
+      selection.value = new Set([toRaw(currentElement.value)])
     }
     if (pixi == null) {
       pixi = await setupPixi()

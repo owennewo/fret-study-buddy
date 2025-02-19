@@ -34,31 +34,30 @@ export const useCommands = () => {
     })
 
     bind('^ctrl\\+shift\\+ArrowRight$', () => {
-      if (selection.value.length == 0) {
-        selection.value = [bar.value]
+      if (selection.value.size == 0) {
+        selection.value = new Set([bar.value])
       }
-      if (selection.value.filter(item => item instanceof Bar).length == 0) {
-        selection.value = [toRaw(bar.value)]
+      if ([...selection.value].filter(item => item instanceof Bar).length == 0) {
+        selection.value = new Set([toRaw(bar.value)])
       } else {
         barId.value += 1
-        selection.value.push(toRaw(bar.value))
+        selection.value.add(toRaw(bar.value))
       }
       console.log('ctrl shift right')
       drawScore()
     })
 
     bind('^ctrl\\+shift\\+ArrowLeft$', () => {
-      if (selection.value.filter(item => item instanceof Bar).length == 0) {
-        selection.value = [toRaw(bar.value)]
+      if ([...selection.value].filter(item => item instanceof Bar).length == 0) {
+        selection.value = new Set([toRaw(bar.value)])
       } else {
-        const index = selection.value.indexOf(bar.value)
-        if (index > -1) {
-          selection.value.splice(index, 1)
+        if (selection.value.has(bar.value)) {
+          selection.value.delete(bar.value)
         }
 
         barId.value -= 1
-        if (!selection.value.includes(bar.value)) {
-          selection.value.push(toRaw(bar.value))
+        if (!selection.value.has(bar.value)) {
+          selection.value.add(toRaw(bar.value))
         }
       }
       console.log('ctrl shift right')
@@ -78,7 +77,7 @@ export const useCommands = () => {
     bind('^ctrl\\+ArrowRight$', () => {
       barId.value += 1
       elementId.value = 0
-      selection.value = [toRaw(element.value)]
+      selection.value = new Set([toRaw(element.value)])
       drawScore()
     })
 
@@ -89,44 +88,44 @@ export const useCommands = () => {
         barId.value -= 1
         elementId.value = 0
       }
-      selection.value = [toRaw(element.value)]
+      selection.value = new Set([toRaw(element.value)])
       drawScore()
     })
 
     bind('^shift\\+ArrowLeft$', () => {
-      const index = selection.value.indexOf(element.value)
-      if (index > -1) {
-        selection.value.splice(index, 1)
+
+      if (selection.value.has(element.value)) {
+        selection.value.delete(element.value)
       }
       elementId.value = element.value.index() - 1
 
-      if (!selection.value.includes(toRaw(element.value))) {
-        selection.value.push(toRaw(element.value))
+      if (!selection.value.has(toRaw(element.value))) {
+        selection.value.add(toRaw(element.value))
       }
-      console.log('selection', selection.value.length)
+      console.log('selection', selection.value.size)
       drawScore()
     })
 
     bind('^Home$', () => {
       barId.value = 0
       elementId.value = 0
-      selection.value = [toRaw(element.value)]
+      selection.value = new Set([toRaw(element.value)])
       drawScore()
     })
 
     bind('^End$', () => {
       barId.value = bar.value.track()._bars.length - 1
       elementId.value = bar.value._voices[voiceId.value]._elements.length - 1
-      selection.value = [toRaw(element.value)]
+      selection.value = new Set([toRaw(element.value)])
       drawScore()
     })
 
     bind('^shift\\+ArrowRight$', () => {
       elementId.value = element.value.index() + 1
-      if (!selection.value.includes(toRaw(element.value))) {
-        selection.value.push(toRaw(element.value))
+      if (!selection.value.has(toRaw(element.value))) {
+        selection.value.add(toRaw(element.value))
       }
-      console.log('selection', selection.value.length)
+      console.log('selection', selection.value.size)
       drawScore()
     })
 
@@ -142,23 +141,23 @@ export const useCommands = () => {
 
     bind('^ArrowLeft$', () => {
       elementId.value = element.value.index() - 1
-      selection.value = [toRaw(element.value)]
+      selection.value = new Set([toRaw(element.value)])
       drawScore()
     })
 
     bind('^ArrowRight$', () => {
       elementId.value = element.value.index() + 1
-      selection.value = [toRaw(element.value)]
+      selection.value = new Set([toRaw(element.value)])
       drawScore()
     })
 
     bind('^Delete$', () => {
       if (
         !isNaN(note.value.fretNumber) &&
-        (selection.value.length == 0 || (selection.value.length == 1 && selection.value[0] == element.value))
+        (selection.value.size == 0 || (selection.value.size == 1 && selection.value[0] == element.value))
       ) {
         note.value.fretNumber = NaN
-      } else if (selection.value.length > 0) {
+      } else if (selection.value.size > 0) {
         const deleteItems = [...selection.value].reverse()
         let deleteBarCount = 0
         for (const deleteItem of deleteItems) {
@@ -169,7 +168,7 @@ export const useCommands = () => {
             deleteItem.voice().removeElementAt(deleteItem.index())
           }
         }
-        selection.value = []
+        selection.value = new Set([])
         barId.value -= deleteBarCount
       }
       drawScore()
@@ -179,7 +178,7 @@ export const useCommands = () => {
       const newElement = element.value.voice().addElement(element.value.index())
       elementId.value -= 1
       elementId.value += 1
-      selection.value = [newElement!]
+      selection.value = new Set([newElement!])
       drawScore()
     })
 
