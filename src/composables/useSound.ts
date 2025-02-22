@@ -1,5 +1,5 @@
 import * as Tone from 'tone'
-import { nextTick, ref, toRaw } from 'vue'
+import { nextTick, ref, toRaw, watch, onMounted, onUnmounted } from 'vue'
 import { VoiceElement } from '@/models/VoiceElement'
 import type { Voice } from '@/models/Voice'
 import type { Track } from '@/models/Track'
@@ -11,6 +11,7 @@ export const useSound = () => {
   const { score, trackId, barId, elementId, selection, tempoPercent, isPlaybackLooping } = useCursor()
   const { drawScore } = useCanvas()
   const isPlaying = ref(false)
+  const currentTime = ref(0) // Add a ref to store the current time
 
   let cacheSelection: Set<Bar | VoiceElement> = new Set([])
 
@@ -20,7 +21,12 @@ export const useSound = () => {
   Tone.getTransport().on('stop', () => {
     console.log('stop')
   })
+  Tone.getTransport().on('start', () => {
+    console.log('start')
+  })
+
   Tone.getTransport().on('loopEnd', () => {
+    Tone.getTransport().stop()
     console.log('loopEnd')
   })
   Tone.getTransport().on('pause', () => {
@@ -30,6 +36,7 @@ export const useSound = () => {
   Tone.getTransport().on('loop', () => {
     console.log('loop')
   })
+
 
   const loadInstrument = async (track: Track) => {
     const samples = track.instrument.tone.samples
@@ -67,6 +74,7 @@ export const useSound = () => {
     if (Tone.getTransport().state == 'paused') {
       console.log('resuming')
       isPlaying.value = true
+
       Tone.getTransport().start()
       return
     }
@@ -100,13 +108,18 @@ export const useSound = () => {
   const startPlayback = (track: Track) => {
     let playedCount = 0
 
-    const noteTuples = [] as Array<[number, VoiceElement]>
+    Tone.getTransport().scheduleRepeat((time) => {
+      currentTime.value = Tone.getTransport().seconds
+      console.log("time: ", time, Tone.getTransport().state)
+    }, "4n");
 
+
+    const noteTuples = [] as Array<[number, VoiceElement]>
     const nextVoiceTimes = [0, 0, 0, 0]
 
     track._bars.forEach(bar => {
       if (selection.value.size > 0 && selection.value[0] instanceof Bar && !selection.value.has(toRaw(bar))) {
-        return // skips bars not in seletion
+        return // skips bars not in selection
       }
       bar._voices
         .flatMap((voice: Voice) => voice._elements)
@@ -132,7 +145,12 @@ export const useSound = () => {
             let time = nextVoiceTimes[element.voice().index()]
             time = Math.round(time * 1000) / 1000;  // round to 3 decimal places
             // console.log(`${element.bar().index()}:${element.voice().index()}:${element.index()} ${time}`)
-            noteTuples.push([time, element])
+            let event = {
+              element: element,
+              time: time,
+            }
+
+            noteTuples.push([time, event])
           }
           let duration = element.beatDuration()
           if (element.isLast()) {
@@ -149,7 +167,8 @@ export const useSound = () => {
         })
     })
 
-    part = new Tone.Part((time, element: VoiceElement) => {
+    part = new Tone.Part((time, event: VoiceElement) => {
+      const element = event.element
       const duration = element.beatDuration()
 
       // Collect all pitches for the chord
@@ -178,6 +197,7 @@ export const useSound = () => {
                 selection.value = cacheSelection //.map(item => toRaw(item))
                 drawScore()
                 isPlaying.value = false
+                Tone.getTransport().stop()
 
                 if (isPlaybackLooping.value) {
                   nextTick(() => {
@@ -191,6 +211,15 @@ export const useSound = () => {
         }, time)
       }
     }, noteTuples)
+
+    const noteEndTimes = part._events.values().map(event => {
+
+      const startTime = Tone.Time(event.value.time).toSeconds();
+      const duration = Tone.Time(event.value.element.beatDuration()).toSeconds(); // default to 0 if no duration provided
+      return startTime + duration;
+    });
+    const partLength = Math.max(...noteEndTimes);
+    console.log('partLength', partLength)
 
     part.start(0)
 
@@ -207,10 +236,26 @@ export const useSound = () => {
     }
   }
 
+  // Use an interval to update currentTime
+  onMounted(() => {
+    // intervalId = setInterval(() => {
+    //   currentTime.value = Tone.getTransport().seconds
+    //   // Broadcast the current time to display on the canvas
+    //   console.log(`Current Time: ${currentTime.value}`)
+    // }, 100) // Update every 100 milliseconds
+  })
+
+  onUnmounted(() => {
+    // if (intervalId) {
+    //   clearInterval(intervalId)
+    // }
+  })
+
   return {
     play,
     pause,
     togglePlay,
     isPlaying,
+    currentTime, // Export currentTime
   }
 }
