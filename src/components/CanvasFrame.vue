@@ -5,9 +5,11 @@ import { useCommands } from '@/composables/useCommands'
 import { useCursor } from '@/composables/useCursor'
 import ToolBar from './ToolBar.vue'
 import FretboardFrame from './FretboardFrame.vue'
+import { Bar } from '@/models/Bar'
+import { Note } from '@/models/Note'
 
 const { score, scoreId, voiceId, isDarkMode } = useCursor()
-const { drawScore, canvasRef, canvasContainerRef, voiceColours } = useCanvas()
+const { drawScore, canvasRef, canvasContainerRef, voiceColours, selectedContainer } = useCanvas()
 
 const errorPopover = ref()
 
@@ -28,6 +30,18 @@ watch(
   },
   { deep: true },
 )
+
+watch(selectedContainer, () => {
+  if (selectedContainer.value) {
+    const source = selectedContainer.value['source']
+    if (source instanceof Bar) {
+      console.log('scrolling to bar')
+    } else if (source instanceof Note) {
+      console.log('scrolling to Note')
+    }
+  }
+})
+
 </script>
 
 <template>

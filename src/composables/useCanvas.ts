@@ -14,6 +14,8 @@ import { useFretboard } from './useFretboard'
 const canvasRef: Ref<HTMLCanvasElement | null> = ref(null)
 const canvasContainerRef: Ref<HTMLDivElement | null> = ref(null)
 
+const selectedContainer = ref<Container | null>(null)
+
 const { drawFretboard } = useFretboard()
 
 let pixi: Application | null = null
@@ -176,8 +178,17 @@ export const useCanvas = () => {
       } else if (technique == Technique.Bend) {
         c.addChild(drawTechniqueBend(note, usableWidth))
       }
+    })
 
-    });
+    // Add onClick event
+    c.interactive = true
+    c.on('pointerdown', (event) => {
+      c['source'] = note
+      console.log('Note clicked', note.index())
+      event.stopPropagation() // Stop event propagation
+      selectedContainer.value = c
+    })
+
     return c
   }
 
@@ -281,23 +292,30 @@ export const useCanvas = () => {
       label: `bar${bar.index()}`,
       x: x,
       y: y,
-    }).on('pointerdown', c => {
-      console.log('Bar clicked', bar.index())
     })
-    c.interactive = true
+    if (!c.interactive) {
+      c.interactive = true
+      c['source'] = bar
+      c.on('pointerdown', (event) => {
+        console.log('Bar clicked', bar.index())
+        event.stopPropagation()
+        selectedContainer.value = c
+      })
+    }
 
     const c2 = new Container({
       label: `inner${bar.index()}`,
       x: padding,
       y: 0,
-    }).on('pointerdown', c => {
-      console.log('Bar clicked', bar.index())
     })
 
     const stringSpacing = barHeight / (bar.track().stringCount() - 1)
 
     const g = new Graphics()
     const g2 = new Graphics()
+
+    // Add a transparent rectangle to capture clicks
+    g.rect(0, 0, barWidth, barHeight).fill({ color: 0x000000, alpha: 0 })
 
     for (let i = 0; i < bar.track().stringCount(); i++) {
       const lineY = i * stringSpacing
@@ -356,6 +374,7 @@ export const useCanvas = () => {
     bar._voices.forEach(voice => {
       c2.addChild(drawVoice(voice, usableWidth, barHeight))
     })
+
     return c
   }
 
@@ -476,5 +495,5 @@ export const useCanvas = () => {
     pixi.stage.addChild(pageContainer)
   }
 
-  return { drawScore, canvasRef, canvasContainerRef, voiceColours }
+  return { drawScore, canvasRef, canvasContainerRef, voiceColours, selectedContainer }
 }

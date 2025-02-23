@@ -3,15 +3,22 @@ import { Score, type TimeSignature } from './Score'
 import type { Track } from './Track'
 import { toRaw } from 'vue'
 
+type BarAttribute =
+  | { type: 'BarStart' }
+  | { type: 'BarEnd', repeatCount: number }
+  | { type: 'Alternate', repeatCount: number }
+
 class Bar {
   _track: Track
   timeSignature: TimeSignature
   _voices: Voice[]
+  attributes: BarAttribute[] // Add attributes property
 
-  constructor(track: Track, timeSignature: TimeSignature) {
+  constructor(track: Track, timeSignature: TimeSignature, attributes: BarAttribute[] = []) {
     this._track = track
     this.timeSignature = timeSignature
     this._voices = []
+    this.attributes = attributes // Initialize attributes
   }
 
   score = (): Score => this.track().score()
@@ -68,6 +75,7 @@ class Bar {
     return {
       timeSignature: this.timeSignature,
       voices: this._voices.map(voice => voice.toJSON()),
+      attributes: this.attributes, // Include attributes in JSON
     }
   }
 
@@ -84,7 +92,7 @@ class Bar {
       throw new Error("Invalid data format: 'timeSignature' must have 'beatsPerBar' and 'beatValue' as numbers.")
     }
 
-    const bar = new Bar(track, data.timeSignature)
+    const bar = new Bar(track, data.timeSignature, data.attributes || []) // Initialize attributes from JSON
 
     if (data.voices && Array.isArray(data.voices)) {
       bar._voices = data.voices.map((voiceData: any) => Voice.fromJSON(bar, voiceData))
@@ -96,4 +104,4 @@ class Bar {
   }
 }
 
-export { Bar }
+export { Bar, type BarAttribute }
