@@ -45,10 +45,11 @@ import {
   IconField,
   InputIcon,
   SplitButton,
+  Panel,
+  ToggleSwitch,
 } from 'primevue'
 
 const app = createApp(App)
-app.use(ToastService);
 app.use(createPinia())
 app.use(PrimeVue, {
   // unstyled: true
@@ -75,6 +76,7 @@ app.component('p-dialog', Dialog)
 app.component('p-inputgroup', InputGroup)
 app.component('p-inputgroupaddon', InputGroupAddon)
 app.component('p-togglebutton', ToggleButton)
+app.component('p-toggleswitch', ToggleSwitch)
 app.component('p-selectbutton', SelectButton)
 app.component('p-tabs', Tabs)
 app.component('p-tabpanels', TabPanels)
@@ -99,5 +101,6 @@ app.component('p-card', Card)
 app.component('p-iconfield', IconField)
 app.component('p-inputicon', InputIcon)
 app.component('p-splitbutton', SplitButton)
+app.component('p-panel', Panel)
 
 app.mount('#app')

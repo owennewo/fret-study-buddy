@@ -14,7 +14,7 @@ import { useFretboard } from './useFretboard'
 const canvasRef: Ref<HTMLCanvasElement | null> = ref(null)
 const canvasContainerRef: Ref<HTMLDivElement | null> = ref(null)
 
-const selectedContainer = ref<Container | null>(null)
+const clickEvent = ref<Event | null>(null)
 
 const { drawFretboard } = useFretboard()
 
@@ -186,7 +186,7 @@ export const useCanvas = () => {
       c['source'] = note
       console.log('Note clicked', note.index())
       event.stopPropagation() // Stop event propagation
-      selectedContainer.value = c
+      clickEvent.value = event
     })
 
     return c
@@ -299,7 +299,7 @@ export const useCanvas = () => {
       c.on('pointerdown', (event) => {
         console.log('Bar clicked', bar.index())
         event.stopPropagation()
-        selectedContainer.value = c
+        clickEvent.value = { ...event }
       })
     }
 
@@ -495,5 +495,5 @@ export const useCanvas = () => {
     pixi.stage.addChild(pageContainer)
   }
 
-  return { drawScore, canvasRef, canvasContainerRef, voiceColours, selectedContainer }
+  return { drawScore, canvasRef, canvasContainerRef, voiceColours, clickEvent }
 }

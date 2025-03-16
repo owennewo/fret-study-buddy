@@ -236,21 +236,6 @@ export const useSound = () => {
     }
   }
 
-  // Use an interval to update currentTime
-  onMounted(() => {
-    // intervalId = setInterval(() => {
-    //   currentTime.value = Tone.getTransport().seconds
-    //   // Broadcast the current time to display on the canvas
-    //   console.log(`Current Time: ${currentTime.value}`)
-    // }, 100) // Update every 100 milliseconds
-  })
-
-  onUnmounted(() => {
-    // if (intervalId) {
-    //   clearInterval(intervalId)
-    // }
-  })
-
   return {
     play,
     pause,

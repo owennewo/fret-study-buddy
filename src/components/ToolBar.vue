@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useCursor } from '@/composables/useCursor'
 import { useSound } from '@/composables/useSound'
-import { computed, toRaw } from 'vue'
+import { computed, watch } from 'vue'
 
 import { useDialog } from 'primevue/usedialog'
 import EditScoreDialog from './EditScoreDialog.vue'
@@ -16,7 +16,17 @@ const { saveSettingsToDB } = useLocalDataStore()
 const dialog = useDialog()
 const datastore = useDataStore();
 const { play, pause, isPlaying } = useSound()
-const { score, scoreId, voiceId, tempoPercent, isDarkMode, isPlaybackLooping } = useCursor()
+const { score, scoreId, note, bar, voiceId, tempoPercent, isDarkMode, isPlaybackLooping } = useCursor()
+
+const fretOptions = computed(() => {
+  let options = Array.from({ length: 22 }, (_, i) => ({
+    value: i,
+    label: i.toString(),
+  }))
+  options = [{ value: NaN, label: 'None' }, ...options]
+  return options;
+})
+
 
 const voiceOptions = computed(() => {
   const options = Array.from({ length: 4 }, (_, i) => ({
@@ -95,6 +105,11 @@ const prevScore = async () => {
   const newScore = scores[scoreIndex]
   scoreId.value = newScore!.id!
 }
+
+
+watch(note, () => {
+  console.log(note.value)
+}, { deep: true })
 </script>
 
 <template>
@@ -158,10 +173,36 @@ const prevScore = async () => {
           </template>
         </p-selectbutton>
         <i :class="`pi ${isDarkMode ? 'pi-sun' : 'pi pi-moon'}`" @click="toggleDarkMode"></i>
-
-
       </template>
     </p-toolbar>
+    <p-tabs value="0">
+      <p-tablist>
+        <p-tab value="0">Note</p-tab>
+        <p-tab value="1">Bar</p-tab>
+      </p-tablist>
+      <p-tabpanels>
+        <p-tabpanel value="0">
+          <p-selectbutton v-model="note.fretNumber" :options="fretOptions" optionLabel="label" optionValue="value"
+            dataKey="label" aria-labelledby="custom">
+            <template #option="{ option }">
+              <div :class="`fret-option`">{{ option.label }}</div>
+            </template>
+          </p-selectbutton>
+        </p-tabpanel>
+        <p-tabpanel value="1">
+          <label for="repeatStart"> repeatStart </label>
+          <p-toggleswitch inputId="repeatStart" v-model="bar.repeatStart"></p-toggleswitch>
+          <label for="repeatEndCount"> repeatEndCount </label>
+          <p-inputnumber v-model="bar.repeatEndCount" id="repeatEndCount" variant="filled" :min="0" :max="255"
+            showButtons />
+          <label for="alternateCount"> alternateCount </label>
+          <p-inputnumber v-model="bar.alternateCount" id="alternateCount" variant="filled" :min="0" :max="255"
+            showButtons />
+
+        </p-tabpanel>
+
+      </p-tabpanels>
+    </p-tabs>
   </div>
 </template>
 <style>

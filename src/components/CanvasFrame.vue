@@ -9,9 +9,10 @@ import { Bar } from '@/models/Bar'
 import { Note } from '@/models/Note'
 
 const { score, scoreId, voiceId, isDarkMode } = useCursor()
-const { drawScore, canvasRef, canvasContainerRef, voiceColours, selectedContainer } = useCanvas()
+const { drawScore, canvasRef, canvasContainerRef, voiceColours, clickEvent } = useCanvas()
 
 const errorPopover = ref()
+const barPopover = ref()
 
 const toggleErrorPopover = event => {
   errorPopover.value.toggle(event)
@@ -31,11 +32,22 @@ watch(
   { deep: true },
 )
 
-watch(selectedContainer, () => {
-  if (selectedContainer.value) {
-    const source = selectedContainer.value['source']
+watch(clickEvent, () => {
+  console.log('clickEvent')
+  if (clickEvent.value) {
+    const t = clickEvent.value.target
+    const source = t['source']
     if (source instanceof Bar) {
-      console.log('scrolling to bar')
+      // const simulatedEvent = new Event('click', { bubbles: true, cancelable: true })
+      // Object.assign(simulatedEvent, { target: canvasContainerRef.value })
+      // debugger
+      // barPopover.value.$el.style.top = '20px'
+      const p = t.toGlobal({ x: 0, y: 0 })
+
+      console.log('scrolling to bar', p.x, p.y)
+      barPopover.value.$el.style.left = `${p.x}px`
+      barPopover.value.$el.style.top = `${p.y + t.height}px`
+
     } else if (source instanceof Note) {
       console.log('scrolling to Note')
     }
@@ -65,6 +77,9 @@ watch(selectedContainer, () => {
           </p-column>
         </p-datatable>
       </p-popover>
+      <p-panel ref="barPopover">
+        <p>foo</p>
+      </p-panel>
     </div>
     <!-- <div>
       <FretboardFrame />
@@ -88,6 +103,12 @@ button .voice-0 {
 button.p-togglebutton-checked .voice-0 {
   background-color: v-bind('voiceColours[0]');
   color: pink;
+}
+
+.p-panel {
+  position: absolute;
+  top: 0px;
+  display: none;
 }
 
 button .voice-1 {
@@ -283,5 +304,10 @@ button.p-togglebutton {
 
 .voice-option {
   padding: 8px;
+}
+
+.fret-option {
+  padding: 8px;
+  margin-right: 4px;
 }
 </style>

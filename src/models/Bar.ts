@@ -3,22 +3,22 @@ import { Score, type TimeSignature } from './Score'
 import type { Track } from './Track'
 import { toRaw } from 'vue'
 
-type BarAttribute =
-  | { type: 'BarStart' }
-  | { type: 'BarEnd', repeatCount: number }
-  | { type: 'Alternate', repeatCount: number }
 
 class Bar {
   _track: Track
   timeSignature: TimeSignature
   _voices: Voice[]
-  attributes: BarAttribute[] // Add attributes property
+  repeatStart: boolean = false
+  repeatEndCount: number = 0
+  alternateCount: number = 0
 
-  constructor(track: Track, timeSignature: TimeSignature, attributes: BarAttribute[] = []) {
+  constructor(track: Track, timeSignature: TimeSignature, repeatStart: boolean = false, repeatEndCount: number = 0, alternateCount: number = 0) {
     this._track = track
     this.timeSignature = timeSignature
     this._voices = []
-    this.attributes = attributes // Initialize attributes
+    this.repeatStart = repeatStart ?? false
+    this.repeatEndCount = repeatEndCount ?? 0
+    this.alternateCount = alternateCount ?? 0
   }
 
   score = (): Score => this.track().score()
@@ -72,11 +72,18 @@ class Bar {
   empty = () => this._voices.flatMap(voice => voice._elements).filter(element => !element.empty()).length == 0
 
   toJSON(): object {
-    return {
-      timeSignature: this.timeSignature,
-      voices: this._voices.map(voice => voice.toJSON()),
-      attributes: this.attributes, // Include attributes in JSON
-    }
+
+    return Object.assign(
+      {
+        timeSignature: this.timeSignature,
+        voices: this._voices.map(voice => voice.toJSON()),
+
+        repeatEndCount: this.repeatEndCount,
+      },
+      this.repeatStart ? { repeatStart: this.repeatStart } : {},
+      this.repeatEndCount > 0 ? { repeatEndCount: this.repeatEndCount } : {},
+      this.alternateCount > 0 ? { alternateCount: this.alternateCount } : {},
+    )
   }
 
   isError = (): boolean => {
@@ -92,7 +99,7 @@ class Bar {
       throw new Error("Invalid data format: 'timeSignature' must have 'beatsPerBar' and 'beatValue' as numbers.")
     }
 
-    const bar = new Bar(track, data.timeSignature, data.attributes || []) // Initialize attributes from JSON
+    const bar = new Bar(track, data.timeSignature, data.repeatStart, data.repeatEndCount, data.alternateCount) // Initialize attributes from JSON
 
     if (data.voices && Array.isArray(data.voices)) {
       bar._voices = data.voices.map((voiceData: any) => Voice.fromJSON(bar, voiceData))
@@ -104,4 +111,4 @@ class Bar {
   }
 }
 
-export { Bar, type BarAttribute }
+export { Bar }
