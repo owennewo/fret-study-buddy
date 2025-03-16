@@ -9,12 +9,10 @@ import { useCanvas } from './useCanvas'
 
 export const useSound = () => {
   const { score, trackId, barId, elementId, selection, tempoPercent, isPlaybackLooping } = useCursor()
-  const { drawScore } = useCanvas()
+  // Import useCanvas but don't destructure drawScore since we don't need to call it manually anymore
   const isPlaying = ref(false)
   const currentTime = ref(0) // Add a ref to store the current time
-
   let cacheSelection: Set<Bar | VoiceElement> = new Set([])
-
   let part: Tone.Part
   let instrument: Tone.Sampler
 
@@ -180,22 +178,18 @@ export const useSound = () => {
         // Trigger the chord with all pitches
         instrument.triggerAttackRelease(pitches, duration, time)
         // debugger
-        selection.value.add(toRaw(element))
-        nextTick(() => {
-          drawScore()
-        })
+        selection.value = new Set([toRaw(element)])
 
         // Schedule visual updates for the chord
         Tone.Draw.schedule(() => {
           setTimeout(
             () => {
               // debugger
-              selection.value.delete(toRaw(element))
+              selection.value = new Set() // Clear selection to trigger redraw
               playedCount += 1
               if (playedCount === noteTuples.length) {
                 console.log('ENDED')
                 selection.value = cacheSelection //.map(item => toRaw(item))
-                drawScore()
                 isPlaying.value = false
                 Tone.getTransport().stop()
 

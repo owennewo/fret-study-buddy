@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { useCanvas } from '@/composables/useCanvas'
 import { useCommands } from '@/composables/useCommands'
 import { useCursor } from '@/composables/useCursor'
@@ -9,7 +9,7 @@ import { Bar } from '@/models/Bar'
 import { Note } from '@/models/Note'
 
 const { score, scoreId, voiceId, isDarkMode } = useCursor()
-const { drawScore, canvasRef, canvasContainerRef, voiceColours, clickEvent } = useCanvas()
+const { canvasRef, canvasContainerRef, voiceColours, clickEvent } = useCanvas()
 
 const errorPopover = ref()
 const barPopover = ref()
@@ -20,17 +20,26 @@ const toggleErrorPopover = event => {
 
 useCommands()
 
-watch(
-  [score, voiceId, isDarkMode],
-  () => {
-    if (score.value && scoreId.value && !score.value.metadata!.id) {
-      console.log("skipping")
-      return
-    }
-    drawScore()
-  },
-  { deep: true },
-)
+let resizeObserver: ResizeObserver | null = null
+
+onMounted(() => {
+  const wrapper = document.getElementById('canvas-wrapper')
+  if (wrapper) {
+    resizeObserver = new ResizeObserver(entries => {
+      for (const entry of entries) {
+        // Dispatch an event that useCanvas listens for
+        window.dispatchEvent(new Event('canvas-resize'))
+      }
+    })
+    resizeObserver.observe(wrapper)
+  }
+})
+
+onUnmounted(() => {
+  if (resizeObserver) {
+    resizeObserver.disconnect()
+  }
+})
 
 watch(clickEvent, () => {
   console.log('clickEvent')
@@ -38,16 +47,10 @@ watch(clickEvent, () => {
     const t = clickEvent.value.target
     const source = t['source']
     if (source instanceof Bar) {
-      // const simulatedEvent = new Event('click', { bubbles: true, cancelable: true })
-      // Object.assign(simulatedEvent, { target: canvasContainerRef.value })
-      // debugger
-      // barPopover.value.$el.style.top = '20px'
       const p = t.toGlobal({ x: 0, y: 0 })
-
       console.log('scrolling to bar', p.x, p.y)
       barPopover.value.$el.style.left = `${p.x}px`
       barPopover.value.$el.style.top = `${p.y + t.height}px`
-
     } else if (source instanceof Note) {
       console.log('scrolling to Note')
     }

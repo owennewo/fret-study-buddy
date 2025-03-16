@@ -10,27 +10,24 @@ import { useSound } from './useSound'
 import ScoreSelectorDialog from '@/components/ScoreSelectorDialog.vue'
 import { useDataStore } from './datastores/useDataStore'
 
-const { drawScore } = useCanvas()
-const { projectId, score, track, bar, barId, voice, voiceId, element, elementId, note, noteId, selection } = useCursor()
+// Import useCanvas but don't destructure drawScore since we don't need to call it manually anymore
+const { score, track, bar, barId, voice, voiceId, element, elementId, note, noteId, selection } = useCursor()
 const { togglePlay } = useSound()
 const datastore = useDataStore()
-
 let loaded = false
 let copySelection: Array<VoiceElement | Bar> = []
 
 export const useCommands = () => {
   const dialog = useDialog()
-
   const { bind } = useKeys()
+
   if (!loaded) {
     bind('^\\d+(.\\d+)?$', sequence => {
       note.value.fretNumber = parseInt(sequence)
-      drawScore()
     })
 
     bind('^ctrl\\+Delete$', () => {
       track.value!.removeBarAt(bar.value!.index())
-      drawScore()
     })
 
     bind('^ctrl\\+shift\\+ArrowRight$', () => {
@@ -44,7 +41,6 @@ export const useCommands = () => {
         selection.value.add(toRaw(bar.value))
       }
       console.log('ctrl shift right')
-      drawScore()
     })
 
     bind('^ctrl\\+shift\\+ArrowLeft$', () => {
@@ -54,31 +50,26 @@ export const useCommands = () => {
         if (selection.value.has(bar.value)) {
           selection.value.delete(bar.value)
         }
-
         barId.value -= 1
         if (!selection.value.has(bar.value)) {
           selection.value.add(toRaw(bar.value))
         }
       }
       console.log('ctrl shift right')
-      drawScore()
     })
 
     bind('^ctrl\\+ArrowUp$', () => {
       voiceId.value = Math.min(voice.value.index() + 1, 3)
-      drawScore()
     })
 
     bind('^ctrl\\+ArrowDown$', () => {
       voiceId.value = Math.max(voice.value.index() - 1, 0)
-      drawScore()
     })
 
     bind('^ctrl\\+ArrowRight$', () => {
       barId.value += 1
       elementId.value = 0
       selection.value = new Set([toRaw(element.value)])
-      drawScore()
     })
 
     bind('^ctrl\\+ArrowLeft$', () => {
@@ -89,35 +80,29 @@ export const useCommands = () => {
         elementId.value = 0
       }
       selection.value = new Set([toRaw(element.value)])
-      drawScore()
     })
 
     bind('^shift\\+ArrowLeft$', () => {
-
       if (selection.value.has(element.value)) {
         selection.value.delete(element.value)
       }
       elementId.value = element.value.index() - 1
-
       if (!selection.value.has(toRaw(element.value))) {
         selection.value.add(toRaw(element.value))
       }
       console.log('selection', selection.value.size)
-      drawScore()
     })
 
     bind('^Home$', () => {
       barId.value = 0
       elementId.value = 0
       selection.value = new Set([toRaw(element.value)])
-      drawScore()
     })
 
     bind('^End$', () => {
       barId.value = bar.value.track()._bars.length - 1
       elementId.value = bar.value._voices[voiceId.value]._elements.length - 1
       selection.value = new Set([toRaw(element.value)])
-      drawScore()
     })
 
     bind('^shift\\+ArrowRight$', () => {
@@ -126,29 +111,24 @@ export const useCommands = () => {
         selection.value.add(toRaw(element.value))
       }
       console.log('selection', selection.value.size)
-      drawScore()
     })
 
     bind('^ArrowUp$', () => {
       noteId.value = Math.max(note.value.index() - 1, 0)
-      drawScore()
     })
 
     bind('^ArrowDown$', () => {
       noteId.value = Math.min(note.value.index() + 1, track.value!.stringCount() - 1)
-      drawScore()
     })
 
     bind('^ArrowLeft$', () => {
       elementId.value = element.value.index() - 1
       selection.value = new Set([toRaw(element.value)])
-      drawScore()
     })
 
     bind('^ArrowRight$', () => {
       elementId.value = element.value.index() + 1
       selection.value = new Set([toRaw(element.value)])
-      drawScore()
     })
 
     bind('^Delete$', () => {
@@ -171,7 +151,6 @@ export const useCommands = () => {
         selection.value = new Set([])
         barId.value -= deleteBarCount
       }
-      drawScore()
     })
 
     bind('^Insert$', () => {
@@ -179,17 +158,14 @@ export const useCommands = () => {
       elementId.value -= 1
       elementId.value += 1
       selection.value = new Set([newElement!])
-      drawScore()
     })
 
     bind('^\\[$', () => {
       element.value.duration.increaseBaseDuration()
-      drawScore()
     })
 
     bind('^\\]$', () => {
       element.value.duration.decreaseBaseDuration() // /= 2
-      drawScore()
     })
 
     bind('^\\.$', () => {
@@ -199,13 +175,11 @@ export const useCommands = () => {
         dotCount = 0
       }
       element.value.duration.dotCount = dotCount
-      drawScore()
     })
 
     bind('^t$', () => {
       console.log('triplet')
       element.value.duration.isTriplet = !element.value.duration.isTriplet
-      drawScore()
     })
 
     bind('^\\ $', () => {
@@ -248,9 +222,7 @@ export const useCommands = () => {
       if (copySelection.length == 0) {
         return
       }
-
       const pasteItems = [...copySelection]
-
       while (pasteItems.length > 0) {
         let pasteItem = toRaw(pasteItems.shift())
         if (pasteItem instanceof Bar) {
@@ -276,6 +248,7 @@ export const useCommands = () => {
     bind('^ctrl\\+shift\\+z$', () => {
       console.log('redo')
     })
+
     loaded = true
   }
 }

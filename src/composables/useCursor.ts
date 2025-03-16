@@ -1,5 +1,6 @@
 import type { Project } from '@/interfaces/DataStore'
 import type { Bar } from '@/models/Bar'
+import type { Note } from '@/models/Note'
 import { Score } from '@/models/Score'
 import type { VoiceElement } from '@/models/VoiceElement'
 import { computed, ref, shallowRef, watch, type Ref, type ShallowRef } from 'vue'
@@ -103,6 +104,25 @@ const note = computed(() => {
   return element.value._notes[noteId.value]
 })
 
+// const refs = {
+//   currentNote: ref<Note | null>(null),
+//   clickEvent: ref<Event | null>(null),
+// }
+
+const setCursorNote = (note: Note) => {
+  noteId.value = note.index()
+  elementId.value = note.element().index()
+  voiceId.value = note.voice().index()
+  barId.value = note.bar().index()
+  trackId.value = note.track().index()
+  selection.value = new Set([note.element()]) // Set selection
+}
+
+// Add watches to log state changes
+watch([noteId, elementId, voiceId, barId, trackId], ([newNoteId, newElementId, newVoiceId, newBarId, newTrackId]) => {
+  console.log('State changed:', { newNoteId, newElementId, newVoiceId, newBarId, newTrackId })
+})
+
 watch(voiceId, () => {
   selection.value = new Set([])
 })
@@ -135,5 +155,7 @@ export const useCursor = () => {
     isPlaybackLooping,
     googleToken,
     googleTokenExpiry,
+    setCursorNote,
+    // refs, // Export refs
   }
 }
