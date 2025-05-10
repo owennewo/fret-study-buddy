@@ -87,7 +87,6 @@ export const useKeys = () => {
     }
     console.log(`unknown '${sequence}'`)
     sequence = ''
-    console.log(`reset3 ${lastRegex!.source}`)
     lastRegex = null
   }
 

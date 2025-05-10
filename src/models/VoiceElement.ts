@@ -49,7 +49,7 @@ class VoiceElement {
   }
 
   isRest(): boolean {
-    return this._notes.length == 0 || this._notes.every(note => isNaN(note.fretNumber))
+    return this._notes.length == 0 || this._notes.every(note => isNaN(note.fret))
   }
 
   isNote(): boolean {
@@ -88,7 +88,7 @@ class VoiceElement {
   }
 
   empty = () => {
-    return this._notes.filter(note => !isNaN(note.fretNumber)).length == 0
+    return this._notes.filter(note => !isNaN(note.fret)).length == 0
   }
 
   index(): number {
@@ -145,7 +145,7 @@ class VoiceElement {
   }
 
   addRestNotes(): void {
-    const stringLength = this.track().instrument.tuning.length
+    const stringLength = this.track().instrument.tuning.notes.length
     for (let i = 0; i < stringLength; i++) {
       if (this._notes.find(note => note.index() === i)) {
         continue

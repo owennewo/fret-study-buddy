@@ -111,6 +111,7 @@ class Score {
   }
 
   static new(): Score {
+
     const score = new Score(100, {
       beatsPerBar: 4,
       beatValue: 4,

@@ -21,6 +21,17 @@ watch(scoreId, async newCurrentScoreId => {
   }
   if (newCurrentScoreId != null) {
     const loadedScore = await datastore.getLocal({ id: newCurrentScoreId } as Metadata)
+    if (!loadedScore) {
+      toast.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'No score found with ID: ' + newCurrentScoreId,
+        life: 3000,
+        group: 'restore',
+      })
+      console.error('No score found with ID:', newCurrentScoreId)
+      return
+    }
     score.value = loadedScore as Score
   }
 })
@@ -47,8 +58,8 @@ const restoreProject = async (options) => {
           <h2 class="text-xl font-bold">Restore last score??</h2>
         </div>
         <div class="flex flex-col text-center">
-          <p>Project: {{ options.message.data.projectName }}</p>
-          <p>Score: {{ options.message.data.scoreTitle }}</p>
+          <p>Project: {{ options.message.data?.projectName }}</p>
+          <p>Score: {{ options.message.data?.scoreTitle }}</p>
         </div>
         <div class="flex flex-row gap-2 justify-end">
           <p-button label="Restore" class="p-button-success p-button-sm" @click="restoreProject(options)" />

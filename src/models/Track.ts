@@ -11,12 +11,12 @@ class Track {
 
   constructor(
     score: Score,
-    instrumentName: string = 'Guitar',
-    tuningName: string = 'Standard',
-    toneName: string = 'Default',
+    instrument: string = 'Guitar',
+    tuning: string = 'Standard',
+    tone: string = 'Default',
   ) {
     this._score = score
-    this.instrument = new Instrument(instrumentName, tuningName, toneName)
+    this.instrument = new Instrument(instrument, tuning, tone)
     this._bars = []
   }
 
@@ -50,7 +50,7 @@ class Track {
     return this.score()._tracks.indexOf(toRaw(this))
   }
 
-  stringCount = () => this.instrument.tuning.length
+  stringCount = () => this.instrument.tuning.notes.length;
 
   removeBarAt(index: number): void {
     if (index >= 0 && index < this._bars.length) {
@@ -60,9 +60,9 @@ class Track {
 
   toJSON(): object {
     return {
-      instrumentName: this.instrument.instrumentName,
-      tuningName: this.instrument.tuningName,
-      toneName: this.instrument.toneName,
+      instrument: this.instrument.name,
+      tuning: this.instrument.tuning.name,
+      tone: this.instrument.tone.name,
       bars: this._bars.map(bar => bar.toJSON()),
     }
   }
@@ -99,14 +99,14 @@ class Track {
     if (this._bars[0]._voices[0]._elements.length == 0) {
       this._bars[0]._voices[0].addElement()
     }
-  }
+  }r
 
   static new(score: Score): Track {
     return new Track(score, 'Guitar', 'Standard', 'Default')
   }
 
   static fromJSON(score: Score, data: any): Track {
-    const track = new Track(score, data.instrumentName, data.tuningName, data.toneName)
+    const track = new Track(score, data.instrument ?? data.instrumentName, data.tuning ?? data.tuningName, data.tone ?? data.toneName)
     track._bars = data.bars.map((barData: any) => Bar.fromJSON(track, barData))
     return track
   }

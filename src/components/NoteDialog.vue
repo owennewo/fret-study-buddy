@@ -6,7 +6,7 @@ import { computed } from 'vue'
 
 const { bar, element, note } = useCursor()
 
-const baseDurationOptions = computed(() => {
+const beatsOptions = computed(() => {
   return Object.keys(BaseNoteValue)
     .filter(key => isNaN(Number(key))) // Exclude numeric reverse mapping if TypeScript emits it
     .map(key => ({
@@ -57,8 +57,8 @@ const techniqueList = () => {
 
   <p-floatlabel variant="on">
     <p-select
-      v-model="element.duration.baseDuration"
-      :options="baseDurationOptions"
+      v-model="element.duration.beats"
+      :options="beatsOptions"
       optionLabel="label"
       optionValue="value"
       inputId="baseUnit"
@@ -87,7 +87,7 @@ const techniqueList = () => {
   </p-floatlabel>
 
   <h2>Note</h2>
-  <p-inputnumber v-model="note.fretNumber" placeholder="Duration" showButtons class="small" />
+  <p-inputnumber v-model="note.fret" placeholder="Duration" showButtons class="small" />
   <p-inputnumber v-model="note.leftHandFinger" placeholder="leftHandFinger" showButtons class="small" />
   <p-inputnumber v-model="note.rightHandFinger" placeholder="rightHandFinger" showButtons class="small" />
 

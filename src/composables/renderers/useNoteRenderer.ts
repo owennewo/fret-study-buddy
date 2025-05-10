@@ -2,19 +2,47 @@ import { Container, Graphics, Text, type TextOptions } from 'pixi.js'
 import { Technique, type Note } from '@/models/Note'
 import { toRaw } from 'vue'
 import { type Voice } from '@/models/Voice'
-import { type ColourScheme, type RendererRefs } from './types'
+import { type ColourScheme } from './types'
 import { useCursor } from '@/composables/useCursor'
+import { BaseNoteValue } from '@/models/Duration'
+
 export const useNoteRenderer = (
   voiceColours: string[],
   colours: ColourScheme,
-  refs: Pick<RendererRefs, 'currentNote' | 'clickEvent'>
+  refs: any // Accept the refs directly from useCursor
 ) => {
-
   const { setCursorNote } = useCursor()
+
   const voiceColour = (voice: Voice) => {
     return voiceColours[voice.index()]
   }
 
+  const drawTechniqueSlide = (note: Note, usableWidth: number, isUp: boolean) => {
+    const g = new Graphics()
+
+    // Calculate dimensions based on the available space
+    const slideWidth = note.score().fontSize
+    const slideHeight = isUp ? -note.score().fontSize / 2 : note.score().fontSize / 2
+
+    // Start position (to the left of the note)
+    const startX = -slideWidth / 2
+    const startY = isUp ? note.score().fontSize * 3/4 : note.score().fontSize * 1 / 4
+
+    // End position (at the note)
+    const endX = 0 //startX + slideWidth //-note.score().fontSize / 4
+    const endY = startY + slideHeight
+
+    // Draw the slide line
+    g.moveTo(startX, startY)
+      .lineTo(endX, endY)
+      .stroke({
+        color: voiceColour(note.voice()),
+        width: 2,
+        cap: 'round',  // Rounded line caps
+      })
+
+    return g
+  }
 
   const drawTechniqueBend = (note: Note) => {
     const g = new Graphics()
@@ -58,30 +86,44 @@ export const useNoteRenderer = (
   const drawTechniqueHammer = (note: Note, usableWidth: number) => {
     const g = new Graphics()
     const duration = note.element().prev().beatDuration() * usableWidth / note.bar().timeSignature.beatsPerBar
-    const radiusX = (duration - note.score().fontSize) / 2 // Horizontal radius (semi-width)
-    const radiusY = note.score().fontSize / 2 // Fixed vertical radius (height)
-    const centerX = -radiusX - note.score().fontSize / 4
-    const centerY = 0
 
-    g.moveTo(centerX - radiusX, centerY)
+    const endX = 0  + note.score().fontSize / 4
+    const endY = -2
 
-    // Use bezierCurveTo to create a semi-ellipse
+    const startX = endX - duration
+    const startY = -2
+
+    const centerX = (startX + endX) / 2
+    const centerY = -note.score().fontSize / 2
+
+    // Calculate control points for a quadratic Bézier curve that passes through all three points
+    // For a curve passing through three points, we need to calculate special control points
+    const controlPoint1X = startX + 2/3 * (centerX - startX)
+    const controlPoint1Y = startY + 2/3 * (centerY - startY)
+
+    const controlPoint2X = endX + 2/3 * (centerX - endX)
+    const controlPoint2Y = endY + 2/3 * (centerY - endY)
+
+    // Draw the curve
+    g.moveTo(startX, startY)
     g.bezierCurveTo(
-      centerX - radiusX, centerY - radiusY, // Control point 1
-      centerX + radiusX, centerY - radiusY, // Control point 2
-      centerX + radiusX, centerY            // End point
+      controlPoint1X, controlPoint1Y, // Control point 1
+      controlPoint2X, controlPoint2Y, // Control point 2
+      endX, endY                      // End point
     ).stroke({
       color: voiceColour(note.voice()),
       width: 2,
     })
+
+
 
     return g
   }
 
   const drawNote = (note: Note, usableWidth: number, barHeight: number) => {
     const stringSpacing = barHeight / (note.track().stringCount() - 1)
+    // Use currentNote directly from refs
     const isCurrent = toRaw(refs.currentNote.value) === toRaw(note)
-    console.log('Drawing note:', { noteIndex: note.index(), isCurrent }) // Add logging
     const rectColor = isCurrent ? voiceColour(note.voice()) : colours.secondary
     const textColor = isCurrent ? colours.secondary : voiceColour(note.voice())
 
@@ -93,20 +135,20 @@ export const useNoteRenderer = (
     const g = new Graphics({ zIndex: 10 })
 
     const t = new Text({
-      text: note.isRest() ? '_' : note.fretNumber.toString(),
+      text: note.isRest() ? '_' : note.fret.toString(),
       zIndex: 20,
       style: {
-        fontSize: note.score().fontSize,
+        fontSize: note.score().fontSize * ((note.element().duration.beats === BaseNoteValue.Grace) ? 0.75 : 1),
         fill: textColor,
       },
     } as TextOptions)
 
     g.chamferRect(-3, 0, t.width + 6, t.height - 2, 2).fill({ color: rectColor, alpha: 0.9 })
 
-    if (!isNaN(note.fretNumber) || isCurrent) {
+    if (!isNaN(note.fret) || isCurrent) {
       c.addChild(g)
     }
-    if (!isNaN(note.fretNumber)) {
+    if (!isNaN(note.fret)) {
       c.addChild(t)
     }
 
@@ -116,6 +158,10 @@ export const useNoteRenderer = (
         c.addChild(drawTechniqueHammer(note, usableWidth))
       } else if (technique == Technique.Bend) {
         c.addChild(drawTechniqueBend(note))
+      } else if (technique == Technique.SlideUp) {
+        c.addChild(drawTechniqueSlide(note, usableWidth, true))
+      } else if (technique == Technique.SlideDown) {
+        c.addChild(drawTechniqueSlide(note, usableWidth, false))
       }
     })
 
@@ -123,14 +169,20 @@ export const useNoteRenderer = (
     c.interactive = true
     c.on('pointerdown', (event) => {
       c['source'] = note
-      console.log('Note clicked11', note.index())
+      console.log('Note clicked:', note.index())
       setCursorNote(note)
       event.stopPropagation() // Stop event propagation
-      refs.clickEvent.value = event
+      refs.clickEvent.value = event // Use refs.clickEvent directly
     })
 
     return c
   }
 
-  return { drawNote, drawTechniqueBend, drawTechniqueHammer, voiceColour }
+  return {
+    drawNote,
+    drawTechniqueBend,
+    drawTechniqueHammer,
+    drawTechniqueSlide,
+    voiceColour
+  }
 }

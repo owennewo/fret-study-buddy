@@ -15,10 +15,16 @@ export const useElementRenderer = (
     const c = new Container({ label: `element${element.index()}` })
 
     // Position the element based on its location in the bar
-    c.x =
-      (usableWidth * element.location()) /
+    let xPosition = (usableWidth * element.location()) /
       Math.max(element.voice().duration(), element.bar().timeSignature.beatsPerBar) +
       element.score().fontSize / 2
+
+    // Move Grace notes to the left by fontSize
+    if (element.duration.beats === BaseNoteValue.Grace) {
+      xPosition -= element.score().fontSize
+    }
+
+    c.x = xPosition
     c.y = -element.score().fontSize / 2
 
     // Handle invalid duration (defensive programming)

@@ -10,7 +10,7 @@ export class Metadata {
   hash?: string
 
   constructor(id: string | null = null, title: string = 'Untitled', project: string = 'scratch', createdDateTime = new Date(), modifiedDateTime = new Date(), clientId: string = '', version: number = 0, hash: string = '') {
-    this.id = id
+    this.id = id ?? crypto.randomUUID();
     this.title = title
     this.project = project
     this.createdDateTime = createdDateTime

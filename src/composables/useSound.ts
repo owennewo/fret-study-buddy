@@ -39,7 +39,7 @@ export const useSound = () => {
   const loadInstrument = async (track: Track) => {
     const samples = track.instrument.tone.samples
 
-    const sampleName = track.instrument.tone.name
+    const sampleName = track.instrument.tone.sampleName
     const sampleUrls = samples.reduce((acc: object, item) => {
       const filename = item.replace('#', 's') // d# -> ds
       // these urls are specific to nbrowsky sample folder structure and filename
@@ -53,7 +53,7 @@ export const useSound = () => {
       attack: 0.01,
       release: 0.2,
       onload: async () => {
-        console.log(`Instrument ${track.instrument.instrumentName} loaded`)
+        console.log(`Instrument ${track.instrument.name} loaded`)
       },
     }).toDestination()
     await Tone.loaded()
@@ -171,7 +171,7 @@ export const useSound = () => {
 
       // Collect all pitches for the chord
       const pitches = element._notes
-        .filter(note => !isNaN(note.fretNumber)) // Ensure valid notes
+        .filter(note => !isNaN(note.fret)) // Ensure valid notes
         .map(note => note.pitch()) // Map to their pitches
 
       if (pitches.length > 0) {

@@ -85,6 +85,7 @@ export const useCanvas = () => {
 
   // Main score drawing function
   const drawScore = async () => {
+    console.log('Drawing score...')
     // Prevent multiple simultaneous draws
     if (isDrawing.value) return
     isDrawing.value = true
@@ -177,7 +178,7 @@ export const useCanvas = () => {
       canvasRef.value &&
       score.value &&
       // Access all reactive values that should trigger a redraw
-      currentNote.value &&
+      // currentNote.value &&
       currentElement.value &&
       currentBar.value &&
       currentTrack.value &&

@@ -109,6 +109,7 @@ export function useLocalDataStore() {
       const fetchedScore = await db.get(SCORES_STORE, metadata.id!)
       if (!fetchedScore) {
         console.warn('Score not found:', scoreId)
+        debugger
         return null
       }
       return Score.fromJSON(fetchedScore)

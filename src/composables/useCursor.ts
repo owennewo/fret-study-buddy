@@ -37,6 +37,7 @@ const googleTokenExpiry = ref()
 const selection: ShallowRef<Set<VoiceElement | Bar>> = shallowRef(new Set<VoiceElement | Bar>())
 
 const track = computed(() => {
+
   if (trackId.value > score.value._tracks.length - 1) {
     debugger
   }
@@ -100,6 +101,7 @@ const element = computed(() => {
 const note = computed(() => {
   if (noteId.value > element.value._notes.length - 1) {
     debugger
+    // return null;
   }
   return element.value._notes[noteId.value]
 })

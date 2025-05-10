@@ -8,22 +8,24 @@ export enum BaseNoteValue {
   Sixteenth = 0.25,
   ThirtySecond = 0.125,
   SixtyFourth = 0.0625,
+  Grace = 0,
 }
 
 export class Duration {
-  baseDuration: BaseNoteValue
+  beats: BaseNoteValue
   dotCount: number // Number of dots
   isTriplet: boolean // Whether it's part of a triplet
 
-  constructor(baseDuration: BaseNoteValue, dotCount = 0, isTriplet = false) {
-    this.baseDuration = baseDuration
+  constructor(beats: BaseNoteValue, dotCount = 0, isTriplet = false) {
+    this.beats = beats
     this.dotCount = dotCount
     this.isTriplet = isTriplet
   }
 
   // Calculate the actual duration based on modifiers
   getBeatDuration(): number {
-    let duration = this.baseDuration
+
+    let duration = this.beats
 
     // Add dot modifiers (each dot adds half the value of the previous dot)
     for (let i = 0; i < this.dotCount; i++) {
@@ -38,26 +40,26 @@ export class Duration {
     return duration
   }
 
-  increaseBaseDuration(): BaseNoteValue {
+  increasebeats(): BaseNoteValue {
     const values = Object.values(BaseNoteValue).filter(value => typeof value === 'number') as number[] // Get all numeric enum values
-    const currentIndex = values.indexOf(this.baseDuration)
+    const currentIndex = values.indexOf(this.beats)
     if (currentIndex >= 0 && currentIndex < values.length - 1) {
-      this.baseDuration = values[currentIndex + 1] as BaseNoteValue
-      return this.baseDuration
+      this.beats = values[currentIndex + 1] as BaseNoteValue
+      return this.beats
     }
-    return this.baseDuration
+    return this.beats
   }
 
-  decreaseBaseDuration(): BaseNoteValue {
+  decreasebeats(): BaseNoteValue {
     const values = Object.values(BaseNoteValue).filter(value => typeof value === 'number') as number[] // Get all numeric enum values
 
-    const currentIndex = values.indexOf(this.baseDuration)
+    const currentIndex = values.indexOf(this.beats)
     if (currentIndex > 0 && currentIndex < values.length) {
-      this.baseDuration = values[currentIndex - 1] as BaseNoteValue
-      return this.baseDuration
+      this.beats = values[currentIndex - 1] as BaseNoteValue
+      return this.beats
     }
 
-    return this.baseDuration
+    return this.beats
   }
 
   clone(): Duration {
@@ -68,7 +70,7 @@ export class Duration {
   toJSON(): object {
     return Object.assign(
       {
-        baseDuration: this.baseDuration,
+        beats: this.beats,
       },
       this.dotCount == 0 ? {}: { dotCount: this.dotCount },
       !this.isTriplet ? {}: { isTriplet: this.isTriplet},
@@ -81,7 +83,8 @@ export class Duration {
       //deprecated
       return new Duration(data)
     } else {
-      return new Duration(data.baseDuration, data.dotCount, data.isTriplet)
+      // remove legacy beatDuration
+      return new Duration(data.beats ?? data.baseDuration, data.dotCount, data.isTriplet)
     }
   }
 }

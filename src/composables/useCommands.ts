@@ -1,5 +1,4 @@
 import { useKeys } from '@/composables/keys/useKeys'
-import { useCanvas } from './useCanvas'
 import { useCursor } from './useCursor'
 import { Bar } from '@/models/Bar'
 import { toRaw } from 'vue'
@@ -9,6 +8,8 @@ import { useDialog } from 'primevue'
 import { useSound } from './useSound'
 import ScoreSelectorDialog from '@/components/ScoreSelectorDialog.vue'
 import { useDataStore } from './datastores/useDataStore'
+import { Technique } from '@/models/Note'
+import { BaseNoteValue } from '@/models/Duration'
 
 // Import useCanvas but don't destructure drawScore since we don't need to call it manually anymore
 const { score, track, bar, barId, voice, voiceId, element, elementId, note, noteId, selection } = useCursor()
@@ -23,7 +24,7 @@ export const useCommands = () => {
 
   if (!loaded) {
     bind('^\\d+(.\\d+)?$', sequence => {
-      note.value.fretNumber = parseInt(sequence)
+      note.value.fret = parseInt(sequence)
     })
 
     bind('^ctrl\\+Delete$', () => {
@@ -133,10 +134,10 @@ export const useCommands = () => {
 
     bind('^Delete$', () => {
       if (
-        !isNaN(note.value.fretNumber) &&
+        !isNaN(note.value.fret) &&
         (selection.value.size == 0 || (selection.value.size == 1 && selection.value[0] == element.value))
       ) {
-        note.value.fretNumber = NaN
+        note.value.fret = NaN
       } else if (selection.value.size > 0) {
         const deleteItems = [...selection.value].reverse()
         let deleteBarCount = 0
@@ -160,12 +161,19 @@ export const useCommands = () => {
       selection.value = new Set([newElement!])
     })
 
+    bind('^ctrl\\+Insert$', () => {
+      const bar = track.value.addBar(barId.value)
+      barId.value += 1
+      barId.value -= 1
+      selection.value = new Set([bar])
+    })
+
     bind('^\\[$', () => {
-      element.value.duration.increaseBaseDuration()
+      element.value.duration.increasebeats()
     })
 
     bind('^\\]$', () => {
-      element.value.duration.decreaseBaseDuration() // /= 2
+      element.value.duration.decreasebeats() // /= 2
     })
 
     bind('^\\.$', () => {
@@ -181,7 +189,32 @@ export const useCommands = () => {
       console.log('triplet')
       element.value.duration.isTriplet = !element.value.duration.isTriplet
     })
-
+    bind('^b$', () => {
+      console.log('bend')
+      note.value.toggleTechnique(Technique.Bend)
+    })
+    bind('^h$', () => {
+      console.log('hammer')
+      note.value.toggleTechnique(Technique.HammerOn)
+    })
+    bind('^p$', () => {
+      console.log('pull')
+      note.value.toggleTechnique(Technique.PullOff)
+    })
+    bind('^s$', () => {
+      console.log('slideDown')
+      note.value.toggleTechnique(Technique.SlideDown)
+    })
+    bind('^g$', () => {
+      console.log('grace')
+      element.value.duration.beats = element.value.duration.beats == BaseNoteValue.Grace
+                                              ? BaseNoteValue.Quarter
+                                              : BaseNoteValue.Grace
+    })
+    bind('^shift\\+S$', () => {
+      console.log('slideUp')
+      note.value.toggleTechnique(Technique.SlideUp)
+    })
     bind('^\\ $', () => {
       togglePlay()
     })

@@ -14,26 +14,28 @@ type InstrumentMap = {
 
 type Tone = {
   name: string
+  sampleName: string
   samples: string[]
 }
 
+type Tuning = {
+  name: string
+  notes: Note[]
+}
+
 class Instrument {
-  instrumentName: string
-  tuningName: string
-  toneName: string
-  tuning: string[]
+  name: string
+  tuning: Tuning
   tone: Tone
 
   constructor(
-    instrumentName: string = 'Guitar',
-    tuningName: string = 'Standard',
-    toneName: string = 'Default',
+    instrument: string = 'Guitar',
+    tuning: string = 'Standard',
+    tone: string = 'Default',
   ) {
-    this.instrumentName = instrumentName
-    this.tuningName = tuningName
-    this.toneName = toneName
-    this.tuning = instruments[instrumentName].tunings[tuningName]
-    this.tone = instruments[instrumentName].tones[toneName]
+    this.name = instrument
+    this.tuning = {name: tuning, notes: instruments[instrument].tunings[tuning]}
+    this.tone = {name: tone, samples: instruments[instrument].tones[tone].samples, sampleName: instruments[instrument].tones[tone].name}
   }
 }
 

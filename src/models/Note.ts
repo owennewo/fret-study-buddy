@@ -4,7 +4,6 @@ import type { Score } from './Score'
 import type { Track } from './Track'
 import type { Voice } from './Voice'
 import type { VoiceElement } from './VoiceElement'
-import type { Duration } from './Duration'
 
 const KEYS = [
   {
@@ -76,20 +75,20 @@ type Finger = typeof NaN | 0 | 1 | 2 | 3 | 4
 
 class Note {
   _element: VoiceElement
-  fretNumber: number // e.g., 0 (open string), 1, 2, etc.
+  fret: number // e.g., 0 (open string), 1, 2, etc.
   techniques: Technique[] // Optional technique
   rightHandFinger: Finger = NaN
   leftHandFinger: Finger = NaN
 
   constructor(
     element: VoiceElement,
-    fretNumber: number,
+    fret: number,
     techniques: Technique[] = [],
     leftHandFinger: Finger = NaN,
     rightHandFinger: Finger = NaN,
   ) {
     this._element = element
-    this.fretNumber = fretNumber
+    this.fret = fret
     this.techniques = techniques
     this.leftHandFinger = leftHandFinger !== null ? NaN : leftHandFinger
     this.rightHandFinger = rightHandFinger !== null ? NaN : rightHandFinger
@@ -163,12 +162,12 @@ class Note {
     return this.toKeyName(keyIndex) + octave
   }
 
-  isRest = (): boolean => isNaN(this.fretNumber)
+  isRest = (): boolean => isNaN(this.fret)
 
   pitch = (): string => {
     const instrument = this.track().instrument
-    const base = instrument.tuning[this.index()]
-    const keyIndex = Note.toNoteIndex(base) + this.fretNumber
+    const base = instrument.tuning.notes[this.index()]
+    const keyIndex = Note.toNoteIndex(base) + this.fret
     return Note.toNoteName(keyIndex)
   }
 
@@ -176,7 +175,7 @@ class Note {
     console.log(prefix, {
       index: this.index(),
       note: {
-        fretNumber: this.fretNumber,
+        fret: this.fret,
         tailCount: this._element.tailCount(),
         tailTypeName: this._element.tailTypeName(),
         location: this._element.location(),
@@ -286,14 +285,14 @@ class Note {
         // techniques: this.techniques,
       },
       this.techniques.length == 0 ? {}: { techniques: this.techniques},
-      isNaN(this.fretNumber) ? {} : { fretNumber: this.fretNumber},
+      isNaN(this.fret) ? {} : { fret: this.fret},
       isNaN(this.leftHandFinger) ? {} : { leftHandFinger: this.leftHandFinger },
       isNaN(this.rightHandFinger) ? {} : { rightHandFinger: this.rightHandFinger },
     )
   }
 
   static fromJSON(element: VoiceElement, data: any): Note {
-    return new Note(element, data.fretNumber ?? NaN, data.techniques, data.leftHandFinger, data.rightHandFinger)
+    return new Note(element, data.fret ?? data.fretNumber ?? NaN, data.techniques, data.leftHandFinger, data.rightHandFinger)
   }
 }
 

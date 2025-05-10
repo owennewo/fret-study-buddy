@@ -125,7 +125,7 @@ export function useDataStore() {
       }
       const scoreText = JSON.stringify(score.toJSON())
       const hash = await hashJson(scoreText)
-      console.log(scoreText)
+      console.log(JSON.stringify(score.toJSON(), null, 2))
       if (exists && hash == oldHash) {
         console.log("Nothing has changed, don't save")
         score.metadata!.modifiedDateTime = oldModifiedDateTime

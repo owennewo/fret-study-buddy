@@ -41,7 +41,6 @@ onMounted(async () => {
 })
 
 const addScore = async (row) => {
-  debugger
   // console.log('Adding Score to Project: ', row.data.projectId)
   score.value = Score.new()
   const summary = await datastore.saveLocal(score.value)

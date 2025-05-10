@@ -175,14 +175,14 @@ watch(note, () => {
         <i :class="`pi ${isDarkMode ? 'pi-sun' : 'pi pi-moon'}`" @click="toggleDarkMode"></i>
       </template>
     </p-toolbar>
-    <p-tabs value="0">
+    <p-tabs v-if="note" value="0">
       <p-tablist>
         <p-tab value="0">Note</p-tab>
         <p-tab value="1">Bar</p-tab>
       </p-tablist>
       <p-tabpanels>
         <p-tabpanel value="0">
-          <p-selectbutton v-model="note.fretNumber" :options="fretOptions" optionLabel="label" optionValue="value"
+          <p-selectbutton v-model="note.fret" :options="fretOptions" optionLabel="label" optionValue="value"
             dataKey="label" aria-labelledby="custom">
             <template #option="{ option }">
               <div :class="`fret-option`">{{ option.label }}</div>

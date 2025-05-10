@@ -7,14 +7,14 @@ import { computed } from 'vue'
 
 const instrumentOptions = computed(() => Object.keys(instruments))
 
-const tuningOptions = instrumentName => {
-  if (!instrumentName) return []
-  return Object.keys(instruments[instrumentName].tunings)
+const tuningOptions = instrument => {
+  if (!instrument) return []
+  return Object.keys(instruments[instrument].tunings)
 }
 
-const toneOptions = instrumentName => {
-  if (!instrumentName) return []
-  return Object.keys(instruments[instrumentName].tones)
+const toneOptions = instrument => {
+  if (!instrument) return []
+  return Object.keys(instruments[instrument].tones)
 }
 
 const addTrack = () => {
@@ -93,7 +93,7 @@ const removeTrack = index => {
       <p-tabpanel v-for="(track, index) in score._tracks" :key="index" :value="index" class="vertically-spaced">
         <p-floatlabel variant="on">
           <p-select
-            v-model="track.instrument.instrumentName"
+            v-model="track.instrument.instrument"
             :options="instrumentOptions"
             inputId="instrument"
             :id="'instrument-' + index"
@@ -103,8 +103,8 @@ const removeTrack = index => {
         </p-floatlabel>
         <p-floatlabel variant="on">
           <p-select
-            v-model="track.instrument.tuningName"
-            :options="tuningOptions(track.instrument.instrumentName)"
+            v-model="track.instrument.tuning"
+            :options="tuningOptions(track.instrument.instrument)"
             :id="'tuning-' + index"
             placeholder="Select Tuning"
           />
@@ -112,8 +112,8 @@ const removeTrack = index => {
         </p-floatlabel>
         <p-floatlabel variant="on">
           <p-select
-            v-model="track.instrument.toneName"
-            :options="toneOptions(track.instrument.instrumentName)"
+            v-model="track.instrument.tone"
+            :options="toneOptions(track.instrument.instrument)"
             :id="'tone-' + index"
             placeholder="Select Tone"
           />
