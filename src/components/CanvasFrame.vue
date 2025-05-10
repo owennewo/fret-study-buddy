@@ -41,12 +41,13 @@ onUnmounted(() => {
   }
 })
 
+// ...existing code...
 watch(clickEvent, () => {
   console.log('clickEvent')
   if (clickEvent.value) {
-    const t = clickEvent.value.target
+    const t = clickEvent.value.target as { toGlobal?: (pos: { x: number, y: number }) => { x: number, y: number }, height?: number, [key: string]: any }
     const source = t['source']
-    if (source instanceof Bar) {
+    if (source instanceof Bar && typeof t.toGlobal === 'function' && typeof t.height === 'number') {
       const p = t.toGlobal({ x: 0, y: 0 })
       console.log('scrolling to bar', p.x, p.y)
       barPopover.value.$el.style.left = `${p.x}px`
@@ -56,6 +57,7 @@ watch(clickEvent, () => {
     }
   }
 })
+
 
 </script>
 

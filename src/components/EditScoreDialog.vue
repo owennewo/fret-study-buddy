@@ -93,7 +93,7 @@ const removeTrack = index => {
       <p-tabpanel v-for="(track, index) in score._tracks" :key="index" :value="index" class="vertically-spaced">
         <p-floatlabel variant="on">
           <p-select
-            v-model="track.instrument.instrument"
+            v-model="track.instrument.name"
             :options="instrumentOptions"
             inputId="instrument"
             :id="'instrument-' + index"
@@ -103,8 +103,8 @@ const removeTrack = index => {
         </p-floatlabel>
         <p-floatlabel variant="on">
           <p-select
-            v-model="track.instrument.tuning"
-            :options="tuningOptions(track.instrument.instrument)"
+            v-model="track.instrument.tuning.name"
+            :options="tuningOptions(track.instrument.name)"
             :id="'tuning-' + index"
             placeholder="Select Tuning"
           />
@@ -112,8 +112,8 @@ const removeTrack = index => {
         </p-floatlabel>
         <p-floatlabel variant="on">
           <p-select
-            v-model="track.instrument.tone"
-            :options="toneOptions(track.instrument.instrument)"
+            v-model="track.instrument.tone.sampleName"
+            :options="toneOptions(track.instrument.name)"
             :id="'tone-' + index"
             placeholder="Select Tone"
           />

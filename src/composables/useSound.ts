@@ -143,12 +143,12 @@ export const useSound = () => {
             let time = nextVoiceTimes[element.voice().index()]
             time = Math.round(time * 1000) / 1000;  // round to 3 decimal places
             // console.log(`${element.bar().index()}:${element.voice().index()}:${element.index()} ${time}`)
-            let event = {
-              element: element,
-              time: time,
-            }
+            // const event = {
+            //   element: element,
+            //   time: time,
+            // }
 
-            noteTuples.push([time, event])
+            noteTuples.push([time, element])
           }
           let duration = element.beatDuration()
           if (element.isLast()) {
@@ -165,8 +165,8 @@ export const useSound = () => {
         })
     })
 
-    part = new Tone.Part((time, event: VoiceElement) => {
-      const element = event.element
+    part = new Tone.Part((time, element: VoiceElement) => {
+      // const element = event.element
       const duration = element.beatDuration()
 
       // Collect all pitches for the chord
@@ -206,14 +206,15 @@ export const useSound = () => {
       }
     }, noteTuples)
 
-    const noteEndTimes = part._events.values().map(event => {
+    // // @ts-expect-error: Accessing private property _events for timing calculation
+    // const noteEndTimes = part._events.values().map(event => {
 
-      const startTime = Tone.Time(event.value.time).toSeconds();
-      const duration = Tone.Time(event.value.element.beatDuration()).toSeconds(); // default to 0 if no duration provided
-      return startTime + duration;
-    });
-    const partLength = Math.max(...noteEndTimes);
-    console.log('partLength', partLength)
+    //   const startTime = Tone.Time(event.value.time).toSeconds();
+    //   const duration = Tone.Time(event.value.element.beatDuration()).toSeconds(); // default to 0 if no duration provided
+    //   return startTime + duration;
+    // });
+    // const partLength = Math.max(...noteEndTimes);
+    // console.log('partLength', partLength)
 
     part.start(0)
 

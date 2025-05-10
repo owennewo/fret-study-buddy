@@ -13,7 +13,7 @@ type InstrumentMap = {
 }
 
 type Tone = {
-  name: string
+  name?: string
   sampleName: string
   samples: string[]
 }
@@ -35,7 +35,7 @@ class Instrument {
   ) {
     this.name = instrument
     this.tuning = {name: tuning, notes: instruments[instrument].tunings[tuning]}
-    this.tone = {name: tone, samples: instruments[instrument].tones[tone].samples, sampleName: instruments[instrument].tones[tone].name}
+    this.tone = {name: tone, samples: instruments[instrument].tones[tone].samples, sampleName: instruments[instrument].tones[tone].sampleName}
   }
 }
 
@@ -54,19 +54,19 @@ const instruments: InstrumentMap = {
     },
     tones: {
       Default: {
-        name: 'guitar-acoustic',
+        sampleName: 'guitar-acoustic',
         samples: ['E2', 'A2', 'D3', 'G3', 'B3', 'E4', 'D5'],
       },
       Acoustc: {
-        name: 'guitar-acoustic',
+        sampleName: 'guitar-acoustic',
         samples: ['E2', 'A2', 'D3', 'G3', 'B3', 'E4', 'd5'],
       },
       Electric: {
-        name: 'guitar-electric',
+        sampleName: 'guitar-electric',
         samples: ['E2', 'A2', 'D#3', 'F#3', 'C3', 'F#4'],
       },
       Nylon: {
-        name: 'guitar-nylon',
+        sampleName: 'guitar-nylon',
         samples: ['E2', 'A2', 'D3', 'G3', 'B3', 'E4', 'D5'],
       },
     },
@@ -79,15 +79,15 @@ const instruments: InstrumentMap = {
     },
     tones: {
       Default: {
-        name: 'bass-electric',
+        sampleName: 'bass-electric',
         samples: ['E1', 'A#1', 'C#2', 'G2', 'C#3', 'G3', 'C#4', 'G4', 'C#5'],
       },
       Electric: {
-        name: 'bass-electric',
+        sampleName: 'bass-electric',
         samples: ['E1', 'A#1', 'C#2', 'G2', 'C#3', 'G3', 'C#4', 'G4', 'C#5'],
       },
       Upright: {
-        name: 'contrabass',
+        sampleName: 'contrabass',
         samples: ['F#1', 'A#1', 'D2', 'G#2', 'C#3', 'G#3', 'B3'],
       },
     },
@@ -99,7 +99,7 @@ const instruments: InstrumentMap = {
     },
     tones: {
       Default: {
-        name: 'cello',
+        sampleName: 'cello',
         samples: ['C2', 'G2', 'D3', 'A3', 'D4', 'A4', 'C5'],
       },
     },
@@ -111,7 +111,7 @@ const instruments: InstrumentMap = {
     },
     tones: {
       Default: {
-        name: 'violin',
+        sampleName: 'violin',
         samples: ['G3', 'C4', 'G4', 'E5', 'C6', 'G6'],
       },
     },
