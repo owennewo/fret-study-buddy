@@ -31,15 +31,15 @@ export const useBarRenderer = (
     })
 
     // Add interactivity
-    if (!c.interactive) {
-      c.interactive = true
-      c['source'] = bar
-      c.on('pointerdown', (event) => {
-        console.log('Bar clicked', bar.index())
-        // event.stopPropagation()
-        refs.clickEvent.value = event
-      })
-    }
+    // if (!c.interactive) {
+    //   c.interactive = true
+    //   c['source'] = bar
+    //   c.on('pointerdown', (event) => {
+    //     console.log('Bar clicked', bar.index())
+    //     event.stopPropagation()
+    //     refs.clickEvent.value = event
+    //   })
+    // }
 
     // Create inner container with padding
     const c2 = new Container({
