@@ -298,8 +298,7 @@ path.vibrato {
 .theCanvas {
   display: block;
   box-sizing: border-box;
-  touch-action: pan-x pan-y;
-
+  touch-action: auto;
 }
 
 .p-toolbar-start {

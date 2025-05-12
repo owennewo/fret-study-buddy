@@ -36,7 +36,7 @@ export const useBarRenderer = (
       c['source'] = bar
       c.on('pointerdown', (event) => {
         console.log('Bar clicked', bar.index())
-        event.stopPropagation()
+        // event.stopPropagation()
         refs.clickEvent.value = event
       })
     }
