@@ -168,6 +168,26 @@ button.p-togglebutton-checked .voice-3 {
   -webkit-overflow-scrolling: touch;
 }
 
+#canvas-wrapper {
+  /* ...existing code... */
+  scrollbar-width: thick;           /* Firefox */
+  scrollbar-color: #888 #f0f0f0;    /* Firefox */
+}
+
+/* Chrome, Edge, Safari (WebKit browsers) */
+#canvas-wrapper::-webkit-scrollbar {
+  width: 18px;                      /* Make scrollbar wider */
+}
+
+#canvas-wrapper::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 9px;
+}
+
+#canvas-wrapper::-webkit-scrollbar-track {
+  background: #f0f0f0;
+}
+
 .dark-mode {
   /* Dark mode colors */
   --border-color: #555;
