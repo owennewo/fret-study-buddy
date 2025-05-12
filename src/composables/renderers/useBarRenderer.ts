@@ -55,7 +55,7 @@ export const useBarRenderer = (
     const g2 = new Graphics()
 
     // Add a transparent rectangle to capture clicks
-    g.rect(0, 0, barWidth, barHeight).fill({ color: 0x000000, alpha: 0 })
+    g.rect(0, 0, barWidth, barHeight).fill({ color: 'red', alpha: refs.selection.value.has(toRaw(bar)) ? 0.5 : 0 })
 
     // Draw horizontal string lines
     for (let i = 0; i < bar.track().stringCount(); i++) {

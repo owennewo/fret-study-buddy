@@ -165,6 +165,7 @@ button.p-togglebutton-checked .voice-3 {
   overflow-x: hidden;
   background-color: pink;
   flex: 1;
+  -webkit-overflow-scrolling: touch;
 }
 
 .dark-mode {
@@ -297,6 +298,8 @@ path.vibrato {
 .theCanvas {
   display: block;
   box-sizing: border-box;
+  touch-action: pan-x pan-y;
+
 }
 
 .p-toolbar-start {

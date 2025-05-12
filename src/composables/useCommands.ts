@@ -32,6 +32,7 @@ export const useCommands = () => {
     })
 
     bind('^ctrl\\+shift\\+ArrowRight$', () => {
+
       if (selection.value.size == 0) {
         selection.value = new Set([bar.value])
       }
@@ -133,10 +134,12 @@ export const useCommands = () => {
     })
 
     bind('^Delete$', () => {
-      if (
-        !isNaN(note.value.fret) &&
-        (selection.value.size == 0 || (selection.value.size == 1 && selection.value[0] == element.value))
-      ) {
+      if (selection.value.size == 0) {
+        // Nothing is selected, do nothing
+        return
+      }
+      if (!isNaN(note.value.fret) && selection.value.size == 1 )
+      {
         note.value.fret = NaN
       } else if (selection.value.size > 0) {
         const deleteItems = [...selection.value].reverse()
@@ -192,6 +195,10 @@ export const useCommands = () => {
     bind('^b$', () => {
       console.log('bend')
       note.value.toggleTechnique(Technique.Bend)
+    })
+    bind('^r$', () => {
+      console.log('rest')
+      note.value.fret = NaN
     })
     bind('^h$', () => {
       console.log('hammer')
@@ -256,6 +263,7 @@ export const useCommands = () => {
         return
       }
       const pasteItems = [...copySelection]
+
       while (pasteItems.length > 0) {
         let pasteItem = toRaw(pasteItems.shift())
         if (pasteItem instanceof Bar) {

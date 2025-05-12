@@ -1,5 +1,5 @@
 import * as Tone from 'tone'
-import { nextTick, ref, toRaw, watch, onMounted, onUnmounted } from 'vue'
+import { nextTick, ref, toRaw } from 'vue'
 import { VoiceElement } from '@/models/VoiceElement'
 import type { Voice } from '@/models/Voice'
 import type { Track } from '@/models/Track'
@@ -178,18 +178,18 @@ export const useSound = () => {
         // Trigger the chord with all pitches
         instrument.triggerAttackRelease(pitches, duration, time)
         // debugger
-        selection.value = new Set([toRaw(element)])
+        // selection.value = new Set([toRaw(element)])
 
         // Schedule visual updates for the chord
         Tone.Draw.schedule(() => {
           setTimeout(
             () => {
               // debugger
-              selection.value = new Set() // Clear selection to trigger redraw
+              // selection.value = new Set() // Clear selection to trigger redraw
               playedCount += 1
               if (playedCount === noteTuples.length) {
                 console.log('ENDED')
-                selection.value = cacheSelection //.map(item => toRaw(item))
+                //selection.value = cacheSelection //.map(item => toRaw(item))
                 isPlaying.value = false
                 Tone.getTransport().stop()
 
@@ -226,8 +226,8 @@ export const useSound = () => {
     isPlaying.value = false
     Tone.getTransport().pause()
     if (selection.value[0] instanceof VoiceElement) {
-      barId.value = selection.value[0].bar().index()
-      elementId.value = selection.value[0].index()
+      // barId.value = selection.value[0].bar().index()
+      // elementId.value = selection.value[0].index()
     }
   }
 

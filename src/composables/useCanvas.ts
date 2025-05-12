@@ -182,7 +182,7 @@ export const useCanvas = () => {
       currentElement.value &&
       currentBar.value &&
       currentTrack.value &&
-      selection.value &&
+      // selection.value &&
       voiceId.value !== undefined &&
       isDarkMode.value !== undefined &&
       colours.value &&
