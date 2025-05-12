@@ -18,7 +18,18 @@ const toggleErrorPopover = event => {
   errorPopover.value.toggle(event)
 }
 
+
 useCommands()
+
+const toggleFullscreen = () => {
+  const el = document.getElementById('canvas-wrapper');
+  if (!el) return;
+  if (!document.fullscreenElement) {
+    el.requestFullscreen?.();
+  } else {
+    document.exitFullscreen?.();
+  }
+}
 
 let resizeObserver: ResizeObserver | null = null
 
@@ -65,6 +76,7 @@ watch(clickEvent, () => {
   <div class="right-column">
     <ToolBar />
     <div ref="canvasContainerRef" id="canvas-wrapper">
+      <button class="fullscreen-btn" @click="toggleFullscreen" title="Toggle Fullscreen">⛶</button>
       <p-badge v-if="score?.errors().length > 0" @click="toggleErrorPopover" severity="danger" size="medium"
         :value="score?.errors().length" class="errorBadge"></p-badge>
 
@@ -143,6 +155,24 @@ button.p-togglebutton-checked .voice-3 {
   color: white;
 }
 </style>
+<style>
+.fullscreen-btn {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 10;
+  background: rgba(255,255,255,0.7);
+  border: none;
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-size: 1.2em;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+.fullscreen-btn:active {
+  background: #eee;
+}
+</style>
 
 <style>
 :root {
@@ -176,7 +206,7 @@ button.p-togglebutton-checked .voice-3 {
 
 /* Chrome, Edge, Safari (WebKit browsers) */
 #canvas-wrapper::-webkit-scrollbar {
-  width: 18px;                      /* Make scrollbar wider */
+  width: 24px;                      /* Make scrollbar wider */
 }
 
 #canvas-wrapper::-webkit-scrollbar-thumb {
