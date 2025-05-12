@@ -171,7 +171,7 @@ button.p-togglebutton-checked .voice-3 {
 #canvas-wrapper {
   /* ...existing code... */
   scrollbar-width: thick;           /* Firefox */
-  scrollbar-color: #888 #f0f0f0;    /* Firefox */
+  /* scrollbar-color: #888 #f0f0f0;    Firefox */
 }
 
 /* Chrome, Edge, Safari (WebKit browsers) */
