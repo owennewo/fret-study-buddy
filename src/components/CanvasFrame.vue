@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted } from 'vue'
+import { computed, ref, watch, onMounted, onUnmounted } from 'vue'
+
 import { useCanvas } from '@/composables/useCanvas'
 import { useCommands } from '@/composables/useCommands'
 import { useCursor } from '@/composables/useCursor'
@@ -8,12 +9,27 @@ import FretboardFrame from './FretboardFrame.vue'
 import { Bar } from '@/models/Bar'
 import { Note } from '@/models/Note'
 
-const { score, scoreId, voiceId, isDarkMode } = useCursor()
+const { score, playbackMarker, barHeight } = useCursor()
 const { canvasRef, canvasContainerRef, voiceColours, clickEvent } = useCanvas()
 
 const errorPopover = ref()
 const barPopover = ref()
 
+const playCursorStyle = computed(() => {
+  const marker = playbackMarker.value ?? 0;
+  const row = Math.floor(marker / 16);
+  const col = marker % 16;
+  return {
+    position: 'absolute',
+    top: `${40 + row * barHeight.value}px`,
+    left: `${(2 + col) * 40}px`,
+    width: '2px',
+    height: `${barHeight.value}px`,
+    background: 'red',
+    zIndex: 20,
+    pointerEvents: 'none',
+  };
+})
 const toggleErrorPopover = event => {
   errorPopover.value.toggle(event)
 }
@@ -75,7 +91,8 @@ watch(clickEvent, () => {
 <template>
   <div class="right-column">
     <ToolBar />
-    <div ref="canvasContainerRef" id="canvas-wrapper">
+    <div ref="canvasContainerRef" id="canvas-wrapper" style="position: relative;">
+      <div id="beat-marker" v-if="playbackMarker != null" :style="playCursorStyle"></div>
       <button class="fullscreen-btn" @click="toggleFullscreen" title="Toggle Fullscreen">⛶</button>
       <p-badge v-if="score?.errors().length > 0" @click="toggleErrorPopover" severity="danger" size="medium"
         :value="score?.errors().length" class="errorBadge"></p-badge>

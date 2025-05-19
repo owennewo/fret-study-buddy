@@ -91,7 +91,7 @@ const removeTrack = index => {
     </p-tablist>
     <p-tabpanels>
       <p-tabpanel v-for="(track, index) in score._tracks" :key="index" :value="index" class="vertically-spaced">
-        <p-floatlabel variant="on">
+        <!-- <p-floatlabel variant="on">
           <p-select
             v-model="track.instrument.name"
             :options="instrumentOptions"
@@ -118,7 +118,29 @@ const removeTrack = index => {
             placeholder="Select Tone"
           />
           <label :for="'tone-' + index">Tone</label>
+        </p-floatlabel> -->
+        <p-floatlabel variant="on">
+          <p-inputnumber :id="'capo-' + index" v-model="track.capo" placeholder="Capo" showButtons class="small" />
+          <label :for="'capo-' + index">Capo</label>
         </p-floatlabel>
+
+        <p-floatlabel variant="on">
+          <p-inputtext :id="'sampleName-' + index" v-model="track.sampleName" placeholder="SampleName" showButtons class="small" />
+          <label :for="'sampleName-' + index">SampleName</label>
+        </p-floatlabel>
+        <p-floatlabel variant="on">
+          <template v-for="(tuning, tuningIndex) in track.tunings" :key="`${index}-tuning-${tuningIndex}`">
+  <p-inputtext
+    :id="`tunings-${index}-${tuningIndex}`"
+    v-model="track.tunings[tuningIndex]"
+    placeholder="Tunings"
+    showButtons
+    class="small"
+  />
+</template>
+          <label :for="'sampleName-' + index">Tunings</label>
+        </p-floatlabel>
+
       </p-tabpanel>
       <p-tabpanel :value="score._tracks.length"> </p-tabpanel>
     </p-tabpanels>

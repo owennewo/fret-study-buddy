@@ -6,15 +6,17 @@ import type { Track } from '@/models/Track'
 import { Bar } from '@/models/Bar'
 import { useCursor } from './useCursor'
 import { useCanvas } from './useCanvas'
+import { instruments} from '@/models/Instruments'
 
 export const useSound = () => {
-  const { score, trackId, barId, elementId, selection, tempoPercent, isPlaybackLooping } = useCursor()
+  const { score, trackId, barId, elementId, selection, tempoPercent, isPlaybackLooping, playbackMarker } = useCursor()
   // Import useCanvas but don't destructure drawScore since we don't need to call it manually anymore
   const isPlaying = ref(false)
   const currentTime = ref(0) // Add a ref to store the current time
   let cacheSelection: Set<Bar | VoiceElement> = new Set([])
   let part: Tone.Part
   let instrument: Tone.Sampler
+
 
   Tone.getTransport().on('stop', () => {
     console.log('stop')
@@ -37,9 +39,10 @@ export const useSound = () => {
 
 
   const loadInstrument = async (track: Track) => {
-    const samples = track.instrument.tone.samples
+    // const samples = track.instrument.tone.samples
+    const samples = instruments["Guitar"].tones["Default"].samples
 
-    const sampleName = track.instrument.tone.sampleName
+    const sampleName = track.sampleName
     const sampleUrls = samples.reduce((acc: object, item) => {
       const filename = item.replace('#', 's') // d# -> ds
       // these urls are specific to nbrowsky sample folder structure and filename
@@ -53,7 +56,7 @@ export const useSound = () => {
       attack: 0.01,
       release: 0.2,
       onload: async () => {
-        console.log(`Instrument ${track.instrument.name} loaded`)
+        console.log(`Instrument ${track.sampleName} loaded`)
       },
     }).toDestination()
     await Tone.loaded()
@@ -108,8 +111,12 @@ export const useSound = () => {
 
     Tone.getTransport().scheduleRepeat((time) => {
       currentTime.value = Tone.getTransport().seconds
-      console.log("time: ", time, Tone.getTransport().state)
-    }, "4n");
+      // Calculate the current beat number (1-based)
+      const beatsPerSecond = Tone.getTransport().bpm.value / 60;
+      const beatNumber = Math.floor(Tone.getTransport().seconds * beatsPerSecond * 4) / 4;
+      playbackMarker.value = beatNumber
+      console.log(`time: ${time}, state: ${Tone.getTransport().state}, beat: ${playbackMarker.value}`);
+    }, "16n");
 
 
     const noteTuples = [] as Array<[number, VoiceElement]>
@@ -179,6 +186,7 @@ export const useSound = () => {
         instrument.triggerAttackRelease(pitches, duration, time)
         // debugger
         // selection.value = new Set([toRaw(element)])
+        console.log("playing",toRaw(element))
 
         // Schedule visual updates for the chord
         Tone.Draw.schedule(() => {
@@ -236,6 +244,6 @@ export const useSound = () => {
     pause,
     togglePlay,
     isPlaying,
-    currentTime, // Export currentTime
+    currentTime,
   }
 }

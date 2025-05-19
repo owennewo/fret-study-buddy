@@ -33,6 +33,7 @@ const isDarkMode = ref(false)
 const isPlaybackLooping = ref(false)
 const googleToken = ref()
 const googleTokenExpiry = ref()
+const playbackMarker = ref(0.0)
 
 const selection: ShallowRef<Set<VoiceElement | Bar>> = shallowRef(new Set<VoiceElement | Bar>())
 
@@ -106,6 +107,10 @@ const note = computed(() => {
   return element.value._notes[noteId.value]
 })
 
+const barHeight = computed(() => {
+  return score.value.fontSize * (track.value.stringCount() + 1)
+})
+
 // const refs = {
 //   currentNote: ref<Note | null>(null),
 //   clickEvent: ref<Event | null>(null),
@@ -158,6 +163,7 @@ export const useCursor = () => {
     googleToken,
     googleTokenExpiry,
     setCursorNote,
-    // refs, // Export refs
+    playbackMarker,
+    barHeight,
   }
 }

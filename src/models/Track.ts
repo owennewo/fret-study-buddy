@@ -6,17 +6,26 @@ import { toRaw } from 'vue'
 
 class Track {
   _score: Score
-  instrument: Instrument
+  // instrument: Instrument
+  sampleName: string
+  tunings: string[]
+  capo: number = 0
   _bars: Bar[]
 
   constructor(
     score: Score,
-    instrument: string = 'Guitar',
-    tuning: string = 'Standard',
-    tone: string = 'Default',
+    sampleName: string,
+    tunings: string[],
+    //instrument: string = 'Guitar',
+    //tuning: string = 'Standard',
+    //tone: string = 'Default',
+    capo: number = 0,
   ) {
     this._score = score
-    this.instrument = new Instrument(instrument, tuning, tone)
+    this.sampleName = sampleName
+    this.tunings = tunings
+    // this.instrument = new Instrument(instrument, tuning, tone)
+    this.capo = capo
     this._bars = []
   }
 
@@ -50,7 +59,7 @@ class Track {
     return this.score()._tracks.indexOf(toRaw(this))
   }
 
-  stringCount = () => this.instrument.tuning.notes.length;
+  stringCount = () => this.tunings.length;
 
   removeBarAt(index: number): void {
     if (index >= 0 && index < this._bars.length) {
@@ -60,9 +69,12 @@ class Track {
 
   toJSON(): object {
     return {
-      instrument: this.instrument.name,
-      tuning: this.instrument.tuning.name,
-      tone: this.instrument.tone.name,
+      // instrument: this.instrument.name,
+      sampleName: this.sampleName,
+      tunings: this.tunings,
+      capo: this.capo,
+      // tuning: this.instrument.tuning.name,
+      // tone: this.instrument.tone.name,
       bars: this._bars.map(bar => bar.toJSON()),
     }
   }
@@ -99,14 +111,14 @@ class Track {
     if (this._bars[0]._voices[0]._elements.length == 0) {
       this._bars[0]._voices[0].addElement()
     }
-  }r
+  }
 
   static new(score: Score): Track {
-    return new Track(score, 'Guitar', 'Standard', 'Default')
+    return new Track(score, 'Guitar-Default', ['E4', 'B3', 'G3', 'D3', 'A2', 'E2'])
   }
 
   static fromJSON(score: Score, data: any): Track {
-    const track = new Track(score, data.instrument ?? data.instrumentName, data.tuning ?? data.tuningName, data.tone ?? data.toneName)
+    const track = new Track(score, data.sampleName ?? 'guitar-nylon', data.tunings ?? ['E4', 'B3', 'G3', 'D3', 'A2', 'E2'], data.capo ?? 0)
     track._bars = data.bars.map((barData: any) => Bar.fromJSON(track, barData))
     return track
   }

@@ -165,9 +165,10 @@ class Note {
   isRest = (): boolean => isNaN(this.fret)
 
   pitch = (): string => {
-    const instrument = this.track().instrument
-    const base = instrument.tuning.notes[this.index()]
-    const keyIndex = Note.toNoteIndex(base) + this.fret
+    // const instrument = this.track().instrument
+    // const base = instrument.tuning.notes[this.index()]
+    const base = this.track().tunings[this.index()]
+    const keyIndex = Note.toNoteIndex(base) + this.fret + this.track().capo
     return Note.toNoteName(keyIndex)
   }
 

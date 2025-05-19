@@ -145,7 +145,7 @@ class VoiceElement {
   }
 
   addRestNotes(): void {
-    const stringLength = this.track().instrument.tuning.notes.length
+    const stringLength = this.track().tunings.length
     for (let i = 0; i < stringLength; i++) {
       if (this._notes.find(note => note.index() === i)) {
         continue
