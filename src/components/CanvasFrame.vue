@@ -28,7 +28,7 @@ const playCursorStyle = computed(() => {
     background: 'red',
     zIndex: 20,
     pointerEvents: 'none',
-  };
+  } as any; // Suppress TS error
 })
 const toggleErrorPopover = event => {
   errorPopover.value.toggle(event)
