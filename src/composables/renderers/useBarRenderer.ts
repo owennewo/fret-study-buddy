@@ -84,8 +84,13 @@ export const useBarRenderer = (
       fill: colours.primary,
     })
 
+    let barText = (bar.index() + 1).toString();
+    if (bar.linkBar) {
+      barText += ` (${bar.linkBar.index() + 1})`
+    }
+
     const t = new Text({
-      text: (bar.index() + 1).toString(),
+      text:  barText,
       style: textStyle,
       x: 0,
       y: -1.5 * bar.score().fontSize,
@@ -99,7 +104,7 @@ export const useBarRenderer = (
     }
 
     // Draw partial beat indicators
-    bar._voices[refs.voiceId.value]._elements.forEach(element => {
+    bar.voices()[refs.voiceId.value]._elements.forEach(element => {
       if (element.location() - Math.floor(element.location()) > 0.1) {
         const x = (usableWidth * element.location()) / bar.timeSignature.beatsPerBar
         g2.moveTo(x, barHeight)
@@ -115,7 +120,7 @@ export const useBarRenderer = (
     c2.addChild(g2)
 
     // Draw all voices in the bar
-    bar._voices.forEach(voice => {
+    bar.voices().forEach(voice => {
       c2.addChild(drawVoice(voice, usableWidth, barHeight))
     })
 

@@ -61,10 +61,10 @@ const voice = computed(() => {
     track.value.addBar()
     barId.value = 0
   }
-  if (voiceId.value > bar.value._voices.length - 1) {
+  if (voiceId.value > bar.value.voices().length - 1) {
     bar.value.addVoice()
   }
-  return bar.value._voices[voiceId.value]
+  return bar.value.voices()[voiceId.value]
 })
 
 const element = computed(() => {

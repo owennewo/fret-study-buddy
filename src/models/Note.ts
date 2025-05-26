@@ -183,7 +183,7 @@ class Note {
         duration: this._element.beatDuration(),
       },
       element: this._element.index() + '/' + this.voice()._elements.length,
-      voice: this.voice().index() + '/' + this.bar()._voices.length,
+      voice: this.voice().index() + '/' + this.bar().voices().length,
       bar: this.bar().index() + '/' + this.track()._bars.length,
       track: this.track().index() + '/' + this.score()._tracks.length,
     })
@@ -213,10 +213,10 @@ class Note {
             if (barIndex == this.track()._bars.length - 1) {
               // last bar so extend
               const newBar = this.track().addBar()
-              return newBar._voices[voiceIndex]._elements[0]._notes[noteIndex]
+              return newBar.voices()[voiceIndex]._elements[0]._notes[noteIndex]
               // return nextElement._notes[noteIndex]
             } else {
-              const newElement = this.track()._bars[barIndex + 1]._voices[voiceIndex]._elements[0]
+              const newElement = this.track()._bars[barIndex + 1].voices()[voiceIndex]._elements[0]
               debugger
               newElement.duration = this._element.duration.clone()
               return newElement._notes[noteIndex]
@@ -239,11 +239,11 @@ class Note {
           } else {
             barIndex -= 1
             const nextBar = this.track()._bars[barIndex]
-            if (nextBar._voices[voiceIndex].empty()) {
-              nextBar._voices[voiceIndex].addElement()
+            if (nextBar.voices()[voiceIndex].empty()) {
+              nextBar.voices()[voiceIndex].addElement()
             }
-            const nextElementId = nextBar._voices[voiceIndex]._elements.length - 1
-            const nextElement = nextBar._voices[voiceIndex]._elements[nextElementId]
+            const nextElementId = nextBar.voices()[voiceIndex]._elements.length - 1
+            const nextElement = nextBar.voices()[voiceIndex]._elements[nextElementId]
             console.log('nextElement', nextElement, noteIndex)
             const nextNote = nextElement._notes[noteIndex]
 

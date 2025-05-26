@@ -95,21 +95,22 @@ class Track {
     return this.score()._tracks[this.score()._tracks.length - 1]
   }
 
+
   verify(): void {
     this._bars.forEach(bar => {
-      if (bar._voices.length > 4) {
+      if (bar.voices().length > 4) {
         console.log('Too many voices in bar, removing some')
-        bar._voices = bar._voices.slice(0, 4)
+        bar._voices = bar.voices().slice(0, 4)
       }
     })
     if (this._bars.length == 0) {
       this.addBar()
     }
-    if (this._bars[0]._voices.length == 0) {
+    if (this._bars[0].voices().length == 0) {
       this._bars[0].addVoice()
     }
-    if (this._bars[0]._voices[0]._elements.length == 0) {
-      this._bars[0]._voices[0].addElement()
+    if (this._bars[0].voices()[0]._elements.length == 0) {
+      this._bars[0].voices()[0].addElement()
     }
   }
 

@@ -19,13 +19,18 @@ const playCursorStyle = computed(() => {
   const marker = playbackMarker.value ?? 0;
   const row = Math.floor(marker / 16);
   const col = marker % 16;
+  const margin = 20;
+  const markerX = margin + (canvasRef.value?.width ? (canvasRef.value.width - margin) / 16 * col : 0);
+  const markerY = canvasRef.value?.height ? (canvasRef.value.height / 16) * row : 0;
   return {
     position: 'absolute',
     top: `${40 + row * barHeight.value}px`,
-    left: `${(2 + col) * 40}px`,
-    width: '2px',
+    left: `${markerX}px`,
+    width: '12px',
     height: `${barHeight.value}px`,
-    background: 'red',
+    background: 'green',
+    opacity: 0.5,
+    borderRadius: '6px',
     zIndex: 20,
     pointerEvents: 'none',
   } as any; // Suppress TS error

@@ -7,6 +7,7 @@ import { toRaw } from 'vue'
 class Bar {
   _track: Track
   timeSignature: TimeSignature
+  linkBar: Bar | null = null
   _voices: Voice[]
   repeatStart: boolean = false
   repeatEndCount: number = 0
@@ -23,6 +24,13 @@ class Bar {
 
   score = (): Score => this.track().score()
   track = (): Track => this._track
+
+  voices = (): Voice[] => {
+    if (this.linkBar) {
+      return this.linkBar.voices()
+    }
+    return this._voices
+  }
 
   next = (extend = true): Bar | null => {
     if (this.index() == this.track()._bars.length - 1) {
@@ -48,11 +56,24 @@ class Bar {
     return this.track()._bars[this.track()._bars.length - 1]
   }
 
+  link = (barIndex: number): void => {
+    this.linkBar = this.track()._bars[barIndex]
+  }
+
+  unlink = (): void => {
+    if (this.linkBar) {
+      const copyBar = this.linkBar.clone()
+      this._voices = copyBar.voices()
+      this.linkBar = null
+    }
+
+  }
+
   index = () => this.track()._bars.indexOf(toRaw(this))
 
   removeVoiceAt(index: number): void {
-    if (index >= 0 && index < this._voices.length) {
-      this._voices.splice(index, 1)
+    if (index >= 0 && index < this.voices().length) {
+      this.voices().splice(index, 1)
     }
   }
 
@@ -64,19 +85,19 @@ class Bar {
   addVoice = (): Voice => {
     // debugger
     const voice = new Voice(this)
-    this._voices.push(voice)
+    this.voices().push(voice)
     voice.addElement()
     return voice
   }
 
-  empty = () => this._voices.flatMap(voice => voice._elements).filter(element => !element.empty()).length == 0
+  empty = () => this.voices().flatMap(voice => voice._elements).filter(element => !element.empty()).length == 0
 
   toJSON(): object {
 
     return Object.assign(
       {
         timeSignature: this.timeSignature,
-        voices: this._voices.map(voice => voice.toJSON()),
+        voices: this.voices().map(voice => voice.toJSON()),
 
         repeatEndCount: this.repeatEndCount,
       },
@@ -87,7 +108,7 @@ class Bar {
   }
 
   isError = (): boolean => {
-    return this._voices.some(voice => voice.isError())
+    return this.voices().some(voice => voice.isError())
   }
 
   static fromJSON(track: Track, data: any): Bar {

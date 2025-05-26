@@ -73,7 +73,7 @@ class Score {
     const errors: Error[] = []
     this._tracks.forEach((track, trackIndex) => {
       track._bars.forEach((bar, barIndex) => {
-        bar._voices.forEach((voice, voiceIndex) => {
+        bar.voices().forEach((voice, voiceIndex) => {
           // voice.elements.forEach((element, element) => {
           if (voice.duration() != this.timeSignature.beatsPerBar) {
             errors.push({

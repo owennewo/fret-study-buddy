@@ -126,7 +126,7 @@ export const useSound = () => {
       if (selection.value.size > 0 && selection.value[0] instanceof Bar && !selection.value.has(toRaw(bar))) {
         return // skips bars not in selection
       }
-      bar._voices
+      bar.voices()
         .flatMap((voice: Voice) => voice._elements)
         .forEach((element: VoiceElement) => {
           // debugger

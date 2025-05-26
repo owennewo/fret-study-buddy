@@ -103,7 +103,7 @@ export const useCommands = () => {
 
     bind('^End$', () => {
       barId.value = bar.value.track()._bars.length - 1
-      elementId.value = bar.value._voices[voiceId.value]._elements.length - 1
+      elementId.value = bar.value.voices()[voiceId.value]._elements.length - 1
       selection.value = new Set([toRaw(element.value)])
     })
 
@@ -288,6 +288,43 @@ export const useCommands = () => {
 
     bind('^ctrl\\+shift\\+z$', () => {
       console.log('redo')
+    })
+
+    // --- Custom: Bind 'l' followed by digits to link(barIndex) with debounce ---
+    let linkSequence = ''
+    let linkTimeout: ReturnType<typeof setTimeout> | null = null
+    bind('^l$', () => {
+      linkSequence = ''
+      if (linkTimeout) clearTimeout(linkTimeout)
+      // Start listening for digits
+      const digitHandler = (e: KeyboardEvent) => {
+        if (/\d/.test(e.key)) {
+          linkSequence += e.key
+          if (linkTimeout) clearTimeout(linkTimeout)
+          linkTimeout = setTimeout(() => {
+            if (linkSequence.length > 0 && bar.value && typeof bar.value.link === 'function') {
+              bar.value.link(parseInt(linkSequence, 10) - 1)
+            }
+            linkSequence = ''
+            window.removeEventListener('keydown', digitHandler)
+            selection.value = new Set([toRaw(bar.value)])
+          }, 500)
+        } else {
+          // Stop listening if a non-digit is pressed
+          if (linkTimeout) clearTimeout(linkTimeout)
+          linkSequence = ''
+          window.removeEventListener('keydown', digitHandler)
+        }
+      }
+      window.addEventListener('keydown', digitHandler)
+    })
+
+    // --- Custom: Bind 'u' to unlink the current bar ---
+    bind('^u$', () => {
+      if (bar.value && typeof bar.value.unlink === 'function') {
+        bar.value.unlink()
+        selection.value = new Set([toRaw(bar.value)])
+      }
     })
 
     loaded = true

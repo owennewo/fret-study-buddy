@@ -20,19 +20,19 @@ class Voice {
   bar = (): Bar => this._bar
 
   next = (): Voice => {
-    return this.bar()._voices[Math.min(this.index() + 1, this.bar()._voices.length - 1)]
+    return this.bar().voices()[Math.min(this.index() + 1, this.bar().voices().length - 1)]
   }
 
   prev = (): Voice => {
-    return this.bar()._voices[Math.max(this.index() - 1, 0)]
+    return this.bar().voices()[Math.max(this.index() - 1, 0)]
   }
 
   first = (): Voice => {
-    return this.bar()._voices[0]
+    return this.bar().voices()[0]
   }
 
   last = (): Voice => {
-    return this.bar()._voices[this.bar()._voices.length - 1]
+    return this.bar().voices()[this.bar().voices().length - 1]
   }
 
   duration = () => this._elements.reduce((acc, element) => acc + element.beatDuration(), 0)
@@ -45,7 +45,7 @@ class Voice {
     const duration =
       this._elements.length > 0
         ? this._elements[this._elements.length - 1].duration.clone() // Last element in this._elements
-        : (this.bar().prev()._voices[this.index()]?._elements.at(-1)?.duration.clone() ?? new Duration(1))
+        : (this.bar().prev().voices()[this.index()]?._elements.at(-1)?.duration.clone() ?? new Duration(1))
 
     const element = new VoiceElement(this, duration, true)
     if (isNaN(position)) {
@@ -63,16 +63,16 @@ class Voice {
     switch (direction) {
       case 'ArrowUp':
       case 'ArrowLeft':
-        return this._bar._voices[Math.max(voiceIndex - 1, 0)]
+        return this._bar.voices()[Math.max(voiceIndex - 1, 0)]
       case 'ArrowDown':
       case 'ArrowRight':
         if (voiceIndex + 1 >= 4) {
           return this
         } else {
-          if (voiceIndex >= this._bar._voices.length - 1) {
+          if (voiceIndex >= this._bar.voices().length - 1) {
             return this._bar.addVoice()
           } else {
-            return this._bar._voices[voiceIndex + 1]
+            return this._bar.voices()[voiceIndex + 1]
           }
         }
     }
@@ -89,7 +89,7 @@ class Voice {
   }
 
   index(): number {
-    return this.bar()._voices.indexOf(toRaw(this))
+    return this.bar().voices().indexOf(toRaw(this))
   }
 
   toJSON(): object {
