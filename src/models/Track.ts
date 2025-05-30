@@ -119,7 +119,7 @@ class Track {
   }
 
   static fromJSON(score: Score, data: any): Track {
-    const track = new Track(score, data.sampleName ?? 'guitar-nylon', data.tunings ?? ['E4', 'B3', 'G3', 'D3', 'A2', 'E2'], data.capo ?? 0)
+    const track = new Track(score, data.sampleName ?? 'guitar-acoustic', data.tunings ?? ['E4', 'B3', 'G3', 'D3', 'A2', 'E2'], data.capo ?? 0)
     track._bars = data.bars.map((barData: any) => Bar.fromJSON(track, barData))
     return track
   }

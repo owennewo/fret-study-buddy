@@ -169,7 +169,7 @@ class VoiceElement {
         duration: this.duration.toJSON(),
         notes: this._notes.map(note => note.toJSON()),
       },
-      this.name == null ? {}: { name: this.name},
+      this.name == null ? {} : { name: this.name },
     )
   }
 }

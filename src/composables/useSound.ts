@@ -6,7 +6,7 @@ import type { Track } from '@/models/Track'
 import { Bar } from '@/models/Bar'
 import { useCursor } from './useCursor'
 import { useCanvas } from './useCanvas'
-import { instruments} from '@/models/Instruments'
+import { instruments } from '@/models/Instruments'
 
 export const useSound = () => {
   const { score, trackId, barId, elementId, selection, tempoPercent, isPlaybackLooping, playbackMarker } = useCursor()
@@ -183,10 +183,10 @@ export const useSound = () => {
 
       if (pitches.length > 0) {
         // Trigger the chord with all pitches
-        instrument.triggerAttackRelease(pitches, duration, time)
+        instrument.triggerAttackRelease(pitches, duration * 1.5, time)
         // debugger
         // selection.value = new Set([toRaw(element)])
-        console.log("playing",toRaw(element))
+        console.log("playing", toRaw(element))
 
         // Schedule visual updates for the chord
         Tone.Draw.schedule(() => {

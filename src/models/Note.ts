@@ -4,6 +4,7 @@ import type { Score } from './Score'
 import type { Track } from './Track'
 import type { Voice } from './Voice'
 import type { VoiceElement } from './VoiceElement'
+import type { Duration } from './Duration'
 
 const KEYS = [
   {
@@ -165,9 +166,8 @@ class Note {
   isRest = (): boolean => isNaN(this.fret)
 
   pitch = (): string => {
-    // const instrument = this.track().instrument
-    // const base = instrument.tuning.notes[this.index()]
-    const base = this.track().tunings[this.index()]
+    const tunings = this.track().tunings
+    const base = tunings[this.index()]
     const keyIndex = Note.toNoteIndex(base) + this.fret + this.track().capo
     return Note.toNoteName(keyIndex)
   }
@@ -183,7 +183,7 @@ class Note {
         duration: this._element.beatDuration(),
       },
       element: this._element.index() + '/' + this.voice()._elements.length,
-      voice: this.voice().index() + '/' + this.bar().voices().length,
+      voice: this.voice().index() + '/' + this.bar()._voices.length,
       bar: this.bar().index() + '/' + this.track()._bars.length,
       track: this.track().index() + '/' + this.score()._tracks.length,
     })
@@ -213,10 +213,10 @@ class Note {
             if (barIndex == this.track()._bars.length - 1) {
               // last bar so extend
               const newBar = this.track().addBar()
-              return newBar.voices()[voiceIndex]._elements[0]._notes[noteIndex]
+              return newBar._voices[voiceIndex]._elements[0]._notes[noteIndex]
               // return nextElement._notes[noteIndex]
             } else {
-              const newElement = this.track()._bars[barIndex + 1].voices()[voiceIndex]._elements[0]
+              const newElement = this.track()._bars[barIndex + 1]._voices[voiceIndex]._elements[0]
               debugger
               newElement.duration = this._element.duration.clone()
               return newElement._notes[noteIndex]
@@ -239,11 +239,11 @@ class Note {
           } else {
             barIndex -= 1
             const nextBar = this.track()._bars[barIndex]
-            if (nextBar.voices()[voiceIndex].empty()) {
-              nextBar.voices()[voiceIndex].addElement()
+            if (nextBar._voices[voiceIndex].empty()) {
+              nextBar._voices[voiceIndex].addElement()
             }
-            const nextElementId = nextBar.voices()[voiceIndex]._elements.length - 1
-            const nextElement = nextBar.voices()[voiceIndex]._elements[nextElementId]
+            const nextElementId = nextBar._voices[voiceIndex]._elements.length - 1
+            const nextElement = nextBar._voices[voiceIndex]._elements[nextElementId]
             console.log('nextElement', nextElement, noteIndex)
             const nextNote = nextElement._notes[noteIndex]
 
@@ -285,15 +285,15 @@ class Note {
       {
         // techniques: this.techniques,
       },
-      this.techniques.length == 0 ? {}: { techniques: this.techniques},
-      isNaN(this.fret) ? {} : { fret: this.fret},
+      this.techniques.length == 0 ? {} : { techniques: this.techniques },
+      isNaN(this.fret) ? {} : { fret: this.fret },
       isNaN(this.leftHandFinger) ? {} : { leftHandFinger: this.leftHandFinger },
       isNaN(this.rightHandFinger) ? {} : { rightHandFinger: this.rightHandFinger },
     )
   }
 
   static fromJSON(element: VoiceElement, data: any): Note {
-    return new Note(element, data.fret ?? data.fretNumber ?? NaN, data.techniques, data.leftHandFinger, data.rightHandFinger)
+    return new Note(element, data.fret ?? NaN, data.techniques, data.leftHandFinger, data.rightHandFinger)
   }
 }
 

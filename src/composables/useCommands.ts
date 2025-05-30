@@ -28,7 +28,11 @@ export const useCommands = () => {
     })
 
     bind('^ctrl\\+Delete$', () => {
-      track.value!.removeBarAt(bar.value!.index())
+      const oldBarId = bar.value!.index()
+      console.log('removing', oldBarId)
+      track.value!.removeBarAt(oldBarId)
+      barId.value = oldBarId - 1;
+      // selection.value = new Set([toRaw(bar.value)])
     })
 
     bind('^ctrl\\+shift\\+ArrowRight$', () => {
@@ -138,8 +142,7 @@ export const useCommands = () => {
         // Nothing is selected, do nothing
         return
       }
-      if (!isNaN(note.value.fret) && selection.value.size == 1 )
-      {
+      if (!isNaN(note.value.fret) && selection.value.size == 1) {
         note.value.fret = NaN
       } else if (selection.value.size > 0) {
         const deleteItems = [...selection.value].reverse()
@@ -215,8 +218,8 @@ export const useCommands = () => {
     bind('^g$', () => {
       console.log('grace')
       element.value.duration.beats = element.value.duration.beats == BaseNoteValue.Grace
-                                              ? BaseNoteValue.Quarter
-                                              : BaseNoteValue.Grace
+        ? BaseNoteValue.Quarter
+        : BaseNoteValue.Grace
     })
     bind('^shift\\+S$', () => {
       console.log('slideUp')
@@ -230,7 +233,7 @@ export const useCommands = () => {
       console.log('info')
       dialog.open(NoteDialog, {
         props: {
-          header: 'Edit Score',
+          header: 'Edit Bar/Element/Note',
           modal: true,
           dismissableMask: true,
         },
