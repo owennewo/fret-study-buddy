@@ -76,7 +76,7 @@ const actions = (data) => {
       label: 'Pull',
       command: async () => {
         const rowScore = await datastore.getRemote(data.remote)
-        datastore.saveLocal(rowScore)
+        datastore.saveLocal(rowScore, true)
       }
     },
     { separator: true },

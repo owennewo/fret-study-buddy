@@ -29,10 +29,8 @@ export const useCommands = () => {
 
     bind('^ctrl\\+Delete$', () => {
       const oldBarId = bar.value!.index()
-      console.log('removing', oldBarId)
       track.value!.removeBarAt(oldBarId)
       barId.value = oldBarId - 1;
-      // selection.value = new Set([toRaw(bar.value)])
     })
 
     bind('^ctrl\\+shift\\+ArrowRight$', () => {
@@ -142,7 +140,14 @@ export const useCommands = () => {
         // Nothing is selected, do nothing
         return
       }
-      if (!isNaN(note.value.fret) && selection.value.size == 1) {
+      if (bar.value.empty()) {
+        //todo: remove duplicate code
+        const oldBarId = bar.value!.index()
+        track.value!.removeBarAt(oldBarId)
+        barId.value = oldBarId - 1;
+
+      }
+      else if (!isNaN(note.value.fret) && selection.value.size == 1) {
         note.value.fret = NaN
       } else if (selection.value.size > 0) {
         const deleteItems = [...selection.value].reverse()

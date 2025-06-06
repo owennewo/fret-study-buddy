@@ -108,7 +108,7 @@ export function useDataStore() {
       return await griveDataStore.getScore(metadata)
     },
 
-    saveLocal: async (score: Score) => {
+    saveLocal: async (score: Score, force: boolean = false) => {
       // we want to hash the score without the metadata as this can have
       // unimportant data that would otherwise change the hash
 
@@ -126,7 +126,7 @@ export function useDataStore() {
       const scoreText = JSON.stringify(score.toJSON())
       const hash = await hashJson(scoreText)
       console.log(JSON.stringify(score.toJSON(), null, 2))
-      if (exists && hash == oldHash) {
+      if (exists && hash == oldHash && !force) {
         console.log("Nothing has changed, don't save")
         score.metadata!.modifiedDateTime = oldModifiedDateTime
         score.metadata!.version = oldVersion
@@ -134,7 +134,11 @@ export function useDataStore() {
         return score.metadata!
       }
       if (exists) {
-        score.metadata!.version = oldVersion! + 1
+        if (score.metadata!.clientId == clientId.value) {
+          score.metadata!.version = oldVersion! + 1
+        } else {
+          score.metadata!.version = oldVersion!
+        }
         score.metadata!.modifiedDateTime = new Date()
         score.metadata!.hash = hash
         score.metadata!.clientId = clientId.value
