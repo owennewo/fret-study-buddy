@@ -15,9 +15,9 @@ const SETTINGS_STORE = 'Settings'
 export function useLocalDataStore() {
 
 
-  const { projectId, projectName, scoreId, tempoPercent, isDarkMode, isPlaybackLooping, clientId, googleToken, googleTokenExpiry } = useCursor()
+  const { projectId, projectName, scoreId, tempoPercent, isDarkMode, isPlaybackLooping, useGDrive, clientId, googleToken, googleTokenExpiry } = useCursor()
 
-  watch([projectId, clientId, projectName, scoreId, tempoPercent, isDarkMode, isPlaybackLooping, googleToken], () => {
+  watch([projectId, clientId, projectName, scoreId, tempoPercent, isDarkMode, isPlaybackLooping, useGDrive, googleToken], () => {
     saveSettingsToDB()
   })
 
@@ -57,6 +57,7 @@ export function useLocalDataStore() {
     tempoPercent.value = settings?.tempoPercent ?? 100
     isDarkMode.value = settings?.isDarkMode ?? false
     isPlaybackLooping.value = settings?.isPlaybackLooping ?? false
+    useGDrive.value = settings?.useGDrive ?? false
     googleToken.value = settings?.googleToken
     googleTokenExpiry.value = settings?.googleTokenExpiry
 
@@ -78,6 +79,7 @@ export function useLocalDataStore() {
       tempoPercent: tempoPercent.value,
       isDarkMode: isDarkMode.value,
       isPlaybackLooping: isPlaybackLooping.value,
+      useGDrive: useGDrive.value,
       googleToken: googleToken.value,
       googleTokenExpiry: googleTokenExpiry.value,
     }
@@ -119,7 +121,7 @@ export function useLocalDataStore() {
       const key = await db.getKey(SCORES_STORE, scoreId);
       return key !== undefined;
     },
-    deleteScore: async (scoreId) => {
+    deleteScore: async (scoreId: string) => {
       const db = await openDatabase()
       await db.delete(SCORES_STORE, scoreId)
     },
@@ -138,7 +140,7 @@ export function useLocalDataStore() {
       return score.metadata!
     },
 
-    syncScore: async (score: Score) => {
+    syncScore: async () => {
       // do nothing
     }
 
